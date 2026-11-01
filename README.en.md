@@ -4,27 +4,27 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.4</p>
+  <p>Desktop plugin · v0.1.5</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
 ---
 
-`tongji` places a session statistics summary in the DSH right sidebar. It subscribes to the current Session's official statistics snapshot and the `sessionStats` and `tokenUsage` projections. It does not make additional model or tool calls, and the built-in Statistics view remains unchanged.
+`tongji` places a session statistics summary in the DSH right sidebar. It reads the session statistics snapshot and reported usage from session logs. It makes no additional model or tool calls, and the built-in Statistics view remains unchanged.
 
 ## Features
 
 | Session totals | Per-turn summary | Step status |
 | --- | --- | --- |
-| Context, cache hit, output, and output speed | The same official metrics; turns are collapsed by default and earlier history is paged in through the official loader | Expand a turn to see step summaries; success, failure, and running use green, red, and yellow |
+| Cumulative context, cache hit, output, and main-agent output speed | Cumulative context and output, including available child usage; turns are collapsed by default | Expand a turn to see main-agent step summaries |
 
-Context and output use `K` / `M` abbreviations. Missing values display as `—`. `M` is used from 1,000,000 tokens.
+Totals and turns both accumulate reported context and output, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. External agents and missing usage are unknown: `+` marks an incomplete known amount and `—` means no available amount. Cache hit uses known usage only; speed and step details cover the main agent only. Context and output use `K` / `M` abbreviations; `M` starts at 1,000,000 tokens.
 
 ## How it works
 
 ![tongji data flow: the current session's official statistics snapshot and projections feed the sidebar card](docs/assets/workflow.en.svg)
 
-The plugin reads the current session's existing statistics snapshot and usage projections, then renders them in its own right-sidebar tab. The card binds to the new Session when you switch conversations. The original Statistics view remains available in its existing location.
+The plugin reads the current session's statistics snapshot and uses the Host `sessionQuery` to calculate usage from the session and child logs. It renders the result in its own right-sidebar tab. The original Statistics view remains available in its existing location.
 
 ## Installation
 
