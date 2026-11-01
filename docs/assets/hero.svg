@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 350" role="img" aria-labelledby="title desc">
+  <title id="title">tongji session statistics</title>
+  <desc id="desc">A dark technical banner showing a DSH sidebar statistics card connected to session metrics.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#102a35"/>
+      <stop offset="1" stop-color="#17213a"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" x2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1120" height="350" rx="24" fill="url(#bg)"/>
+  <path d="M52 278H1068M52 238H1068M52 198H1068M52 158H1068" stroke="#fff" stroke-opacity=".07"/>
+  <path d="M70 236C166 206 210 240 286 186S430 188 506 143s133-13 190-48 124-25 184-65" fill="none" stroke="url(#line)" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="70" cy="236" r="7" fill="#5eead4"/><circle cx="286" cy="186" r="7" fill="#5eead4"/><circle cx="506" cy="143" r="7" fill="#a78bfa"/><circle cx="696" cy="95" r="7" fill="#fb7185"/><circle cx="880" cy="30" r="7" fill="#fbbf24"/>
+  <rect x="774" y="102" width="290" height="178" rx="16" fill="#f8fafc" fill-opacity=".97"/>
+  <rect x="796" y="124" width="88" height="9" rx="4.5" fill="#64748b"/>
+  <rect x="796" y="153" width="116" height="47" rx="9" fill="#e2e8f0"/><rect x="928" y="153" width="104" height="47" rx="9" fill="#e2e8f0"/>
+  <text x="812" y="174" fill="#0f766e" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="18" font-weight="700">26.2M</text>
+  <text x="944" y="174" fill="#7c3aed" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="18" font-weight="700">29.9%</text>
+  <circle cx="807" cy="224" r="5" fill="#22c55e"/><rect x="820" y="219" width="108" height="8" rx="4" fill="#cbd5e1"/>
+  <circle cx="807" cy="246" r="5" fill="#f59e0b"/><rect x="820" y="241" width="144" height="8" rx="4" fill="#cbd5e1"/>
+  <circle cx="807" cy="268" r="5" fill="#ef4444"/><rect x="820" y="263" width="84" height="8" rx="4" fill="#cbd5e1"/>
+  <text x="60" y="82" fill="#f8fafc" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="48" font-weight="750">tongji</text>
+  <text x="64" y="121" fill="#99f6e4" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="19">DSH session statistics in the right sidebar</text>
+</svg>
