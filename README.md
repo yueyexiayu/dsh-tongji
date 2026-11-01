@@ -4,7 +4,7 @@
   <p><strong>在 DSH 对话右侧查看当前会话统计</strong></p>
   <p>本地 Desktop UI 插件，读取 DSH 官方统计视图与会话投影，显示总计、每轮指标和步骤摘要。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.3</p>
+  <p>Desktop 插件 · v0.1.4</p>
   <p><a href="#核心能力">核心能力</a> · <a href="#工作方式">工作方式</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#验证与限制">验证与限制</a></p>
 </div>
 

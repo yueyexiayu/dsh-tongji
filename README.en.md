@@ -4,7 +4,7 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.3</p>
+  <p>Desktop plugin · v0.1.4</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
