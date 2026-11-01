@@ -4,7 +4,7 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.1</p>
+  <p>Desktop plugin · v0.1.2</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
@@ -16,7 +16,7 @@
 
 | Session totals | Per-turn summary | Step status |
 | --- | --- | --- |
-| Context, cache hit, output, and output speed | The same official metrics; turns are collapsed by default | Expand a turn to see step summaries; success, failure, and running use green, red, and yellow |
+| Context, cache hit, output, and output speed | The same official metrics; turns are collapsed by default and earlier history is paged in through the official loader | Expand a turn to see step summaries; success, failure, and running use green, red, and yellow |
 
 Context and output use `K` / `M` abbreviations. Missing values display as `—`. `M` is used from 1,000,000 tokens.
 
@@ -63,7 +63,7 @@ Quit DSH completely and reopen it. Open a conversation; a right-sidebar tab titl
 
 The package, plugin ID, and bundle name are `tongji`. The visible tab title is “统计”. Install it at `~/.dsh/plugins/tongji` and point the profile dependency link to that directory.
 
-The plugin has no additional settings. Turns are collapsed by default, and the card is only shown when a current Session is available.
+The plugin has no additional settings. Turns are collapsed by default. The turn area has its own scrollbar and pages earlier history through the official `Session.loadOlder()` method until the complete history is available. The card is only shown when a current Session is available.
 
 ## Validation and limitations
 
