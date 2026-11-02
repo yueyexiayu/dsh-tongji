@@ -21,17 +21,17 @@ test('counts retries and descendants once, excludes inherited history and assign
     b: { inheritedEventCount: 0, events: [start(1), message(1, 1, 3, 1), end(1)] },
   };
   const result = await collectUsage('root', async id => logs[id]);
-  assert.deepEqual(result.turns['1'], { input: 49, output: 12, read: 5, write: 0, samples: 5, unknown: 0 });
-  assert.deepEqual(result.turns['2'], { input: 8, output: 1, read: 0, write: 0, samples: 1, unknown: 0 });
-  assert.deepEqual(result.total, { input: 57, output: 13, read: 5, write: 0, samples: 6, unknown: 0 });
+  assert.deepEqual(result.turns['1'], { input: 49, output: 12, read: 5, write: 0, samples: 5, unknown: 0, cacheInput: 44, cacheSamples: 4, cacheMissing: 1 });
+  assert.deepEqual(result.turns['2'], { input: 8, output: 1, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 8, cacheSamples: 1, cacheMissing: 0 });
+  assert.deepEqual(result.total, { input: 57, output: 13, read: 5, write: 0, samples: 6, unknown: 0, cacheInput: 52, cacheSamples: 5, cacheMissing: 1 });
 });
 
 test('replaces duplicate settlement and reports unavailable or unattributable usage', async () => {
   const root = { inheritedEventCount: 0, events: [start(1), attempt(1, 1, 4, 1), message(1, 1, 5, 2), child('external', 'external'), child('missing'), end(1), child('late')] };
   const late = { inheritedEventCount: 0, events: [message(1, 1, 6, 3)] };
   const result = await collectUsage('root', async id => { if (id === 'root') return root; if (id === 'late') return late; throw new Error('unavailable'); });
-  assert.deepEqual(result.turns['1'], { input: 5, output: 2, read: 0, write: 0, samples: 1, unknown: 2 });
-  assert.deepEqual(result.turns.unassigned, { input: 6, output: 3, read: 0, write: 0, samples: 1, unknown: 0 });
+  assert.deepEqual(result.turns['1'], { input: 5, output: 2, read: 0, write: 0, samples: 1, unknown: 2, cacheInput: 5, cacheSamples: 1, cacheMissing: 0 });
+  assert.deepEqual(result.turns.unassigned, { input: 6, output: 3, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 6, cacheSamples: 1, cacheMissing: 0 });
   assert.equal(result.total.unknown, 2);
   assert.equal(result.total.input, 11);
 });
@@ -61,4 +61,18 @@ test('Host endpoint returns aggregate and disposes its session observation', asy
   assert.equal(response.status, 200);
   assert.equal((await response.json()).total.output, 3);
   assert.equal(disposed, true);
+});
+
+test('cache hit uses only samples that reported cache-read usage, including descendants', async () => {
+  const records = {
+    root: { inheritedEventCount: 0, events: [start(1), message(1, 1, 80, 2, 20), { type: 'assistant/message', data: { turn: 1, step: 2, usage: { inputTokens: 900, outputTokens: 3 } } }, child('a'), end(1)] },
+    a: { inheritedEventCount: 0, events: [message(1, 1, 30, 4, 70)] },
+  };
+  const result = await collectUsage('root', async id => records[id]);
+  assert.equal(result.total.input + result.total.read + result.total.write, 1100);
+  assert.equal(result.total.cacheInput, 200);
+  assert.equal(result.total.cacheSamples, 2);
+  assert.equal(result.total.cacheMissing, 1);
+  assert.equal(result.total.read, 90);
+  assert.equal(result.turns['1'].cacheInput, 200);
 });
