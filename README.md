@@ -4,7 +4,7 @@
   <p><strong>在 DSH 对话右侧查看当前会话统计</strong></p>
   <p>本地 Desktop UI 插件，读取 DSH 官方统计视图与会话投影，显示总计、每轮指标和步骤摘要。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.7</p>
+  <p>Desktop 插件 · v0.1.8</p>
   <p><a href="#核心能力">核心能力</a> · <a href="#工作方式">工作方式</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#验证与限制">验证与限制</a></p>
 </div>
 
@@ -59,7 +59,7 @@ cd ~/.dsh/profiles/desktop
 pnpm install
 ```
 
-完全退出并重新打开 DSH。进入一个会话后，右侧应出现标题为“统计”的 Tab。右侧栏关闭后可按 DSH 原有方式重新打开。
+完全退出并重新打开 DSH。进入会话后，若右侧只有默认引导页，会自动打开“统计”；若已有浏览器或其他内容，则保留当前页面，可在右侧栏选择“统计”。右侧栏关闭后可按 DSH 原有方式重新打开。
 
 ## 配置
 

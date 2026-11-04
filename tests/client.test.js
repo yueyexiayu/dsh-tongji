@@ -49,3 +49,49 @@ test('cache percentage distinguishes missing and partial samples', () => {
   assert.equal(context.usageHit({ read: 90, cacheInput: 200, cacheSamples: 2, cacheMissing: 1, unknown: 0 }), '45.00%（部分）');
   assert.equal(context.usageHit({ read: 0, cacheInput: 100, cacheSamples: 1, cacheMissing: 0, unknown: 0 }), '0.00%');
 });
+
+function autoOpenHarness(sessionId) {
+  let plugin, component, inject, effect, opened = 0;
+  const listeners = new Set(), mountListeners = new Set();
+  let inventory = [], mounted = sessionId;
+  const React = { createElement() {}, useEffect(fn) { effect = fn; } };
+  const document = { getElementById: () => ({}), head: { appendChild() {} }, createElement: () => ({}) };
+  vm.runInNewContext(code, { window: { __ModuleLoader__: { load(spec) { plugin = spec.factory(() => React); } } }, document });
+  plugin.apply({ effect(fn) { fn(); }, sidebarRightTabs: { register() {} }, sidebarRight: {
+    openTabs: { getSnapshot: () => inventory, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); } },
+    mounted: { getSnapshot: () => mounted, subscribe(fn) { mountListeners.add(fn); return () => mountListeners.delete(fn); } },
+    openTab() { opened++; },
+  }, slots: { inject(_name, fn) { fn(); }, register(spec, view) {
+    if (spec.id === 'tongji-open') { component = view; inject = spec.inject; }
+  } } });
+  component(inject(sessionId)); const dispose = effect();
+  return { dispose, setTabs(tabs) { inventory = tabs; for (const fn of [...listeners]) fn(); },
+    setMounted(value) { mounted = value; for (const fn of [...mountListeners]) fn(); }, opened: () => opened };
+}
+
+test('auto-open waits for layout adoption and preserves an existing browser tab', () => {
+  const app = autoOpenHarness('browser-session');
+  assert.equal(app.opened(), 0);
+  app.setTabs([{ sessionId: 'browser-session', kind: 'browser' }]);
+  assert.equal(app.opened(), 0);
+  app.setTabs([{ sessionId: 'browser-session', kind: 'guide' }]);
+  assert.equal(app.opened(), 0);
+});
+
+test('auto-open activates stats only for an adopted guide on the mounted session', () => {
+  const app = autoOpenHarness('empty-session');
+  app.setMounted('other-session');
+  app.setTabs([{ sessionId: 'empty-session', kind: 'guide' }, { sessionId: 'other-session', kind: 'browser' }]);
+  assert.equal(app.opened(), 0);
+  app.setMounted('empty-session');
+  assert.equal(app.opened(), 1);
+  app.setTabs([{ sessionId: 'empty-session', kind: 'guide' }]);
+  assert.equal(app.opened(), 1);
+});
+
+test('auto-open cancellation does not open a later adopted session', () => {
+  const app = autoOpenHarness('cancelled-session');
+  app.dispose();
+  app.setTabs([{ sessionId: 'cancelled-session', kind: 'guide' }]);
+  assert.equal(app.opened(), 0);
+});
