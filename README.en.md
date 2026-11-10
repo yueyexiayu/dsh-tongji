@@ -4,7 +4,7 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.9</p>
+  <p>Desktop plugin · v0.1.10</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
@@ -18,15 +18,15 @@
 | --- | --- | --- |
 | Cumulative context, cache hit, output, and main-agent output speed | Cumulative context and output, including available child usage; turns are collapsed by default | Expand a turn to see main-agent step summaries |
 
-Totals and turns both accumulate reported context and output, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. External agents and missing usage are unknown: `+` marks an incomplete known amount, including context missing cache-read data, and `—` means no available amount. Cache hit uses only samples reporting cache reads and marks incomplete coverage; speed and step details cover the main agent only. Official conversation or per-turn figures can have a different scope and should not be treated as session totals including children. Context and output use `K` / `M` abbreviations; `M` starts at 1,000,000 tokens.
+Totals and turns both accumulate reported context and output, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. External agents and missing usage are unknown: `+` marks an incomplete known amount, including context missing cache-read data, and `—` means no available amount. Cache hit uses only samples reporting cache reads and marks incomplete coverage; speed and step details cover the main agent only. Official conversation or per-turn figures can have a different scope and should not be treated as session totals including children. Counts below 1,000 tokens stay exact; larger amounts use `K` / `M` abbreviations, with exact values available on hover. The interface supports Chinese and English and falls back to English for other languages.
 
 ## How it works
 
 ![tongji data flow: the current session's official statistics snapshot and projections feed the sidebar card](docs/assets/workflow.en.svg)
 
-The plugin reads the current session's statistics snapshot and uses the Host `sessionQuery` to calculate usage from the session and child logs. It renders the result in its own right-sidebar tab. The original Statistics view remains available in its existing location.
+The plugin reads the current session's statistics snapshot and uses the Host `sessionQuery` to calculate usage from the session and child logs. The Host keeps an incremental per-session fold cache so each refresh processes only appended events, reads children with bounded concurrency, and evicts cached sessions in least-recently-used order. It renders the result in its own right-sidebar tab; the original Statistics view remains available in its existing location.
 
-While the pane is open, it refreshes about every 5 seconds during a main-session turn and every 30 seconds while idle, reducing repeated reads of long histories; background child updates can therefore be delayed. Read errors are shown with a retry button, and any last successful result is explicitly marked as stale.
+While the pane is open, it refreshes about every 5 seconds during a main-session turn and every 30 seconds while idle; background child updates can therefore be delayed. Read errors show a stable error code, the last successful update time, and a retry button, while any last successful result remains visible as stale data.
 
 ## Installation
 
@@ -65,11 +65,11 @@ Quit DSH completely and reopen it. On entering a conversation, “统计” open
 
 The package, plugin ID, and bundle name are `tongji`. The visible tab title is “统计”. Install it at `~/.dsh/plugins/tongji` and point the profile dependency link to that directory.
 
-The plugin has no additional settings. Turns are collapsed by default. The turn area has its own scrollbar and pages earlier history through the official `Session.loadOlder()` method until the complete history is available. The card is only shown when a current Session is available.
+The plugin has no additional settings. Turns are collapsed by default, and step details mount only after expansion. The turn area has its own scrollbar; earlier history loads on request through the official `Session.loadOlder()` method, without eagerly fetching the complete history when the pane opens. The card is only shown when a current Session is available.
 
 ## Validation and limitations
 
-The plugin was verified in DSH Desktop `0.2.2-alpha.2-4dd5ab8`: plugin loading, Session switching, comparison of totals with the official Statistics view, turn collapse/expand, and status colors. Plugin JavaScript passed Node syntax checks. This verification does not guarantee compatibility with every DSH version.
+On 2026-11-11, an isolated DSH `0.2.2-rc.1` Web runtime verified Host route loading, the right-sidebar entry, the current empty-session card, status styling, and Chinese localization, with no browser warnings or errors. `npm run verify` passed syntax checks and all 18 automated tests. This verification does not guarantee compatibility with every DSH version.
 
 - The plugin uses DSH client services and statistics snapshots; future API changes may require updates.
 - The card is not shown on the home screen when there is no current Session.

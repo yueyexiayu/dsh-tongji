@@ -1,10 +1,15 @@
 {
   "name": "tongji",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "type": "module",
   "description": "在 Desktop 对话右侧显示官方会话统计摘要。",
   "main": "lib/index.js",
+  "scripts": {
+    "check": "node --check lib/index.js && node --check lib/usage.js && node --check lib/client.js",
+    "test": "node --test tests/*.test.js",
+    "verify": "npm run check && npm test"
+  },
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
@@ -16,6 +21,7 @@
       "platform": "web",
       "inject": [
         "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-renderer",
         "@deepseek-ai/dsh-client-ui-sidebar-right"
