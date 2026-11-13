@@ -4,7 +4,7 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.12</p>
+  <p>Desktop plugin · v0.1.13</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
@@ -16,9 +16,9 @@
 
 | Session totals | Per-turn summary | Step status |
 | --- | --- | --- |
-| Uncached input, cached input, cumulative input with cache hit rate, cumulative output, cumulative total tokens, and main-agent output speed | Input, output, and total tokens, including available child usage; turns are collapsed by default | Expand a turn to see main-agent step summaries |
+| Uncached input, cached input with cache hit rate, cumulative input, cumulative output, cumulative total tokens, and main-agent output speed | Input, output, and total tokens, including available child usage; turns are collapsed by default | Expand a turn to see main-agent step summaries |
 
-Totals and turns both accumulate reported input, output, and total tokens, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. Uncached input comes from non-cached input; cached input comes from cache reads; cumulative input also includes cache writes; cumulative total tokens also includes output. The parentheses after cumulative input show the cache hit rate directly; the cached-input tooltip provides exact token counts and hit rate. External agents and missing usage are unknown: `+` marks an incomplete known amount, `—` means no available amount, and “partial” marks excluded samples. Speed and step details cover the main agent only. Official conversation or per-turn figures can have a different scope and should not be treated as session totals including children. Counts below 1,000 tokens stay exact; larger amounts use `K` / `M` abbreviations, with exact values available on hover. The interface supports Chinese and English and falls back to English for other languages.
+Totals and turns both accumulate reported input, output, and total tokens, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. Uncached input comes from non-cached input; cached input comes from cache reads; cumulative input also includes cache writes; cumulative total tokens also includes output. The parentheses after cached input show the cache hit rate directly; its tooltip provides exact token counts and hit rate. External agents and missing usage are unknown: `+` marks an incomplete known amount, `—` means no available amount, and “partial” marks excluded samples. Speed and step details cover the main agent only. Official conversation or per-turn figures can have a different scope and should not be treated as session totals including children. Counts below 1,000 tokens stay exact; larger amounts use `K` / `M` abbreviations, with exact values available on hover. The interface supports Chinese and English and falls back to English for other languages.
 
 ## How it works
 
@@ -69,7 +69,7 @@ The plugin has no additional settings. Turns are collapsed by default, and step 
 
 ## Validation and limitations
 
-On 2026-11-13, a live DSH `0.2.2-rc.1` Desktop session verified the six v0.1.12 totals, cumulative-input cache hit rate, per-turn summary, and Chinese copy. `npm run verify` passed syntax checks and all 18 automated tests. This verification does not guarantee compatibility with every DSH version.
+On 2026-11-13, a live DSH `0.2.2-rc.1` Desktop session verified the six v0.1.13 totals, cached-input hit rate, per-turn summary, and Chinese copy. `npm run verify` passed syntax checks and all 18 automated tests. This verification does not guarantee compatibility with every DSH version.
 
 - The plugin uses DSH client services and statistics snapshots; future API changes may require updates.
 - The card is not shown on the home screen when there is no current Session.

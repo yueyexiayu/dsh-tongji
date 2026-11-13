@@ -60,8 +60,8 @@ test('read failure is visible, retry recovers token buckets, and a later failure
   const cardTree = card.type(card.props);
   const metrics = app.nodes(cardTree).filter(x => typeof x.type === 'function' && x.type.name === 'Metric');
   assert.equal(metrics.find(x => x.props.label === '未命中输入')?.props.value, '100');
-  assert.equal(metrics.find(x => x.props.label === '缓存命中输入')?.props.value, '20');
-  assert.equal(metrics.find(x => x.props.label === '累计输入（16.67%）')?.props.value, '120');
+  assert.equal(metrics.find(x => x.props.label === '缓存命中输入')?.props.value, '20（16.67%）');
+  assert.equal(metrics.find(x => x.props.label === '累计输入')?.props.value, '120');
   assert.equal(metrics.find(x => x.props.label === '累计输出')?.props.value, '3');
   assert.equal(metrics.find(x => x.props.label === '累计总 Token')?.props.value, '123');
   assert.equal(app.nodes(cardTree).find(x => x.props?.title === '120')?.props.title, '120');
