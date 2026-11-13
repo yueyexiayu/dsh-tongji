@@ -50,14 +50,22 @@ function harness(fetcher, running = false, options = {}) {
   return { settle, text, timers, nodes, button(name) { return nodes().find(x => x.type === 'button' && text(x) === name); }, card() { return nodes().find(x => typeof x.type === 'function' && x.type.name === 'TotalCard'); }, olderCalls: () => olderCalls };
 }
 
-test('read failure is visible, retry recovers, and a later failure preserves stale values', async () => {
+test('read failure is visible, retry recovers token buckets, and a later failure preserves stale values', async () => {
   let calls = 0;
   const app = harness(async () => { calls++; if (calls !== 2) return { ok: false, json: async () => ({ error: { code: 'usage-unavailable' } }) }; return { ok: true, json: async () => ({ total: { input: 100, output: 3, read: 20, write: 0, samples: 1, unknown: 0, cacheInput: 120, cacheSamples: 1, cacheMissing: 0 }, turns: {} }) }; });
   await app.settle(); assert.match(app.text(), /统计读取失败/); assert.equal(app.timers[0].ms, 30000);
   assert.match(app.nodes().find(x => x.props?.className?.includes('sr-header-meta'))?.props.className, /sr-header-meta-failed/);
   app.button('重试').props.onClick(); await app.settle(); assert.match(app.text(), /已更新/); assert.equal(app.card().props.usage.input, 100);
   const card = app.card();
-  assert.equal(app.nodes(card.type(card.props)).find(x => x.props?.title === '120')?.props.title, '120');
+  const cardTree = card.type(card.props);
+  const metrics = app.nodes(cardTree).filter(x => typeof x.type === 'function' && x.type.name === 'Metric');
+  assert.equal(metrics.find(x => x.props.label === '未命中输入')?.props.value, '100');
+  assert.equal(metrics.find(x => x.props.label === '缓存命中输入')?.props.value, '20');
+  assert.equal(metrics.find(x => x.props.label === '累计输入')?.props.value, '120');
+  assert.equal(metrics.find(x => x.props.label === '累计输出')?.props.value, '3');
+  assert.equal(metrics.find(x => x.props.label === '累计总 Token')?.props.value, '123');
+  assert.equal(app.nodes(cardTree).find(x => x.props?.title === '120')?.props.title, '120');
+  assert.equal(app.nodes(cardTree).find(x => x.props?.title?.startsWith('缓存读取 20 / 输入总计 120'))?.props.title, '缓存读取 20 / 输入总计 120 · 命中率 16.67%');
   const timer = app.timers.shift(); timer.fn(); await app.settle();
   assert.match(app.text(), /当前显示上次成功的数据/); assert.equal(app.card().props.usage.input, 100);
 });
@@ -67,12 +75,15 @@ test('active turns refresh every five seconds and idle turns every thirty second
   await app.settle(); assert.equal(app.timers[0].ms, 5000);
 });
 
-test('cache percentage distinguishes missing and partial samples', () => {
+test('token buckets distinguish missing cache and total output', () => {
   const start = code.indexOf('    function isNumber('), end = code.indexOf('    function Metric(', start);
   const context = vm.createContext({}); vm.runInContext(code.slice(start, end), context);
   assert.equal(context.usageHit({ read: 0, cacheInput: 0, cacheSamples: 0, cacheMissing: 1 }, key => key === 'partial' ? '（部分）' : key), '—');
-  assert.equal(context.usageTokens({ input: 100, output: 2, read: 0, write: 0, samples: 1, unknown: 0, cacheMissing: 1 }, 'context'), '100+');
+  assert.equal(context.usageTokens({ input: 100, output: 2, read: 0, write: 0, samples: 1, unknown: 0, cacheMissing: 1 }, 'uncachedInput'), '100');
+  assert.equal(context.usageTokens({ input: 100, output: 2, read: 0, write: 0, samples: 1, unknown: 0, cacheMissing: 1 }, 'input'), '100+');
   assert.equal(context.usageTokens({ input: 100, output: 2, read: 0, write: 0, samples: 1, unknown: 0, cacheMissing: 1 }, 'output'), '2');
+  assert.equal(context.usageTokens({ input: 100, output: 2, read: 0, write: 0, samples: 1, unknown: 0, cacheMissing: 1 }, 'total'), '102+');
+  assert.equal(context.usageTokens({ input: 100, output: 2, read: 20, write: 3, samples: 1, unknown: 0, cacheMissing: 0 }, 'total'), '125');
   assert.equal(context.usageHit({ read: 90, cacheInput: 200, cacheSamples: 2, cacheMissing: 1, unknown: 0 }, key => key === 'partial' ? '（部分）' : key), '45.00%（部分）');
   assert.equal(context.usageHit({ read: 0, cacheInput: 100, cacheSamples: 1, cacheMissing: 0, unknown: 0 }, key => key), '0.00%');
 });
