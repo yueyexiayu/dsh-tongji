@@ -1,4 +1,5 @@
 import { asRecord } from './services'
+import { rollupTaskStatuses, type TaskStatusRollup } from './taskRollup'
 import type { AgentForest, AgentNode } from './agentTree'
 import { projectionOf, type SessionStandardProps } from './seats'
 import type { FleetSummaryMember } from '../shared/types'
@@ -182,4 +183,13 @@ export function familyOthersOf(forest: AgentForest | null, team: FleetTeam | nul
     if (ownerId !== undefined) owners.add(ownerId)
   }
   return forest.nodes.filter(n => !n.isCurrent && teamMemberOf(team, n.id) === null && !owners.has(n.id))
+}
+
+/**
+ * Roll one owner's tasks up to a single label. A node card only has room for one
+ * badge, so an owner with anything in flight reads as in-progress even when other
+ * tasks are still queued; only an owner whose whole load is finished reads as done.
+ */
+export function ownerTaskRollupOf(team: FleetTeam | null, ownerId: string): TaskStatusRollup {
+  return rollupTaskStatuses(tasksOfOwnerId(team, ownerId))
 }

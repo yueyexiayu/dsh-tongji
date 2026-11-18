@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.14
+ * tongji v0.1.15
  * 在 Desktop 对话右侧显示官方会话统计摘要。
  * @author undefined
  * @license undefined
  * @homepage undefined
- * @built 2026-11-18T08:08:37+08:00
- * @commit d2e16aa951aa (dirty working tree) on main
- * @commit-date 2026-11-13T17:46:45+09:00
+ * @built 2026-11-18T08:41:11+08:00
+ * @commit 1e979232f45d (dirty working tree) on main
+ * @commit-date 2026-11-18T08:25:27+08:00
  */
 
 /**

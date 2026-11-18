@@ -115,6 +115,7 @@
 .lc-agents-inspector-name { color: var(--dsw-alias-label-primary); overflow-wrap: anywhere; }
 .lc-agents-badge { flex: none; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--dsw-alias-bg-layer-1); border: var(--lc-line-fine, 1px solid var(--dsw-alias-border-l1)); color: var(--dsw-alias-label-secondary); }
 .lc-agents-badge-on { color: var(--dsw-alias-state-success-primary); border-color: color-mix(in srgb, var(--dsw-alias-state-success-primary) 40%, transparent); }
+.lc-agent-task { max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lc-agents-inspector-stats { color: var(--dsw-alias-label-secondary); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lc-agents-inspector-parts { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; padding-top: 6px; border-top: var(--lc-line-dashed, 1px dashed var(--dsw-alias-border-l2)); font-size: 11px; color: var(--dsw-alias-label-secondary); }
 .lc-agents-part { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

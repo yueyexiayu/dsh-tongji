@@ -26,6 +26,33 @@ function sliceFunction(source, signature) {
   throw new Error(`unbalanced body for ${signature}`);
 }
 
+/**
+ * Minified names change with every build, so the usage-card sources are located
+ * by what they do: the numeric-coercion helper that the totals parser calls, and
+ * the component that fetches the usage route. Both anchors live in the shipped
+ * bundle, unlike any particular identifier.
+ */
+function usageSources() {
+  const route = code.indexOf('api/tongji/usage?sessionId=');
+  assert.notEqual(route, -1, 'bundle no longer fetches the usage route');
+  const cardStart = code.lastIndexOf('function ', route);
+  assert.notEqual(cardStart, -1, 'the usage fetch is not inside a named function');
+  const card = sliceFunction(code.slice(cardStart), code.slice(cardStart, code.indexOf('(', cardStart) + 1));
+
+  const coerce = code.indexOf('Number.isFinite(e))return e');
+  assert.notEqual(coerce, -1, 'the numeric coercion helper is missing');
+  const helpersStart = code.lastIndexOf('function ', coerce);
+  const head = code.slice(cardStart, code.indexOf('(', cardStart));
+  const cardName = head.slice(head.lastIndexOf('function ') + 'function '.length);
+  const helpers = code.slice(helpersStart, cardStart);
+  // Declaration order is stable even though the names are not: coerce, bucket,
+  // step table, payload parser, scale suffix, grouping, input, total, hit rate.
+  const names = [...helpers.matchAll(/function ([A-Za-z_$][\w$]*)\(/g)].map(match => match[1]);
+  assert.equal(names.length, 9, 'the usage helper set changed shape');
+  const [num, , , read, kilo, , input, total, hit] = names;
+  return { helpers, card, cardName, names: { num, read, kilo, input, total, hit } };
+}
+
 /** A hook harness: one state slot list, replayed in call order on every render. */
 function createHarness() {
   const slots = [];
@@ -257,8 +284,7 @@ test('tab title renders the localized stats label', () => {
 });
 
 test('usage card fetches the session total and polls every five seconds', async () => {
-  const helpers = code.slice(code.indexOf('function Pm('), code.indexOf('function Um('));
-  const card = sliceFunction(code, 'function Um(');
+  const { helpers, card, cardName } = usageSources();
   const polls = [];
   const cleared = [];
   const calls = [];
@@ -291,7 +317,7 @@ test('usage card fetches the session total and polls every five seconds', async 
   });
   const harness = createHarness();
   sandbox.u = harness.React;
-  runInContext(`${helpers}\n${card}\nthis.UsageCard = Um(key => key);`, sandbox);
+  runInContext(`${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);`, sandbox);
 
   const tree = await harness.settle(sandbox.UsageCard, { sessionId: 'root' });
 
@@ -337,8 +363,7 @@ test('usage card fetches the session total and polls every five seconds', async 
 });
 
 test('usage card reports an empty session instead of inventing numbers', async () => {
-  const helpers = code.slice(code.indexOf('function Pm('), code.indexOf('function Um('));
-  const card = sliceFunction(code, 'function Um(');
+  const { helpers, card, cardName } = usageSources();
   const sandbox = createContext({
     u: null,
     d: { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) },
@@ -353,7 +378,7 @@ test('usage card reports an empty session instead of inventing numbers', async (
   });
   const harness = createHarness();
   sandbox.u = harness.React;
-  runInContext(`${helpers}\n${card}\nthis.UsageCard = Um(key => key);`, sandbox);
+  runInContext(`${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);`, sandbox);
 
   const tree = await harness.settle(sandbox.UsageCard, { sessionId: 'root' });
   const nodes = collect(tree);
@@ -368,9 +393,13 @@ test('usage card reports an empty session instead of inventing numbers', async (
 });
 
 test('malformed usage payloads are rejected rather than coerced into zeros', () => {
-  const helpers = code.slice(code.indexOf('function Pm('), code.indexOf('function Um('));
+  const { helpers, names } = usageSources();
   const sandbox = createContext({});
-  runInContext(`${helpers}\nthis.read = Lm; this.num = Pm; this.kilo = Rm; this.input = Bm; this.total = Vm; this.hit = Hm;`, sandbox);
+  runInContext(
+    `${helpers}\nthis.read = ${names.read}; this.num = ${names.num}; this.kilo = ${names.kilo};`
+    + ` this.input = ${names.input}; this.total = ${names.total}; this.hit = ${names.hit};`,
+    sandbox,
+  );
 
   assert.equal(sandbox.read(null), null);
   assert.equal(sandbox.read({}), null);
@@ -392,9 +421,9 @@ test('malformed usage payloads are rejected rather than coerced into zeros', () 
 });
 
 test('turn and step tables keep numeric order with unassigned last', () => {
-  const helpers = code.slice(code.indexOf('function Pm('), code.indexOf('function Um('));
+  const { helpers, names } = usageSources();
   const sandbox = createContext({});
-  runInContext(`${helpers}\nthis.read = Lm;`, sandbox);
+  runInContext(`${helpers}\nthis.read = ${names.read};`, sandbox);
 
   const zero = { input: 0, output: 0, read: 0, write: 0, samples: 0, unknown: 0, cacheInput: 0, cacheSamples: 0, cacheMissing: 0 };
   const parsed = sandbox.read({
