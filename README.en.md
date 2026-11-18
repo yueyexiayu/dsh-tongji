@@ -4,7 +4,7 @@
   <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
   <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.13</p>
+  <p>Desktop plugin · v0.1.14</p>
   <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
 </div>
 
@@ -69,7 +69,7 @@ The plugin has no additional settings. Turns are collapsed by default, and step 
 
 ## Validation and limitations
 
-On 2026-11-13, a live DSH `0.2.2-rc.1` Desktop session verified the six v0.1.13 totals, cached-input hit rate, per-turn summary, and Chinese copy. `npm run verify` passed syntax checks and all 18 automated tests. This verification does not guarantee compatibility with every DSH version.
+The v0.1.14 `lib/` artifacts were rebuilt on 2026-11-18 and the tests updated with them: the merged dsh-context client and the tongji usage card now ship in one bundle, and `npm run verify` passes syntax checks plus 17 automated tests. The earlier live Desktop verification (DSH `0.2.2-rc.1`, v0.1.13) covered the old six totals and per-turn summary only, not the context view, agent network, or command panel added in this version.
 
 - The plugin uses DSH client services and statistics snapshots; future API changes may require updates.
 - The card is not shown on the home screen when there is no current Session.

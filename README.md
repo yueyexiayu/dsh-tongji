@@ -4,7 +4,7 @@
   <p><strong>在 DSH 对话右侧查看当前会话统计</strong></p>
   <p>本地 Desktop UI 插件，读取 DSH 官方统计视图与会话投影，显示总计、每轮指标和步骤摘要。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.13</p>
+  <p>Desktop 插件 · v0.1.14</p>
   <p><a href="#核心能力">核心能力</a> · <a href="#工作方式">工作方式</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#验证与限制">验证与限制</a></p>
 </div>
 
@@ -69,7 +69,7 @@ pnpm install
 
 ## 验证与限制
 
-2026-11-13 在 DSH `0.2.2-rc.1` 的实际 Desktop 会话中验证了 v0.1.13 的六项总计、缓存命中输入命中率、每轮摘要和中文说明；`npm run verify` 的语法检查与 18 个自动化测试通过。该验证记录不代表所有 DSH 版本均兼容。
+2026-11-18 重新构建 v0.1.14 的 `lib/` 产物并同步更新测试：合并后的 dsh-context 客户端与 tongji 的用量卡片由同一份 bundle 提供，`npm run verify` 的语法检查与 17 个自动化测试通过。此前的 Desktop 实机验证记录（DSH `0.2.2-rc.1`，v0.1.13）针对旧版六项总计与每轮摘要，未覆盖本版新增的上下文视图、Agent 网络与命令面板。
 
 - 插件使用 DSH 公开的客户端服务与统计快照；未来 API 变化可能需要适配。
 - 无当前 Session 的首页不显示会话统计卡。

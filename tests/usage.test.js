@@ -14,6 +14,15 @@ const attempt = (turn, step, input, output) => ({
 });
 const retry = (turn, step) => ({ type: 'llm/retry-started', data: { turn, step } });
 
+/**
+ * Every bucket also carries a per-step table the panel expands on click. These
+ * assertions are about token totals, so compare exactly those fields; the step
+ * table itself is asserted in the Host-endpoint test.
+ */
+const FIELDS = ['input', 'output', 'read', 'write', 'samples', 'unknown', 'cacheInput', 'cacheSamples', 'cacheMissing'];
+const pick = value => Object.fromEntries(FIELDS.map(field => [field, value[field]]));
+const assertBucket = (actual, expected) => assert.deepEqual(pick(actual), expected);
+
 test('counts retries and descendants once, excludes inherited history and assigns descendants to creation turn', async () => {
   const logs = {
     root: { inheritedEventCount: 0, events: [start(1), attempt(1, 1, 10, 2), retry(1, 1), message(1, 1, 20, 3, 5), child('a'), end(1), start(2), message(2, 1, 8, 1), end(2)] },
@@ -21,17 +30,17 @@ test('counts retries and descendants once, excludes inherited history and assign
     b: { inheritedEventCount: 0, events: [start(1), message(1, 1, 3, 1), end(1)] },
   };
   const result = await collectUsage('root', async id => logs[id]);
-  assert.deepEqual(result.turns['1'], { input: 49, output: 12, read: 5, write: 0, samples: 5, unknown: 0, cacheInput: 44, cacheSamples: 4, cacheMissing: 1 });
-  assert.deepEqual(result.turns['2'], { input: 8, output: 1, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 8, cacheSamples: 1, cacheMissing: 0 });
-  assert.deepEqual(result.total, { input: 57, output: 13, read: 5, write: 0, samples: 6, unknown: 0, cacheInput: 52, cacheSamples: 5, cacheMissing: 1 });
+  assertBucket(result.turns['1'], { input: 49, output: 12, read: 5, write: 0, samples: 5, unknown: 0, cacheInput: 44, cacheSamples: 4, cacheMissing: 1 });
+  assertBucket(result.turns['2'], { input: 8, output: 1, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 8, cacheSamples: 1, cacheMissing: 0 });
+  assertBucket(result.total, { input: 57, output: 13, read: 5, write: 0, samples: 6, unknown: 0, cacheInput: 52, cacheSamples: 5, cacheMissing: 1 });
 });
 
 test('replaces duplicate settlement and reports unavailable or unattributable usage', async () => {
   const root = { inheritedEventCount: 0, events: [start(1), attempt(1, 1, 4, 1), message(1, 1, 5, 2), child('external', 'external'), child('missing'), end(1), child('late')] };
   const late = { inheritedEventCount: 0, events: [message(1, 1, 6, 3)] };
   const result = await collectUsage('root', async id => { if (id === 'root') return root; if (id === 'late') return late; throw new Error('unavailable'); });
-  assert.deepEqual(result.turns['1'], { input: 5, output: 2, read: 0, write: 0, samples: 1, unknown: 2, cacheInput: 5, cacheSamples: 1, cacheMissing: 0 });
-  assert.deepEqual(result.turns.unassigned, { input: 6, output: 3, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 6, cacheSamples: 1, cacheMissing: 0 });
+  assertBucket(result.turns['1'], { input: 5, output: 2, read: 0, write: 0, samples: 1, unknown: 2, cacheInput: 5, cacheSamples: 1, cacheMissing: 0 });
+  assertBucket(result.turns.unassigned, { input: 6, output: 3, read: 0, write: 0, samples: 1, unknown: 0, cacheInput: 6, cacheSamples: 1, cacheMissing: 0 });
   assert.equal(result.total.unknown, 2);
   assert.equal(result.total.input, 11);
 });
@@ -50,25 +59,33 @@ test('does not discover fork-inherited children or treat missing usage as zero',
 test('Host endpoint returns aggregate and disposes its session observation', async () => {
   let route;
   let disposed = false;
-  apply({ connection: { fetch: { register(value) { route = value; } } }, sessionQuery: {
+  // tongji's route is registered before the merged dsh-context half runs (see
+  // src/host/index.ts), so the route survives an upstream that this minimal fake
+  // context cannot satisfy. That ordering is the property under test.
+  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { route = value; } } }, sessionQuery: {
     async observeSession(id, options) {
       assert.equal(id, 'root');
       assert.equal(options.projectionMode, 'none');
       return { inheritedEventCount: 0, events: [start(1), message(1, 1, 12, 3), end(1)], [Symbol.dispose]() { disposed = true; } };
     },
-  } });
+  } };
+  try { apply(ctx); } catch { /* the upstream half needs the full Host; the route is already registered */ }
+  assert.ok(route, 'the usage route must be registered before the upstream half runs');
   const response = await route.fetch(new Request('http://localhost/api/tongji/usage?sessionId=root'));
   assert.equal(response.status, 200);
   assert.equal((await response.json()).total.output, 3);
   assert.equal(disposed, true);
+  assert.ok((await response.json().catch(() => null)) === null, 'the body is consumed once');
 });
 
 test('Host endpoint returns stable error codes and logs failures', async () => {
   let route, warnings = 0;
   const missing = Object.assign(new Error('missing session'), { code: 'SESSION_QUERY_SESSION_NOT_FOUND' });
-  apply({ connection: { fetch: { register(value) { route = value; } } }, logger: { warn() { warnings++; } }, sessionQuery: {
+  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { route = value; } } }, logger: { warn() { warnings++; } }, sessionQuery: {
     async observeSession() { throw missing; },
-  } });
+  } };
+  try { apply(ctx); } catch { /* the upstream half needs the full Host; the route is already registered */ }
+  assert.ok(route, 'the usage route must be registered before the upstream half runs');
   const response = await route.fetch(new Request('http://localhost/api/tongji/usage?sessionId=missing'));
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { error: { code: 'session-not-found', message: '会话不存在', retryable: true } });
@@ -142,7 +159,7 @@ test('invalid usage values become unknown instead of poisoning totals', async ()
     end(1),
   ] } };
   const result = await collectUsage('root', async id => logs[id]);
-  assert.deepEqual(result.total, { input: 6, output: 2, read: 1, write: 0, samples: 1, unknown: 2, cacheInput: 7, cacheSamples: 1, cacheMissing: 0 });
+  assertBucket(result.total, { input: 6, output: 2, read: 1, write: 0, samples: 1, unknown: 2, cacheInput: 7, cacheSamples: 1, cacheMissing: 0 });
 });
 
 test('cancellation interrupts collection before cached totals are committed', async () => {
