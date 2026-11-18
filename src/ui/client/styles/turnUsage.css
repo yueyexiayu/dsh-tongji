@@ -1,0 +1,173 @@
+/* Per-turn usage card inside the dsh-context view.
+ *
+ * Only what dsh-context has no equivalent for lives here: the turn rows that
+ * expand into their steps. Card frame, titles and the metric grid come from
+ * base.css/stats.css (.lc-card, .lc-card-title, .lc-sl, .lc-stat), so this block
+ * inherits the panel's colours, radii and container queries.
+ *
+ * The metric accents reuse stats.css's semantic palette: blue for steps, teal
+ * for turns, green for output, purple for samples. */
+
+[data-lc-turn-usage] .lc-tu-uncached .lc-stat-value {
+  color: color-mix(in srgb, var(--color-blue-500) 60%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-tu-hit .lc-stat-value {
+  color: color-mix(in srgb, var(--color-teal-500) 60%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-tu-input .lc-stat-value {
+  color: color-mix(in srgb, var(--color-blue-500) 45%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-tu-output .lc-stat-value {
+  color: color-mix(in srgb, var(--dsw-alias-state-success-primary) 60%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-tu-grand .lc-stat-value {
+  color: color-mix(in srgb, var(--color-amber-500) 60%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-tu-counts .lc-stat-value {
+  color: color-mix(in srgb, var(--color-purple-500) 60%, var(--dsw-alias-label-primary));
+}
+
+[data-lc-turn-usage] .lc-turn-usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one {
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-2);
+  overflow: hidden;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  list-style: none;
+  min-width: 0;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one > summary::-webkit-details-marker {
+  display: none;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one > summary:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one > summary:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: -2px;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-one[open] > summary {
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+[data-lc-turn-usage] .lc-turn-usage-turn {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-teal-500) 70%, var(--dsw-alias-label-primary));
+  font-variant-numeric: tabular-nums;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-steps {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-blue-500) 70%, var(--dsw-alias-label-primary));
+  background: color-mix(in srgb, var(--color-blue-500) 14%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-gist {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+[data-lc-turn-usage] .lc-turn-usage-sum {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 8px 7px 18px;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-step {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+  padding: 2px 0;
+  font-size: 11px;
+  border-left: 2px solid color-mix(in srgb, var(--color-blue-500) 35%, transparent);
+  padding-left: 8px;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-step-no {
+  flex: none;
+  min-width: 44px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-step-num {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-lc-turn-usage] .lc-turn-usage-note {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  padding: 2px 0;
+}
+
+[data-lc-turn-usage] > .lc-turn-usage-note {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: var(--lc-line-fine, 1px solid var(--dsw-alias-border-l2));
+}
+
+@container lc-card (max-width: 559px) {
+  [data-lc-turn-usage] .lc-turn-usage-gist {
+    display: none;
+  }
+
+  [data-lc-turn-usage] .lc-turn-usage-step {
+    flex-wrap: wrap;
+  }
+}
