@@ -69,7 +69,9 @@ pnpm install
 
 ## 验证与限制
 
-2026-11-18 重新构建 v0.1.14 的 `lib/` 产物并同步更新测试：合并后的 dsh-context 客户端与 tongji 的用量卡片由同一份 bundle 提供，`npm run verify` 的语法检查与 17 个自动化测试通过。此前的 Desktop 实机验证记录（DSH `0.2.2-rc.1`，v0.1.13）针对旧版六项总计与每轮摘要，未覆盖本版新增的上下文视图、Agent 网络与命令面板。
+2026-11-19 重新构建 v0.1.16 的 `lib/` 产物：构建期依赖全部对齐当前运行的 DSH `0.2.2-rc.5`（此前 `package.json` 完全没有声明 `devDependencies`，lock 里记的是 `0.2.2-rc.2`），并把清单写回 `package.json` + `pnpm-workspace.yaml`，让下一次升级能按声明对齐而不是靠 `node_modules` 里的残留副本。`npm run verify` 的语法检查与 22 个自动化测试通过。
+
+产物仍然自包含：`lib/index.js` 只 import `node:` 内置与 `./usage.js`，`lib/client.js` 没有任何外部 `require`，所以运行时不需要 `node_modules`。此前的 Desktop 实机验证记录（DSH `0.2.2-rc.1`，v0.1.13）针对旧版六项总计与每轮摘要，未覆盖上下文视图、Agent 网络与命令面板。
 
 - 插件使用 DSH 公开的客户端服务与统计快照；未来 API 变化可能需要适配。
 - 无当前 Session 的首页不显示会话统计卡。

@@ -69,7 +69,9 @@ The plugin has no additional settings. Turns are collapsed by default, and step 
 
 ## Validation and limitations
 
-The v0.1.14 `lib/` artifacts were rebuilt on 2026-11-18 and the tests updated with them: the merged dsh-context client and the tongji usage card now ship in one bundle, and `npm run verify` passes syntax checks plus 17 automated tests. The earlier live Desktop verification (DSH `0.2.2-rc.1`, v0.1.13) covered the old six totals and per-turn summary only, not the context view, agent network, or command panel added in this version.
+The v0.1.16 `lib/` artifacts were rebuilt on 2026-11-19 with every build-time dependency aligned to the running DSH `0.2.2-rc.5`. Previously `package.json` declared no `devDependencies` at all while the lockfile recorded `0.2.2-rc.2`, so the vendored copies could drift silently from the runtime; the manifest and `pnpm-workspace.yaml` now carry the full list so the next upgrade follows declarations instead of leftover `node_modules`. `npm run verify` passes syntax checks plus 22 automated tests.
+
+The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime. The earlier live Desktop verification (DSH `0.2.2-rc.1`, v0.1.13) covered the old six totals and per-turn summary only, not the context view, agent network, or command panel.
 
 - The plugin uses DSH client services and statistics snapshots; future API changes may require updates.
 - The card is not shown on the home screen when there is no current Session.
