@@ -59,6 +59,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   父历史不再重复计入。「7 天」总览改为含今天的 7 个自然日，每轮缓存命中率的 tooltip 分母与数值统一；
   上下文构成卡只有实际采用供应商上报占用时才判为实测。删除零引用的 `ui/shared/providers.ts`；
   `verify` 增加 `tsc --noEmit`；新增 6 例回归测试（缓存 4、折叠 2）
+- 0.1.25：撤回 0.1.24 里对 `session/end-seed` 的清空改动。真实日志显示 DSH 每次恢复会话都会追加这个
+  生命周期标记（`inherited` 表示当前对象生命周期的切点，不是「fork 继承结束」），在该点清空轮次、耗时与
+  请求会把一个 53 轮 / 1386 步的会话在下次恢复后显示成 0。现在只清成本，计数与耗时保留，并由 2 例折叠
+  测试锁定；真正的继承前缀只能按 `Session.inheritedEventCount` 裁剪，事件层判断不出来
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
