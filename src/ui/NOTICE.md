@@ -53,6 +53,12 @@ Apache License 2.0，原文见同目录 `LICENSE`。
 - 0.1.23：数字口径改为可自证。附件图片 token 说明不再自称「DeepSeek 官方换算」，改为 14px 分块网格、与 Qwen2-VL 同口径；
   上下文构成卡新增 `approximate` 判定（仅供应商上报占用与官方 breakdown 同时在时才算实测），数字后统一显示「（估算）」；
   `tsconfig.json` 打开 `allowJs`，消除 `usageRoute.ts` 对 `host/usage.js` 的 TS7016
+- 0.1.24：修复三处口径与数据完整性问题。总览磁盘缓存改为「读回旧文件再合并」，单条 worker 折叠不再整份覆盖
+  （新增 4000 条 / 24 MB 上限，超限按最近更新时间保留）；fork 会话在 `session/end-seed` 一并清空轮次/步骤、
+  耗时与请求列表，不再把父会话的历史算成本会话的工作；`usage` 聚合对 seeded root 也从继承前缀之后开始折叠，
+  父历史不再重复计入。「7 天」总览改为含今天的 7 个自然日，每轮缓存命中率的 tooltip 分母与数值统一；
+  上下文构成卡只有实际采用供应商上报占用时才判为实测。删除零引用的 `ui/shared/providers.ts`；
+  `verify` 增加 `tsc --noEmit`；新增 6 例回归测试（缓存 4、折叠 2）
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。

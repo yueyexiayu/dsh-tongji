@@ -146,7 +146,9 @@ export function createUsageCollector(observe, options = {}) {
   function cachedState(item, observation) {
     const key = sessionKey(item.id, item.assigned);
     let state = cache.get(key);
-    const start = item.root ? 0 : observation.inheritedEventCount;
+    // A seeded (forked) root inherits its parent's events just like a child
+    // session does, so both start after the inherited prefix.
+    const start = observation.inheritedEventCount;
     if (state && (state.inherited !== observation.inheritedEventCount || observation.events.length < state.next)) state = undefined;
     if (!state) state = { ...createFold(item.assigned, start, observation.inheritedEventCount), inherited: observation.inheritedEventCount };
     touch(key, state);

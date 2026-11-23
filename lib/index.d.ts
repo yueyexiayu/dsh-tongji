@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.23
+ * tongji v0.1.24
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T14:56:38+08:00
- * @commit e35dc226a609 (dirty working tree) on main
- * @commit-date 2026-11-23T14:23:42+08:00
+ * @built 2026-11-23T16:33:45+08:00
+ * @commit 6639e007b495 (dirty working tree) on main
+ * @commit-date 2026-11-23T14:56:58+08:00
  */
 
 /**
@@ -4116,6 +4116,13 @@ interface HeadersState {
 interface CommandStateRecord extends CommandRecord {
   call?: string;
 }
+interface TimelineEvent {
+  type: string;
+  seq: number;
+  time: number;
+  data?: Record<string, unknown>;
+  surfaceOp?: unknown;
+}
 interface AgentAlias {
   catalogName?: string;
   memberName?: string;
@@ -4196,6 +4203,7 @@ interface CumulativeTotals {
   skills: Record<string, true>;
   lastTurn?: number;
 }
+export declare function createTimelineState(): TimelineState;
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionMap {
     contextTimeline: ContextTimeline;
@@ -4509,7 +4517,7 @@ interface HeaderRecord {
 interface ContextHeaders {
   headers: HeaderRecord[];
 }
-declare const DEFAULT_BOUNDS: {
+export declare const DEFAULT_BOUNDS: {
   maxRequestSteps: number;
   maxKeptTurns: number;
   maxEvents: number;
@@ -4577,6 +4585,87 @@ type ResolveUrl = (specifier: string) => string;
  */
 export declare function detectedHarnessVersion(): string | undefined;
 export declare function detectHarnessVersion(ctx: Context, resolveUrl?: ResolveUrl, pluginRoot?: string): string | undefined;
+interface HostTimeline {
+  current: Snapshot['current'] | null;
+  total: number;
+  contextWindow?: number;
+  maxOutputTokens?: number;
+  model?: string;
+  turns: number;
+  steps?: number;
+  timing?: TimingTotals;
+  lastUser?: string;
+  generatedReasoning?: number;
+  generatedAnswerTokens?: number;
+  generatedCallTokens?: number;
+}
+interface HostSession {
+  id: string;
+  title: string;
+  cwd?: string;
+  updatedAt: number;
+  blank: boolean;
+  parentSession?: string;
+  origin?: 'subagent';
+  timeline: HostTimeline | null;
+  activity: ContextActivity | null;
+  signature: string;
+}
+interface CacheFileInfo {
+  size: number;
+  mtimeMs: number;
+}
+interface CacheFs {
+  stat(path: string): Promise<CacheFileInfo>;
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, data: string): Promise<void>;
+  rename(from: string, to: string): Promise<void>;
+  mkdir(path: string): Promise<void>;
+  rm?(path: string): Promise<void>;
+}
+interface DurableIdentity {
+  path: string;
+  sizeBytes: number;
+  mtimeMs: number;
+}
+interface CachedSession {
+  session: HostSession;
+  identity: DurableIdentity | null;
+}
+interface OverviewCacheLoad {
+  sessions: Map<string, HostSession>;
+  identities: Map<string, DurableIdentity | null>;
+  rebuild: Set<string>;
+}
+interface OverviewCacheRefresh {
+  identities: Map<string, DurableIdentity | null>;
+  changed: Set<string>;
+}
+interface StatHost {
+  stat?(id: string): Promise<unknown>;
+}
+interface OverviewCacheOptions {
+  path?: string;
+  fs?: CacheFs;
+  now?: () => number;
+  debounceMs?: number;
+  statConcurrency?: number;
+  captureConcurrency?: number;
+  maxEntries?: number;
+  maxBytes?: number;
+}
+/** `replace` rewrites the cache as the caller's complete set; `merge` overlays. */
+type CacheSaveMode = 'merge' | 'replace';
+interface OverviewCache {
+  load(currentIds: ReadonlySet<string>, known?: ReadonlyMap<string, DurableIdentity | null>): Promise<OverviewCacheLoad>;
+  refresh(currentIds: ReadonlySet<string>, known: ReadonlyMap<string, DurableIdentity | null>): Promise<OverviewCacheRefresh>;
+  capture(ids: readonly string[], host: StatHost): Promise<Map<string, DurableIdentity | null>>;
+  save(records: readonly CachedSession[], mode?: CacheSaveMode): void;
+  flush(): Promise<void>;
+  dispose(): void;
+}
+export declare function createOverviewCache(options?: OverviewCacheOptions): OverviewCache;
+export declare function applyTimeline(state: TimelineState, event: TimelineEvent, bounds: FoldBounds): TimelineState;
 export declare const name = "tongji";
 export declare const inject: string[];
 export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
@@ -4625,4 +4714,4 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
 export declare function apply(ctx: Context, config: Config$1): void;
-export {};
+export type { CacheSaveMode };

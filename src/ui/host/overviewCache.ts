@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -14,6 +15,11 @@ const DEFAULT_DEBOUNCE_MS = 2_000
 const DEFAULT_STAT_CONCURRENCY = 16
 
 const DEFAULT_CAPTURE_CONCURRENCY = 4
+
+/** Hard bounds on the whole-file cache: newest sessions win when it overflows. */
+const DEFAULT_MAX_ENTRIES = 4000
+
+const DEFAULT_MAX_BYTES = 24 * 1024 * 1024
 
 interface CacheFileInfo {
   size: number
@@ -74,13 +80,18 @@ export interface OverviewCacheOptions {
   debounceMs?: number
   statConcurrency?: number
   captureConcurrency?: number
+  maxEntries?: number
+  maxBytes?: number
 }
+
+/** `replace` rewrites the cache as the caller's complete set; `merge` overlays. */
+export type CacheSaveMode = 'merge' | 'replace'
 
 export interface OverviewCache {
   load(currentIds: ReadonlySet<string>, known?: ReadonlyMap<string, DurableIdentity | null>): Promise<OverviewCacheLoad>
   refresh(currentIds: ReadonlySet<string>, known: ReadonlyMap<string, DurableIdentity | null>): Promise<OverviewCacheRefresh>
   capture(ids: readonly string[], host: StatHost): Promise<Map<string, DurableIdentity | null>>
-  save(records: readonly CachedSession[]): void
+  save(records: readonly CachedSession[], mode?: CacheSaveMode): void
   flush(): Promise<void>
   dispose(): void
 }
@@ -202,12 +213,43 @@ export function createOverviewCache(options: OverviewCacheOptions = {}): Overvie
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS
   const statConcurrency = options.statConcurrency ?? DEFAULT_STAT_CONCURRENCY
   const captureConcurrency = options.captureConcurrency ?? DEFAULT_CAPTURE_CONCURRENCY
+  const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES
+  const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES
   let timer: ReturnType<typeof setTimeout> | null = null
-  let pending: CachedSession[] | null = null
+  let pending: { records: Map<string, CachedSession>; replace: boolean } | null = null
   let disposed = false
 
-  const write = async (records: readonly CachedSession[]): Promise<void> => {
-    const body = JSON.stringify({ format: OVERVIEW_CACHE_FORMAT, savedAt: now(), sessions: records })
+  // Callers hand over only the sessions they just refreshed, so every write
+  // starts from the file already on disk and overlays the new records.
+  // Replacing the whole file with one caller's slice is what let a single
+  // worker fold shrink a multi-megabyte cache to a single entry.
+  const readExisting = async (): Promise<CachedSession[]> => {
+    try {
+      return parsedRecords(JSON.parse(await fs.readFile(path)))
+    } catch {
+      return []
+    }
+  }
+
+  const boundRecords = (records: CachedSession[]): CachedSession[] => {
+    const ordered = [...records].sort((left, right) => right.session.updatedAt - left.session.updatedAt)
+    let kept = ordered.slice(0, maxEntries)
+    for (let pass = 0; pass < 8 && kept.length > 1; pass += 1) {
+      const serialized = JSON.stringify({ format: OVERVIEW_CACHE_FORMAT, savedAt: 0, sessions: kept })
+      const bytes = Buffer.byteLength(serialized)
+      if (bytes <= maxBytes) return kept
+      kept = kept.slice(0, Math.max(1, Math.floor(kept.length * maxBytes / bytes)))
+    }
+    return kept
+  }
+
+  const write = async (records: readonly CachedSession[], replace: boolean): Promise<void> => {
+    const merged = new Map<string, CachedSession>()
+    if (!replace) {
+      for (const record of await readExisting()) merged.set(record.session.id, record)
+    }
+    for (const record of records) merged.set(record.session.id, record)
+    const body = JSON.stringify({ format: OVERVIEW_CACHE_FORMAT, savedAt: now(), sessions: boundRecords([...merged.values()]) })
     const temp = `${path}.tmp`
     try {
       await fs.mkdir(dirname(path))
@@ -225,10 +267,10 @@ export function createOverviewCache(options: OverviewCacheOptions = {}): Overvie
       clearTimeout(timer)
       timer = null
     }
-    const records = pending
+    const staged = pending
     pending = null
-    if (records === null) return
-    await write(records)
+    if (staged === null) return
+    await write([...staged.records.values()], staged.replace)
   }
 
   const load = async (
@@ -246,7 +288,7 @@ export function createOverviewCache(options: OverviewCacheOptions = {}): Overvie
     }
     if (pending !== null) {
       const staged = new Map(records.map(record => [record.session.id, record]))
-      for (const record of pending) {
+      for (const record of pending.records.values()) {
         if (currentIds.has(record.session.id)) staged.set(record.session.id, record)
       }
       records = [...staged.values()]
@@ -322,20 +364,26 @@ export function createOverviewCache(options: OverviewCacheOptions = {}): Overvie
     return identities
   }
 
-  const save = (records: readonly CachedSession[]): void => {
-    if (disposed) return
-    const merged = new Map((pending ?? []).map(record => [record.session.id, record]))
-    for (const record of records) merged.set(record.session.id, record)
-    pending = [...merged.values()]
+  const schedule = (): void => {
     if (timer !== null) clearTimeout(timer)
     timer = setTimeout(() => {
       timer = null
-      const recordsToWrite = pending
+      const staged = pending
       pending = null
       /* v8 ignore next 1 */
-      if (recordsToWrite !== null) void write(recordsToWrite)
+      if (staged !== null) void write([...staged.records.values()], staged.replace)
     }, debounceMs)
     ;(timer as { unref?: () => void }).unref?.()
+  }
+
+  const save = (records: readonly CachedSession[], mode: CacheSaveMode = 'merge'): void => {
+    if (disposed) return
+    const staged = mode === 'replace'
+      ? { records: new Map<string, CachedSession>(), replace: true }
+      : pending ?? { records: new Map<string, CachedSession>(), replace: false }
+    for (const record of records) staged.records.set(record.session.id, record)
+    pending = staged
+    schedule()
   }
 
   const dispose = (): void => {
@@ -345,9 +393,9 @@ export function createOverviewCache(options: OverviewCacheOptions = {}): Overvie
       clearTimeout(timer)
       timer = null
     }
-    const records = pending
+    const staged = pending
     pending = null
-    if (records !== null) void write(records)
+    if (staged !== null) void write([...staged.records.values()], staged.replace)
   }
 
   return { load, refresh, capture, save, flush, dispose }

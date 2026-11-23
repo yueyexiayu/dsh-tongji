@@ -939,6 +939,14 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
         delete s.generatedReasoning
         delete s.generatedAnswerTokens
         delete s.generatedCallTokens
+        // A forked session replays its parent's history: the seeded events are
+        // not work this session did, so their counts, timing and request list
+        // go with the cost. activity.ts drops its day buckets at this event.
+        delete s.totals
+        delete s.timing
+        s.turnRuns = 0
+        s.requests = []
+        s.spans = []
         break
       }
       case 'plan/mode': {

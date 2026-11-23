@@ -1,6 +1,6 @@
 {
   "name": "tongji",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "private": true,
   "type": "module",
   "description": "DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。",
@@ -19,7 +19,8 @@
     "build": "tsdown",
     "check": "node --check lib/index.js && node --check lib/usage.js && node --check lib/client.js",
     "test": "node --test tests/*.test.js",
-    "verify": "npm run check && npm test"
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run check && npm run typecheck && npm test"
   },
   "exports": {
     ".": "./lib/index.js",

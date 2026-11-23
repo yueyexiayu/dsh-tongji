@@ -39,7 +39,9 @@ export function headlineOf(
   // pressureTokens is the only occupancy the provider itself reported; projected
   // padding, the prompt-anchored derivation and current.total are all estimates,
   // and officialParts needs a real breakdown to be anything else.
-  const precise = sampled !== undefined && breakdown !== null
+  // Only the sample the provider itself reported is exact; projected padding
+  // and every fallback below it is an estimate, even when a breakdown exists.
+  const precise = sampled !== undefined && breakdown !== null && occupancyTokens === sampled
   const window = pressure !== null && typeof pressure.contextWindow === 'number'
     ? pressure.contextWindow
     : data.contextWindow

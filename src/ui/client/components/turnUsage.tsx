@@ -192,7 +192,7 @@ export function makeTurnUsageCard(t: Translate) {
       ? []
       : [
           { key: 'uncached', label: t('turnusage.uncached'), value: tokens(total.input), title: exact(total.input) },
-          { key: 'hit', label: t('turnusage.cacheHit'), value: hitPercent(total), title: `${exact(total.read)} / ${exact(total.input + total.read)}` },
+          { key: 'hit', label: t('turnusage.cacheHit'), value: hitPercent(total), title: `${exact(total.read)} / ${exact(total.cacheInput > 0 ? total.cacheInput : total.input + total.read)}` },
           { key: 'input', label: t('turnusage.inputTotal'), value: tokens(inputTotal(total)), title: exact(inputTotal(total)) },
           { key: 'output', label: t('turnusage.output'), value: tokens(total.output), title: exact(total.output) },
           { key: 'grand', label: t('turnusage.grand'), value: tokens(grandTotal(total)), title: exact(grandTotal(total)) },

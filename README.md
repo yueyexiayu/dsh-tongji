@@ -4,7 +4,7 @@
   <p><strong>DSH 会话可观测性面板：用量、上下文、编队与洞察</strong></p>
   <p>本地 Desktop 插件。读取 DSH 会话统计快照、会话投影与会话日志，展示 token 用量、上下文构成、工具与命令活动、子代理编队和跨会话总览；不展示任何账户余额或费用。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.23 · Apache-2.0</p>
+  <p>Desktop 插件 · v0.1.24 · Apache-2.0</p>
   <p><a href="#功能面">功能面</a> · <a href="#数据来源与刷新">数据来源与刷新</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#构建与验证">构建与验证</a> · <a href="#限制">限制</a> · <a href="#许可">许可</a></p>
 </div>
 
@@ -26,7 +26,7 @@
 
 ## 语言
 
-界面**只有中文**，词典只有一份（750 条），没有第二份文案需要维护。DSH 语言服务的回退链固定以 `en` 收尾（`FALLBACK_LOCALE`），所以 `en` 位置指向同一份中文词典：即使把 DSH 切成英文界面，面板显示的仍是中文，不会露出 `turnusage.title` 这类键名。插件列表卡片保留 `locale/zh.json` 与 `locale/en.json`（各 132 字节），那是 DSH 插件清单的元数据，不是面板界面。
+界面**只有中文**，词典只有一份（751 条），没有第二份文案需要维护。DSH 语言服务的回退链固定以 `en` 收尾（`FALLBACK_LOCALE`），所以 `en` 位置指向同一份中文词典：即使把 DSH 切成英文界面，面板显示的仍是中文，不会露出 `turnusage.title` 这类键名。插件列表卡片保留 `locale/zh.json` 与 `locale/en.json`（各 122 字节），那是 DSH 插件清单的元数据，不是面板界面。
 
 ## 功能面
 
@@ -45,7 +45,7 @@
 - 上下文事件：注入、压缩、剪枝、模型切换、模式切换。
 - 工具定义与文件活动：工具 schema 的规模；文件读取/写入/搜索/图片操作、命中行数与行数变化。
 - 命令执行：按失败/慢/后台筛选，展示退出码、stderr、截断标记、沙箱拒绝与超时，并可回跳到结果消息。
-- 附件预览与历史分页：更早历史通过官方 `Session.loadOlder()` 按需加载，打开面板不会拉全量历史。
+- 附件预览与历史分页：更早历史通过官方会话查询接口按需分页加载，打开面板不会拉全量历史。
 
 ### 编队与洞察
 
@@ -58,9 +58,10 @@
 
 ## 数据来源与刷新
 
-- 数据来自 DSH 的会话统计快照、`sessionProjections` 投影与会话日志；Host 侧按会话保留增量折叠缓存，用 worker 线程池折叠步骤，缓存按最近使用顺序有界淘汰。
+- 数据来自 DSH 的会话统计快照、`sessionProjections` 投影与会话日志；Host 侧按会话保留增量折叠缓存，内存缓存按最近使用顺序有界淘汰。超过 3 万条事件的会话交给**单个**后台 worker 折叠（同时只跑一个，忙时回退到 Host 线程）。
+- 磁盘总览缓存一次只合并本次新增的会话，不再整份覆盖；条目按最近更新时间保留，上限 4000 条 / 24 MB。
 - 面板打开时，每轮用量卡按 5 秒轮询；总览按其自身节奏刷新。面板关闭即停止轮询。
-- 网络访问只有一处：版本检查（本仓库的 GitHub Releases）。失败只影响版本提示，不影响其余面板。
+- 网络访问共三处，全部可降级：版本检查（本仓库的 GitHub Releases，失败只影响版本提示）、推荐位清单（`raw.githubusercontent.com`，失败回退 `gh-proxy.org` 镜像）、推荐位图标（`cdn.simpleicons.org`）。它们都不影响其余面板。
 - Host 路由共 14 条，前缀 `/api/tongji/`：`version`、`skills`、`recom`、`fleet`、`attachment`、`detail`、`delta`、`facts`、`heads`、`commands`、`snapshot`、`overview`、`backfill`、`usage`。
 
 ## 安装
@@ -118,12 +119,12 @@ pnpm install
 
 ```sh
 npm run build   # tsdown：src/ -> lib/（host 走 ESM，client 走浏览器 CJS 包装）
-npm run verify  # node --check 三个产物 + 全部测试
+npm run verify  # node --check 三个产物 + tsc --noEmit + 全部测试
 ```
 
 产物自包含：`lib/index.js` 只依赖 `node:` 内置与 `./usage.js`，`lib/client.js` 没有外部 `require`，运行时不需要 `node_modules`。
 
-当前 `v0.1.23` 的实测结果：`npm run build` 与 `npm run verify` 通过，测试 25 例全绿（含 3 例版本探测用例、22 例既有用例；原先的 10 例价格与成本用例随功能下线一并删除）。
+当前 `v0.1.24` 的实测结果：`npm run build` 与 `npm run verify` 通过（`verify` = 产物语法检查 + `tsc --noEmit` + 测试），测试 31 例全绿：3 例版本探测、4 例缓存合并与上限、2 例 fork 折叠、22 例既有用例；原先的 10 例价格与成本用例随功能下线一并删除。
 
 ## 限制
 

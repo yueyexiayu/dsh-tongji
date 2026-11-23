@@ -45,13 +45,17 @@ test('replaces duplicate settlement and reports unavailable or unattributable us
   assert.equal(result.total.input, 11);
 });
 
-test('does not discover fork-inherited children or treat missing usage as zero', async () => {
+test('does not discover fork-inherited children and skips the inherited prefix', async () => {
+  // A seeded root replays its parent's events before end-seed. Those events
+  // belong to the parent: counting them here billed the fork for work it
+  // never did.
   const events = [start(1), child('inherited'), message(1, 1, 4, 2), end(1), start(2),
     { type: 'assistant/message', data: { turn: 2, step: 1 } }, end(2)];
   const seen = [];
   const result = await collectUsage('root', async id => { seen.push(id); return { inheritedEventCount: 4, events }; });
   assert.deepEqual(seen, ['root']);
-  assert.equal(result.turns['1'].input, 4);
+  assert.equal(result.turns['1'], undefined, 'the inherited turn is not this session work');
+  assert.equal(result.total.input, 0);
   assert.equal(result.turns['2'].unknown, 1);
   assert.equal(result.turns['2'].samples, 0);
 });

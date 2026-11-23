@@ -19,6 +19,11 @@ export const Config = UpstreamConfig
 
 export { detectHarnessVersion, detectedHarnessVersion } from '../ui/host/version'
 export { startFoldWorkerChannel } from '../ui/host/foldWorker'
+// Exported for the cache regression tests: they drive the real merge/bound logic.
+export { createOverviewCache, type CacheSaveMode } from '../ui/host/overviewCache'
+// Exported for the fold regression tests: they replay real events into a state.
+export { applyTimeline, createTimelineState } from '../ui/host/fold'
+export { DEFAULT_BOUNDS } from '../ui/host/config'
 
 export function apply(ctx: Context, config: UpstreamConfig): void {
   // Register tongji's own route first: it survives a version baseline

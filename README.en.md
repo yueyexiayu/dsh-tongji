@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.23 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.24 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -26,7 +26,7 @@
 
 ## Languages
 
-The interface is **Chinese only**: one dictionary (750 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (132 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
+The interface is **Chinese only**: one dictionary (751 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (122 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
 
 ## Features
 
@@ -45,7 +45,7 @@ The interface is **Chinese only**: one dictionary (750 entries), no second copy 
 - Context events: injection, compaction, pruning, model switch, mode switch.
 - Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
 - Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
-- Attachment previews and history paging: older history loads on request through the official `Session.loadOlder()`, never eagerly when the panel opens.
+- Attachment previews and history paging: older history loads on request through the official session query interface, never eagerly when the panel opens.
 
 ### Fleet and insights
 
@@ -58,9 +58,10 @@ The prefix and suffix from the settings card are spliced at the very start and e
 
 ## Data and refresh
 
-- Data comes from DSH statistics snapshots, `sessionProjections` projections and session logs. The Host keeps a per-session incremental fold cache, folds steps on a worker pool, and evicts cached sessions in least-recently-used order.
+- Data comes from DSH statistics snapshots, `sessionProjections` projections and session logs. The Host keeps a per-session incremental fold cache and evicts it in least-recently-used order. Sessions past 30,000 events fold on a **single** background worker (one at a time; a busy worker falls back to the Host thread).
+- The on-disk overview cache merges only the sessions this run refreshed instead of overwriting itself, and keeps the 4000 most recently updated entries under 24 MB.
 - While the pane is open, the per-turn usage card polls every five seconds and the overview refreshes on its own cadence; closing the pane stops the polling.
-- Only one network call exists: the update check against this repository's GitHub releases. A failure there affects only the version hint.
+- Three network calls exist, all degradable: the update check against this repository's GitHub releases (a failure affects only the version hint), the recommendation feed from `raw.githubusercontent.com` (falls back to the `gh-proxy.org` mirror), and recommendation icons from `cdn.simpleicons.org`.
 - The Host exposes fourteen routes under `/api/tongji/`: `version`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`.
 
 ## Installation
@@ -118,12 +119,12 @@ Eight further bounds (`maxRequestSteps`, `maxKeptTurns`, `maxEvents`, `maxNodes`
 
 ```sh
 npm run build   # tsdown: src/ -> lib/ (ESM host, browser CJS wrapper for the client)
-npm run verify  # node --check on all three artifacts plus the whole test suite
+npm run verify  # node --check on all three artifacts, tsc --noEmit, and the whole test suite
 ```
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.23`, `npm run build` and `npm run verify` both pass with 25 tests green: three version-probe cases plus the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.24`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 31 tests green: three version-probe cases, four cache-merge and bound cases, two fork-fold cases, and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 

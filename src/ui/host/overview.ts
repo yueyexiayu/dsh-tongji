@@ -365,7 +365,8 @@ export function watchOverviewRoute(
           records.push({ session, identity: identities.get(id) ?? null })
         }
         if (records.length === 0) return
-        cacheOf().save(records)
+        // This caller holds every cold session, so it may shrink the cache.
+        cacheOf().save(records, 'replace')
       }
 
       let captureInflight = false

@@ -64,7 +64,13 @@ export function windowOf(range: OverviewRange, day: string | null, now: number):
     midnight.setHours(0, 0, 0, 0)
     return { start: midnight.getTime(), end: null }
   }
-  return { start: now - (range === '7d' ? 7 : 30) * 86_400_000, end: null }
+  // A relative range covers whole days including today: 7d is today plus the
+  // six before it, not a rolling 168-hour window.
+  const days = range === '7d' ? 7 : 30
+  const midnight = new Date(now)
+  midnight.setHours(0, 0, 0, 0)
+  midnight.setDate(midnight.getDate() - (days - 1))
+  return { start: midnight.getTime(), end: null }
 }
 
 function dayInScope(key: string, scope: Window): boolean {
