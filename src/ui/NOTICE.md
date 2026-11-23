@@ -66,8 +66,12 @@ Apache License 2.0，原文见同目录 `LICENSE`。
 - 0.1.26：继承前缀按 `Session.inheritedEventCount` 裁剪。投影的 `init(header, inheritedEventCount)` 把前缀长度写进
   `seedCut`：前缀内的事件照常进 surface / 上下文事件（模型确实看过），但不计入轮次、步骤、耗时、请求列表、
   生成量与日桶。`contextTimeline` 状态版本 43→44，`contextActivity` 7→8，总览缓存 `format` 1→2，旧口径行
-  全部丢弃重建。`foldLog` 与 worker 折叠也接收该前缀长度；实测 9675 事件的 fork 会话：步骤 1387→1286、
-  surface 230 不变、日桶 token 233.2M→226.6M
+  全部丢弃重建。`foldLog` 与 worker 折叠也接收该前缀长度。`inheritedEventCount` 指的是会话里**最后一次**
+  继承标记（`session/end-seed` 且 `data.inherited === true`，DSH 要求它必须是最后一个这类标记）的位置：
+  对 fork 会话就是复制父历史的结束点，恢复（resume）追加的无标记 `end-seed` 不会移动它。实测 9675 事件的
+  fork 会话（标记在 seq 9663，其前 9662 条全部复制自父会话）：轮次 54→0、步骤 1387→0、请求 1387→0、
+  surface 230 不变、日桶 token 233.2M→0。该会话 fork 后只起了一轮、且那轮没有助手回复，所以自己的轮次
+  为 0；父的 54 轮仍记在父会话上。
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
