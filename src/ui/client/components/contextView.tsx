@@ -853,6 +853,10 @@ export function makeContextView(
           <StatsTiming timing={data.timing ?? null} spans={data.spans} locale={activeLocale} reserve={spansReserved} />
         </div>
 
+        <div className="lc-cols">
+          <JobPanel jobs={data.jobs ?? []} />
+        </div>
+
         {inSidebar ? (
           <AgentGraph
             sessionId={typeof sessionId === 'string' ? sessionId : undefined}
@@ -912,10 +916,6 @@ export function makeContextView(
             <Skeletons.Events />
             <Skeletons.Files />
           </>)}
-        </div>
-
-        <div className="lc-cols">
-          <JobPanel jobs={data.jobs ?? []} />
         </div>
 
         <div className="lc-cols" ref={cmdsRef}>

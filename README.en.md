@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.29 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.30 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -45,7 +45,7 @@ The interface is **Chinese only**: one dictionary (763 entries), no second copy 
 - Context events: injection, compaction, pruning, model switch, mode switch.
 - Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
 - Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
-- Background jobs: running or detached jobs with the command excerpt, state, duration, exit detail and job id; running jobs stay on top and their duration ticks by the second. Data comes from the `job/registered` and `job/settled` events in the session log; foreground jobs that finished stay in the command log only.
+- Background jobs (under the token and timing cards, same place in the full view and the sidebar): running or detached jobs with the command excerpt, state, duration, exit detail and job id; running jobs stay on top and their duration ticks by the second. Data comes from the `job/registered` and `job/settled` events in the session log; foreground jobs that finished stay in the command log only.
 - Attachment previews and history paging: older history loads on request through the official session query interface, never eagerly when the panel opens.
 
 ### Fleet and insights
@@ -125,7 +125,7 @@ npm run verify  # node --check on all three artifacts, tsc --noEmit, and the who
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.29`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 45 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, eight job-fold cases (registration, settlement, background marking, detachment, `zsh` and buffered commands), and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.30`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 45 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, eight job-fold cases (registration, settlement, background marking, detachment, `zsh` and buffered commands), and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 

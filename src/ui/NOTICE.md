@@ -79,6 +79,9 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.30：把「后台任务」卡片从页面底部（文件活动之后、命令面板之前）移到顶部——统计双卡
+  （Token 统计 / 耗时统计）之后、Agent 网络之前。上下文整页与侧栏「统计」页共用同一份渲染，
+  之前只在页面最底部出现，侧栏一打开看不到；移动后侧栏顶部即可见。
 - 0.1.29：上下文视图新增「后台任务」卡片。Host 折叠层把 `job/registered` / `job/settled` 收进独立
   `jobs` 集合（运行中最多 20 条、总计 80 条），按 `toolCall.callId` 与命令记录关联；`run_in_background`
   参数、结果里的后台确认，或「结果已返回但作业未结束」都会标记为后台。`contextTimeline` 状态版本 45→46，
