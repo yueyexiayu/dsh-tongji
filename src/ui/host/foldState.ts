@@ -83,6 +83,8 @@ export interface TimelineState {
   archiveFloor?: number
   detailRev?: number
   timing?: TimingTotals
+  /** Leading fork-inherited events: surfaced in the panel, never billed to this session. */
+  seedCut?: number
   stepStart?: {
     time: number
     firstToken?: number
@@ -340,7 +342,7 @@ export function noteSkillName(st: TimelineState, name: string): void {
   st.totals = totals
 }
 
-export function createTimelineState(): TimelineState {
+export function createTimelineState(seedCut?: number): TimelineState {
   return {
     surface: [],
     sums: { user: 0, inject: 0, skill: 0, assistant: 0, tool: 0 },
@@ -358,5 +360,6 @@ export function createTimelineState(): TimelineState {
     fileOps: [],
     commands: [],
     spans: [],
+    ...(seedCut !== undefined && seedCut > 0 ? { seedCut } : {}),
   }
 }

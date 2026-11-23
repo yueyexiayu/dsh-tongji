@@ -296,7 +296,43 @@ const CLONE_ALL: readonly CloneKey[] = ['surface', 'sums', 'requests', 'events',
 
 const STEP_BEATS_MAX = 1024
 
+/**
+ * State fields that describe work this session did. Events inherited from a
+ * fork parent still build the surface — the model really saw them — but must
+ * not move these, or the fork is billed for its parent's turns, timing and
+ * request list.
+ */
+const METER_KEYS = [
+  'totals', 'timing', 'spans', 'stepSpans', 'requests', 'turnRuns', 'cost',
+  'generatedReasoning', 'generatedAnswerTokens', 'generatedCallTokens',
+  'humanInputs', 'answers',
+  'stepStart', 'stepWaits', 'stepBeats', 'stepBeatsFull', 'stepRequestSeq', 'stepApprovals',
+] as const
+
+function inheritedOf(state: TimelineState, seq: number): boolean {
+  // `inheritedEventCount` counts leading events, and seq starts at 1, so the
+  // inherited prefix is exactly `seq <= seedCut`.
+  const cut = state.seedCut
+  return cut !== undefined && cut > 0 && Number.isFinite(seq) && seq <= cut
+}
+
+function freezeMeters(prev: TimelineState, next: TimelineState): TimelineState {
+  if (next === prev) return prev
+  const target = { ...next } as unknown as Record<string, unknown>
+  const source = prev as unknown as Record<string, unknown>
+  for (const key of METER_KEYS) {
+    if (source[key] === undefined) delete target[key]
+    else target[key] = source[key]
+  }
+  return target as unknown as TimelineState
+}
+
 export function applyTimeline(state: TimelineState, event: TimelineEvent, bounds: FoldBounds): TimelineState {
+  const applied = foldTimelineEvent(state, event, bounds)
+  return inheritedOf(state, event.seq) ? freezeMeters(state, applied) : applied
+}
+
+function foldTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: FoldBounds): TimelineState {
   if (event.type === 'subagent/catalog' || event.type === 'team/member'
     || state.stepStart === undefined || state.stepBeatsFull === true
     || !Number.isFinite(event.time) || event.time < 0) {

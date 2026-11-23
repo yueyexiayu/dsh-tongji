@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.25
+ * tongji v0.1.26
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T16:48:43+08:00
- * @commit 567ef47acf8a (dirty working tree) on main
- * @commit-date 2026-11-23T16:34:21+08:00
+ * @built 2026-11-23T16:56:18+08:00
+ * @commit c33d1a06fea7 (dirty working tree) on main
+ * @commit-date 2026-11-23T16:48:55+08:00
  */
 
 /**
@@ -4095,7 +4095,11 @@ interface ActivityState {
   lastTurn?: number;
   toolStarts?: Record<string, ToolStart | undefined>;
   skillCalls?: string[];
+  /** Leading fork-inherited events: their day buckets belong to the parent. */
+  seedCut?: number;
 }
+export declare function applyActivity(state: ActivityState, event: SessionEvent): ActivityState;
+export declare function createActivityState(seedCut?: number): ActivityState;
 interface StoredHeaderTool {
   name: string;
   tokens: number;
@@ -4158,6 +4162,8 @@ interface TimelineState {
   archiveFloor?: number;
   detailRev?: number;
   timing?: TimingTotals;
+  /** Leading fork-inherited events: surfaced in the panel, never billed to this session. */
+  seedCut?: number;
   stepStart?: {
     time: number;
     firstToken?: number;
@@ -4203,7 +4209,7 @@ interface CumulativeTotals {
   skills: Record<string, true>;
   lastTurn?: number;
 }
-export declare function createTimelineState(): TimelineState;
+export declare function createTimelineState(seedCut?: number): TimelineState;
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionMap {
     contextTimeline: ContextTimeline;

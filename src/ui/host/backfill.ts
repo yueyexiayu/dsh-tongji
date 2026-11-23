@@ -474,7 +474,11 @@ export function watchActivityBackfill(
                     const host = { stat: (persistence as unknown as PersistenceLike).stat?.bind(persistence) }
                     const captured = await worker.cache.capture([header.id], host)
                     const identity = captured.get(header.id) ?? null
-                    const folded1 = await worker.pool.fold(worker.config, log.events)
+                    const folded1 = await worker.pool.fold(
+                      worker.config,
+                      log.events,
+                      typeof log.inheritedEventCount === 'number' ? log.inheritedEventCount : 0,
+                    )
                     if (abort.signal.aborted) return 'aborted' as const
                     worker.cache.save([{
                       session: hostSessionOf(facts.id, facts, `C${identityKey(identity)}`, {

@@ -17,8 +17,13 @@ export interface FoldedOverview {
 }
 
 export interface FoldPool {
-  fold(config: Config, events: readonly SessionEvent[]): Promise<FoldedOverview>
+  fold(config: Config, events: readonly SessionEvent[], inheritedEventCount?: number): Promise<FoldedOverview>
   dispose(): void
+}
+
+/** `Session.inheritedEventCount` arrives untyped on a cold log; only a positive count is a prefix. */
+function countOf(value: unknown): number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : 0
 }
 
 const WORKER_CHUNK_EVENTS = 2_000
@@ -42,11 +47,11 @@ class OverviewFolder {
   private lastPromptAt = 0
   private prompted = false
 
-  constructor(config: Config) {
+  constructor(config: Config, inheritedEventCount = 0) {
     this.timeline = createContextTimelineDefinition(config, () => false)
     this.activity = createContextActivityDefinition()
-    this.timelineState = this.timeline.init()
-    this.activityState = this.activity.init()
+    this.timelineState = this.timeline.init(undefined, inheritedEventCount)
+    this.activityState = this.activity.init(undefined, inheritedEventCount)
   }
 
   apply(events: readonly SessionEvent[]): void {
@@ -80,7 +85,7 @@ export function startFoldWorkerChannel(port: FoldPort | null = parentPort): void
     if (data === null) return
     try {
       if (data.kind === 'begin') {
-        folder = new OverviewFolder(asRecord(data.config) ?? {})
+        folder = new OverviewFolder(asRecord(data.config) ?? {}, countOf(data.inheritedEventCount))
       } else if (data.kind === 'chunk' && folder !== null && Array.isArray(data.events)) {
         folder.apply(data.events as SessionEvent[])
       } else if (data.kind === 'end' && folder !== null) {
@@ -149,14 +154,14 @@ export function createFoldPool(spawnWorker: () => Worker = spawnFoldWorker): Fol
     return next
   }
   return {
-    fold: (config, events) => new Promise<FoldedOverview>((resolve, reject) => {
+    fold: (config, events, inheritedEventCount = 0) => new Promise<FoldedOverview>((resolve, reject) => {
       if (pending !== null) {
         reject(new Error('fold worker is busy'))
         return
       }
       pending = { resolve, reject }
       const active = ensure()
-      active.postMessage({ kind: 'begin', config })
+      active.postMessage({ kind: 'begin', config, inheritedEventCount })
       for (let start = 0; start < events.length; start += WORKER_CHUNK_EVENTS) {
         active.postMessage({ kind: 'chunk', events: events.slice(start, start + WORKER_CHUNK_EVENTS) })
       }

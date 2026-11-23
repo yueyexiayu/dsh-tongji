@@ -38,12 +38,19 @@ function isEvent(event: unknown): event is TimelineEvent {
   return event !== null && typeof event === 'object' && typeof (event as { type?: unknown }).type === 'string'
 }
 
+/** `Session.inheritedEventCount` on a cold observation; only a positive count is a prefix. */
+export function inheritedCountOf(value: unknown): number {
+  const count = (value as { inheritedEventCount?: unknown } | null)?.inheritedEventCount
+  return typeof count === 'number' && Number.isSafeInteger(count) && count > 0 ? count : 0
+}
+
 export async function foldLog(
   events: readonly unknown[],
   bounds: FoldBounds,
   aborted?: () => boolean,
+  inheritedEventCount = 0,
 ): Promise<{ state: TimelineState; lastSeq: number }> {
-  let state = createTimelineState()
+  let state = createTimelineState(inheritedEventCount)
   let lastSeq = -1
   let folded = 0
   for (const raw of events) {

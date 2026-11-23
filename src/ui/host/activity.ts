@@ -36,6 +36,8 @@ export interface ActivityState {
   lastTurn?: number
   toolStarts?: Record<string, ToolStart | undefined>
   skillCalls?: string[]
+  /** Leading fork-inherited events: their day buckets belong to the parent. */
+  seedCut?: number
 }
 
 const activityTallySchema = z.object({
@@ -74,6 +76,7 @@ const activityStateSchema = z.object({
   lastTurn: z.number().optional(),
   toolStarts: z.record(z.string(), toolStartSchema).optional(),
   skillCalls: z.array(z.string()).optional(),
+  seedCut: z.number().int().nonnegative().optional(),
 }) as unknown as z.ZodType<ActivityState>
 
 function billedBucketsOf(value: unknown): BilledUsage | null {
@@ -228,7 +231,30 @@ function toolResultCallIdOf(message: unknown): string | null {
   const callId = (source as { callId?: unknown }).callId
   return typeof callId === 'string' && callId !== '' ? callId : null
 }
+/** Day buckets and in-flight bookkeeping belong to the session that did the work. */
+const ACTIVITY_METER_KEYS = ['days', 'lastTurn', 'stepStart', 'toolStarts', 'skillCalls'] as const
+
+function freezeInherited(prev: ActivityState, next: ActivityState): ActivityState {
+  if (next === prev) return prev
+  const target = { ...next } as unknown as Record<string, unknown>
+  const source = prev as unknown as Record<string, unknown>
+  for (const key of ACTIVITY_METER_KEYS) {
+    if (source[key] === undefined) delete target[key]
+    else target[key] = source[key]
+  }
+  return target as unknown as ActivityState
+}
+
 export function applyActivity(state: ActivityState, event: SessionEvent): ActivityState {
+  const applied = foldActivityEvent(state, event)
+  // `inheritedEventCount` counts leading events, and seq starts at 1, so the
+  // inherited prefix is exactly `seq <= seedCut`.
+  const cut = state.seedCut
+  const inherited = cut !== undefined && cut > 0 && Number.isFinite(event.seq) && event.seq <= cut
+  return inherited ? freezeInherited(state, applied) : applied
+}
+
+function foldActivityEvent(state: ActivityState, event: SessionEvent): ActivityState {
   if (event.type === 'request/header') {
     const data = event.data as { header?: { config?: { model?: unknown; provider?: unknown } | null } | null } | undefined
     const config = data?.header?.config
@@ -260,11 +286,9 @@ export function applyActivity(state: ActivityState, event: SessionEvent): Activi
     delete next.stepStart
     return next
   }
-  if (event.type === 'session/end-seed') {
-    const data = event.data as { inherited?: unknown } | null | undefined
-    if (data?.inherited !== true) return state
-    return { days: {} }
-  }
+  // `session/end-seed` is a lifecycle cut that DSH also appends on resume, so
+  // it says nothing about the fork prefix. The inherited day buckets are
+  // filtered by `seedCut` instead of being dropped here.
   if (event.type === 'user/message' || event.type === 'developer/message') {
     const name = invokedSkillOf(event)
     return name === '' ? state : bookSkillLoad(state, name, event.time)
@@ -352,11 +376,15 @@ export function applyActivity(state: ActivityState, event: SessionEvent): Activi
   return newTurn ? { ...next, lastTurn: turn } : next
 }
 
+export function createActivityState(seedCut?: number): ActivityState {
+  return { days: {}, ...(seedCut !== undefined && seedCut > 0 ? { seedCut } : {}) }
+}
+
 export function createContextActivityDefinition(): WiredProjection<'contextActivity', ActivityState> {
   return {
     key: 'contextActivity',
     stateSchema: activityStateSchema,
-    init: (): ActivityState => ({ days: {} }),
+    init: (_header, inheritedEventCount): ActivityState => createActivityState(inheritedEventCount),
     apply: (state: ActivityState, event: SessionEvent) => applyActivity(state, event),
     wire: {
       summary: false,
@@ -371,7 +399,8 @@ export function createContextActivityDefinition(): WiredProjection<'contextActiv
         }])),
       }),
     },
-    stateVersion: 7,
+    // 8: `seedCut`, so a fork no longer books its parent's days.
+    stateVersion: 8,
   }
 }
 

@@ -23,6 +23,7 @@ export { startFoldWorkerChannel } from '../ui/host/foldWorker'
 export { createOverviewCache, type CacheSaveMode } from '../ui/host/overviewCache'
 // Exported for the fold regression tests: they replay real events into a state.
 export { applyTimeline, createTimelineState } from '../ui/host/fold'
+export { applyActivity, createActivityState } from '../ui/host/activity'
 export { DEFAULT_BOUNDS } from '../ui/host/config'
 
 export function apply(ctx: Context, config: UpstreamConfig): void {

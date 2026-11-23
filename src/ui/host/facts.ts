@@ -1,7 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { FoldBounds } from './config'
-import { foldLog } from './detailShadow'
+import { foldLog, inheritedCountOf } from './detailShadow'
 import type { DetailChannelGate } from './detail'
 import type { CachedSnapshotFace, SessionsFace, StateProjectionsFace } from './faces'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
@@ -311,7 +311,7 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
                 const kernel = kernelOfCold(c.get('sessionProjectionCache') as CachedSnapshotFace | undefined, header)
                 return valueOf(cached.state, false, wanted, kernel, cached.state, bounds.maxArchiveNodes)
               }
-              const state = (await foldLog(events as SessionEvent[], bounds)).state
+              const state = (await foldLog(events as SessionEvent[], bounds, undefined, inheritedCountOf(observation))).state
               stateCache.set(wanted.sessionId, { persistence, revision, state })
               const kernel = kernelOfCold(c.get('sessionProjectionCache') as CachedSnapshotFace | undefined, header)
               return valueOf(state, false, wanted, kernel, state, bounds.maxArchiveNodes)

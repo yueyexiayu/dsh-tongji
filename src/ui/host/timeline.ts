@@ -302,6 +302,7 @@ const timelineStateSchema = z.object({
   generatedAnswerTokens: z.number().int().nonnegative().optional(),
   generatedCallTokens: z.number().int().nonnegative().optional(),
   archiveFloor: z.number().optional(),
+  seedCut: z.number().int().nonnegative().optional(),
   timing: timingTotalsSchema.optional(),
   humanInputs: z.number().int().nonnegative().optional(),
   answers: z.number().int().nonnegative().optional(),
@@ -345,7 +346,8 @@ const timelineStateSchema = z.object({
   commandCallsOverflow: z.boolean().optional(),
 }) as unknown as z.ZodType<TimelineState>
 
-export const TIMELINE_STATE_VERSION = 43
+// 44: `seedCut`, so a fork stops billing its parent's turns and timing.
+export const TIMELINE_STATE_VERSION = 44
 
 export function createContextTimelineDefinition(
   config: Config,
@@ -359,7 +361,7 @@ export function createContextTimelineDefinition(
     key: 'contextTimeline',
     stateSchema: timelineStateSchema,
     wire: { viewSchema: contextTimelineSchema, view, summary: false },
-    init: () => createTimelineState(),
+    init: (_header, inheritedEventCount) => createTimelineState(inheritedEventCount),
     apply: (state: TimelineState, event: SessionEvent) => applyTimeline(state, event as Parameters<typeof applyTimeline>[1], headBounds),
     stateVersion: TIMELINE_STATE_VERSION,
   }

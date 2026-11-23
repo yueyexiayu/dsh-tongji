@@ -3,7 +3,7 @@ import type { CachedSnapshotFace, ListRecordLike, SessionQueryFace, SnapshotProj
 import type { FoldBounds } from './config'
 import { resolveBounds } from './config'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
-import { foldLog } from './detailShadow'
+import { foldLog, inheritedCountOf } from './detailShadow'
 import { buildTimelineHead } from './foldWire'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply } from './postRoute'
 import { asRecord } from './record'
@@ -70,7 +70,7 @@ async function coldHeadOf(
     try {
       const events = asRecord(observation)?.events
       if (!Array.isArray(events)) return null
-      const folded = await foldLog(events, bounds)
+      const folded = await foldLog(events, bounds, undefined, inheritedCountOf(observation))
       const head = buildTimelineHead(folded.state)
       return { head, ...(folded.lastSeq >= 0 ? { asOfSeq: folded.lastSeq } : {}) }
     } finally {

@@ -6,8 +6,11 @@ import type { HostSession, HostTimeline } from './overviewCorpus'
 import { asRecord } from './record'
 import { activityOf, currentOf, numOf, optionalNumOf, timingOf } from './overviewDecode'
 
-export const OVERVIEW_CACHE_FORMAT = 1
+// 2: the fold now excludes a fork's inherited prefix from turns, steps and
+// timing, so every `format: 1` row carries the old counts and is dropped.
+export const OVERVIEW_CACHE_FORMAT = 2
 
+/** Storage slot; the口径 version lives in `format`, not in the file name. */
 export const OVERVIEW_CACHE_FILE = 'overview-cache.v1.json'
 
 const DEFAULT_DEBOUNCE_MS = 2_000

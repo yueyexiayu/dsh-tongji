@@ -63,6 +63,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   生命周期标记（`inherited` 表示当前对象生命周期的切点，不是「fork 继承结束」），在该点清空轮次、耗时与
   请求会把一个 53 轮 / 1386 步的会话在下次恢复后显示成 0。现在只清成本，计数与耗时保留，并由 2 例折叠
   测试锁定；真正的继承前缀只能按 `Session.inheritedEventCount` 裁剪，事件层判断不出来
+- 0.1.26：继承前缀按 `Session.inheritedEventCount` 裁剪。投影的 `init(header, inheritedEventCount)` 把前缀长度写进
+  `seedCut`：前缀内的事件照常进 surface / 上下文事件（模型确实看过），但不计入轮次、步骤、耗时、请求列表、
+  生成量与日桶。`contextTimeline` 状态版本 43→44，`contextActivity` 7→8，总览缓存 `format` 1→2，旧口径行
+  全部丢弃重建。`foldLog` 与 worker 折叠也接收该前缀长度；实测 9675 事件的 fork 会话：步骤 1387→1286、
+  surface 230 不变、日桶 token 233.2M→226.6M
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。

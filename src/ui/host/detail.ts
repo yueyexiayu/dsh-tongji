@@ -4,7 +4,7 @@ import { asRecord } from './record'
 import { serviceIdentityOf } from './serviceIdentity'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
 import { buildTimelineDetail, buildTimelineHead } from './foldWire'
-import { DetailShadow, foldLog } from './detailShadow'
+import { DetailShadow, foldLog, inheritedCountOf } from './detailShadow'
 import { makeFoldCache } from './foldCache'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply, revisionOf } from './postRoute'
 import type { ContextTimelineDetail, Snapshot } from '../shared/types'
@@ -133,7 +133,7 @@ export function watchDetailChannel(
               }
               const events = asRecord(observation)?.events
               if (!Array.isArray(events)) return null
-              const state = (await foldLog(events, bounds)).state
+              const state = (await foldLog(events, bounds, undefined, inheritedCountOf(observation))).state
               if (headOnly) return headPayloadOf(state)
               const detail = buildTimelineDetail(state, bounds)
               if (revision === undefined) return detail

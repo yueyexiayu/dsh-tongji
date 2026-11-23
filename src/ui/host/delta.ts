@@ -4,7 +4,7 @@ import { asRecord } from './record'
 import { mountPostRoute, failure, leaseOf, observeOf, readBody, reply, revisionOf } from './postRoute'
 import type { ColdReadGate } from './coldRead'
 import type { DetailChannelGate } from './detail'
-import { DetailShadow, foldLog } from './detailShadow'
+import { DetailShadow, foldLog, inheritedCountOf } from './detailShadow'
 import { makeFoldCache } from './foldCache'
 import { createContextHeadersDefinition, headerRecordsOf, type HeadersState } from './headers'
 import type { TimelineState } from './foldState'
@@ -124,7 +124,7 @@ export function watchDeltaChannel(
               }
               const events = asRecord(observation)?.events
               if (!Array.isArray(events)) return null
-              const state = (await foldLog(events, bounds)).state
+              const state = (await foldLog(events, bounds, undefined, inheritedCountOf(observation))).state
               const headers = headersOfEvents(events, resolve)
               if (revision !== undefined) cache.set(sessionId, { revision, state, headers })
               return deltaOf(state, headers, { seq, baseSeq })
