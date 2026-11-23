@@ -50,6 +50,9 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   `SessionCostUsage`/`CostBucketTotals` 只是 token 桶的名字，不含金额；峰谷计价分桶（`isBeijingPeak`）
   删除，历史数据里的 `off` 桶仍会被读取求和；`TIMELINE_STATE_VERSION` 42→43，丢弃带价格的旧投影行
 - 0.1.21：`src/host/index.ts` 不再导出随模块删除的 9 个价格/成本函数
+- 0.1.23：数字口径改为可自证。附件图片 token 说明不再自称「DeepSeek 官方换算」，改为 14px 分块网格、与 Qwen2-VL 同口径；
+  上下文构成卡新增 `approximate` 判定（仅供应商上报占用与官方 breakdown 同时在时才算实测），数字后统一显示「（估算）」；
+  `tsconfig.json` 打开 `allowJs`，消除 `usageRoute.ts` 对 `host/usage.js` 的 TS7016
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。

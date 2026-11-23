@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.22 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.23 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -41,6 +41,7 @@ The interface is **Chinese only**: one dictionary (750 entries), no second copy 
 
 - Timeline: grouped by step or turn, switchable between cumulative and delta, with an optional duration curve, a fit-to-width overview mode, and a DNA mode that colours every request by what entered the window.
 - Request detail: what each model request carried (system prompt, tool schemas, user messages, injected content, skill injections, assistant output).
+- Measurement: occupancy, composition shares and image tokens are estimates — text at a fixed 4 characters per token, images on a 14px patch grid (the Qwen2-VL formula; DeepSeek does not publish its image billing formula). The composition card drops the estimate label only when both provider-reported occupancy and an official breakdown are present.
 - Context events: injection, compaction, pruning, model switch, mode switch.
 - Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
 - Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
@@ -122,7 +123,7 @@ npm run verify  # node --check on all three artifacts plus the whole test suite
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.22`, `npm run build` and `npm run verify` both pass with 25 tests green: three version-probe cases plus the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.23`, `npm run build` and `npm run verify` both pass with 25 tests green: three version-probe cases plus the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 

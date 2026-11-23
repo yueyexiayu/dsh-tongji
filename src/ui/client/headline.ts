@@ -8,6 +8,8 @@ export interface Headline {
   pct: number | null
   parts: PartsPart[]
   reserve?: ContextReserve
+  /** False only when both the occupancy and the breakdown came from the provider. */
+  approximate: boolean
 }
 
 export function occupancyPercent(tokens: number, window: number): number {
@@ -34,6 +36,10 @@ export function headlineOf(
     ? anchor.prompt + (current.total - anchor.total)
     : undefined
   const occupancyTokens = projected ?? sampled ?? derived ?? null
+  // pressureTokens is the only occupancy the provider itself reported; projected
+  // padding, the prompt-anchored derivation and current.total are all estimates,
+  // and officialParts needs a real breakdown to be anything else.
+  const precise = sampled !== undefined && breakdown !== null
   const window = pressure !== null && typeof pressure.contextWindow === 'number'
     ? pressure.contextWindow
     : data.contextWindow
@@ -44,5 +50,5 @@ export function headlineOf(
     occupancyTokens !== null && tokens > 0 ? tokens : null,
   )
   const reserve = reserveGeometry(window, data.maxOutputTokens)
-  return { tokens, window, pct, parts, ...(reserve !== undefined ? { reserve } : {}) }
+  return { tokens, window, pct, parts, approximate: !precise, ...(reserve !== undefined ? { reserve } : {}) }
 }

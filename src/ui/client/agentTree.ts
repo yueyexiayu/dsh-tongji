@@ -162,6 +162,9 @@ export function agentStatsOf(values: Record<string, unknown> | undefined): Agent
         window,
         pct: window !== undefined ? occupancyPercent(tokens, window) : null,
         parts: [],
+        // Without a timeline there is no official breakdown, and projectedTokens
+        // is padding rather than measurement.
+        approximate: typeof pressure.pressureTokens !== 'number' || typeof pressure.projectedTokens === 'number',
       }
     }
   }

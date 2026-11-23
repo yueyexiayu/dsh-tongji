@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.22
+ * tongji v0.1.23
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T14:23:37+08:00
- * @commit 174722f1705d (dirty working tree) on main
- * @commit-date 2026-11-23T14:18:55+08:00
+ * @built 2026-11-23T14:56:38+08:00
+ * @commit e35dc226a609 (dirty working tree) on main
+ * @commit-date 2026-11-23T14:23:42+08:00
  */
 
 /**

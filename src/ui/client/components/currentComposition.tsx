@@ -35,9 +35,8 @@ export function makeCurrentComposition(
         <div className="lc-overview-num">
           <b>{fmt(head.tokens)}</b>
           <span>
-            {head.window
-              ? ' / ' + fmt(head.window) + ' tokens'
-              : ' ' + t('overview.estimate')}
+            {head.window ? ' / ' + fmt(head.window) + ' tokens' : ' tokens'}
+            {head.approximate ? ' ' + t('overview.estimate') : ''}
           </span>
           {head.pct !== null ? (
             <span className="lc-overview-pct">
