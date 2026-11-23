@@ -26,7 +26,7 @@
 
 ## Languages
 
-The interface ships **Chinese and English only** (774 entries each, identical key sets); no unmaintained translations are kept. When DSH is set to any other language the plugin falls back to English, which is the language service's own behaviour (`FALLBACK_LOCALE = 'en'`). The plugin-list card likewise only provides `zh.json` and `en.json`.
+The interface is **Chinese only**: one dictionary (774 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (132 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
 
 ## Features
 
