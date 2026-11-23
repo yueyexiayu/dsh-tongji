@@ -12,7 +12,6 @@ import type { ViewKit } from '../viewkit'
 import type { FleetDetail } from '../../shared/types'
 import { useFleetModel } from '../fleetModel'
 import { ownerTaskRollupOf, teammateNameOf, teamMemberOf, type FleetTeam, type FleetTeamMember } from '../fleetTeam'
-import type { TaskStatusRollup } from '../taskRollup'
 import type { AgentForest, AgentNode, AgentSelfStats } from '../agentTree'
 import {
   AGENT_CARD_COMPACT_H,
@@ -310,7 +309,7 @@ export function makeAgentGraph(
                       onSelect={select}
                       onKeyOpen={keyOpen(node.id)}
                       memberName={teammateNameOf(team, node)}
-                      {...taskBadgeOf(team, node, t)}
+                      {...statusBadgeOf(team, node, t)}
                       avatar={{
                         id: node.id,
                         ...avatarIdentityOf(team, node, t),
@@ -343,27 +342,37 @@ const nullDetail: { detail: FleetDetail | null } = { detail: null }
 const noopPin = (): void => {}
 
 /**
- * The one badge an owner gets for its tasks, plus the tooltip that explains the
- * breakdown. Owners without tasks get no badge at all, so an All-idle board does
- * not paint every card with a status.
+ * The one badge a card gets: the live agent state first, then the task rollup of
+ * its owner, then the settled state. A running agent always reads 进行中 in the
+ * success colour, even when it owns no task; the tooltip keeps the task split.
  */
-function taskBadgeOf(
+function statusBadgeOf(
   team: FleetTeam | null,
   node: AgentNode,
   t: ViewKit['t'],
-): { task: TaskStatusRollup | null; taskLabel: string; taskTitle: string } {
+): { taskLabel: string; taskTitle: string; taskOn: boolean } {
   const rollup = ownerTaskRollupOf(team, node.id)
-  if (rollup.headline === null) return { task: null, taskLabel: '', taskTitle: '' }
   const counts = rollup.counts
-  const parts = [`${t('agents.taskTotal', { n: rollup.total })}`]
-  if (counts.in_progress > 0) parts.push(`${t('agents.status.in_progress')} ${counts.in_progress}`)
-  if (counts.pending > 0) parts.push(`${t('agents.status.pending')} ${counts.pending}`)
-  if (counts.completed > 0) parts.push(`${t('agents.status.completed')} ${counts.completed}`)
-  return {
-    task: rollup,
-    taskLabel: t(`agents.status.${rollup.headline}`),
-    taskTitle: parts.join(' · '),
+  const parts: string[] = []
+  if (rollup.headline !== null) {
+    parts.push(t('agents.taskTotal', { n: rollup.total }))
+    if (counts.in_progress > 0) parts.push(`${t('agents.status.in_progress')} ${counts.in_progress}`)
+    if (counts.pending > 0) parts.push(`${t('agents.status.pending')} ${counts.pending}`)
+    if (counts.completed > 0) parts.push(`${t('agents.status.completed')} ${counts.completed}`)
   }
+  const taskTitle = parts.join(' · ')
+  if (node.running && !node.isCurrent) {
+    return { taskLabel: t('agents.status.in_progress'), taskTitle, taskOn: true }
+  }
+  if (rollup.headline !== null) {
+    return {
+      taskLabel: t(`agents.status.${rollup.headline}`),
+      taskTitle,
+      taskOn: rollup.headline === 'in_progress' || node.running,
+    }
+  }
+  if (node.completed) return { taskLabel: t('agents.status.completed'), taskTitle: '', taskOn: false }
+  return { taskLabel: '', taskTitle: '', taskOn: false }
 }
 
 /* v8 ignore next 2 */
@@ -387,10 +396,10 @@ interface CardProps {
   onKeyOpen: (ev: KeyboardEvent) => void
   memberName?: string
   avatar: CommsAgent
-  /** Rolled-up task state of this owner, or null when the team board has no tasks for it. */
-  task: TaskStatusRollup | null
+  /** The card's one status word (进行中 / 已完成 / 待处理), empty when it has none. */
   taskLabel: string
   taskTitle: string
+  taskOn: boolean
   t: ViewKit['t']
   fmt: ViewKit['fmt']
 }
@@ -437,11 +446,11 @@ function AgentCard(props: CardProps): ReactElement {
           ? <StateDot state={node.running ? 'ongoing' : 'done'} size={11} className="lc-agent-state" />
           : null}
         <div className="lc-agent-label" title={props.memberName ?? node.label}>{props.memberName ?? node.label}</div>
-        {props.task !== null
+        {props.taskLabel !== ''
           ? (
             <span
-              className={'lc-agents-badge lc-agent-task' + (props.task.headline === 'in_progress' ? ' lc-agents-badge-on' : '')}
-              title={props.taskTitle}
+              className={'lc-agents-badge lc-agent-task' + (props.taskOn ? ' lc-agents-badge-on' : '')}
+              title={props.taskTitle === '' ? undefined : props.taskTitle}
             >{props.taskLabel}</span>
             )
           : null}

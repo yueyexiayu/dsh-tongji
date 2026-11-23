@@ -37,6 +37,9 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   `cwd`；文件地址按 0.2.3 的口径自行拼出绝对路径，不再依赖随包固定的 `fileAddressFor`
 - 0.1.20：`src/host/index.ts` 补出 `startFoldWorkerChannel` 与版本探测导出；删除已失效的
   `ui/host/sweep.ts`（状态版本 36→37 的行迁移）及只被它使用的 `deriveHeadState` 等死函数
+- 0.1.22：Agent 网络卡片的徽章改为先看运行态：运行中的子 Agent 显示绿色的「进行中」，不再等它有自己的任务
+  才出现文字；无任务且已结束的卡片回落到「已完成」，没有任务归属时不再渲染空白徽章。徽章的
+  tooltip 仍给出任务总数的分项
 - 0.1.21：余额与成本功能整体下线。删除 `ui/host/balance.ts`、`ui/host/cost.ts`、`ui/shared/pricing.ts`、
   `ui/client/balance.ts`、`ui/client/cost.ts`、`ui/client/costRefresh.ts`、
   `ui/client/components/balanceCapsule.tsx` 与 `/api/tongji/balance` 路由；面板不再显示余额、花费或
