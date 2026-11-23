@@ -59,7 +59,7 @@ export function watchRecomChannel(ctx: Context, options: RecomChannelOptions = {
     ctx,
     deps: ['connection'],
     path: RECOM_ROUTE,
-    label: 'dsh-context: recom route',
+    label: 'tongji: recom route',
     handler: () => async (): Promise<Response> => {
       if (slot !== null && now() - slot.at < (slot.read.degraded ? RECOM_FAILURE_BACKOFF_MS : ttlMs)) {
         return reply({ ok: true, value: slot.read.recoms, degraded: slot.read.degraded })

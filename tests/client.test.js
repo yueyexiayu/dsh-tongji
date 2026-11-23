@@ -120,6 +120,31 @@ function createHarness() {
   };
 }
 
+/**
+ * The slice above deliberately omits module-scope JSX imports (card icons and
+ * other furniture), and minified names move with every build, so a name list
+ * cannot be hard-coded. Anything the harness does not provide resolves to an
+ * inert component instead: the assertions below only depend on the card's
+ * numbers and text, never on the identity of a decorative icon.
+ */
+const INTRINSICS = new Set([
+  'Object', 'Array', 'ArrayBuffer', 'BigInt', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
+  'JSON', 'Map', 'Math', 'NaN', 'Number', 'Promise', 'Proxy', 'RangeError', 'ReferenceError',
+  'Reflect', 'RegExp', 'Set', 'String', 'Symbol', 'SyntaxError', 'TypeError', 'URIError',
+  'WeakMap', 'WeakSet', 'console', 'decodeURI', 'decodeURIComponent', 'encodeURI',
+  'encodeURIComponent', 'eval', 'globalThis', 'isFinite', 'isNaN', 'parseFloat', 'parseInt',
+  'undefined', 'Infinity', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
+  'queueMicrotask', 'structuredClone',
+]);
+
+function slicedScope(sandbox) {
+  const inert = function Inert() { return null; };
+  return new Proxy({}, {
+    has: (_target, key) => typeof key === 'string' && !(key in sandbox) && !INTRINSICS.has(key),
+    get: (_target, key) => (key === Symbol.unscopables ? undefined : inert),
+  });
+}
+
 /** The bundle passes a single child as often as an array, so normalise both. */
 const childrenOf = node => {
   const children = node?.props?.children;
@@ -317,7 +342,8 @@ test('usage card fetches the session total and polls every five seconds', async 
   });
   const harness = createHarness();
   sandbox.u = harness.React;
-  runInContext(`${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);`, sandbox);
+  sandbox.__scope = slicedScope(sandbox);
+  runInContext(`with (__scope) {\n${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);\n}`, sandbox);
 
   const tree = await harness.settle(sandbox.UsageCard, { sessionId: 'root' });
 
@@ -378,7 +404,8 @@ test('usage card reports an empty session instead of inventing numbers', async (
   });
   const harness = createHarness();
   sandbox.u = harness.React;
-  runInContext(`${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);`, sandbox);
+  sandbox.__scope = slicedScope(sandbox);
+  runInContext(`with (__scope) {\n${helpers}\n${card}\nthis.UsageCard = ${cardName}(key => key);\n}`, sandbox);
 
   const tree = await harness.settle(sandbox.UsageCard, { sessionId: 'root' });
   const nodes = collect(tree);

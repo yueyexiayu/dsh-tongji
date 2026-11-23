@@ -50,7 +50,7 @@ export function makeFoldCache<V>(ctx: Context, options: FoldCacheOptions<V>): Fo
     if (timer !== null) clearTimeout(timer)
     timer = null
     store.clear()
-  }, 'dsh-context: fold cache sweep')
+  }, 'tongji: fold cache sweep')
   return {
     get(key, accept) {
       const value = store.get(key)

@@ -39,13 +39,13 @@ export function watchPromptInjection(ctx: Context, config: Config): void {
       || typeof systemPrompt.section !== 'function'
       || typeof systemPrompt.getSectionOrder !== 'function') return
     systemPrompt.section({
-      name: 'dsh-context:prompt-prefix',
+      name: 'tongji:prompt-prefix',
       order: systemPrompt.getSectionOrder('HARNESS_IDENTITY') - ORDER_CLEARANCE,
       text: sectionText(liveText(config.promptPrefix)),
       interpolate: false,
     })
     systemPrompt.section({
-      name: 'dsh-context:prompt-suffix',
+      name: 'tongji:prompt-suffix',
       order: systemPrompt.getSectionOrder('DEPLOYMENT_PERSONA_SUFFIX') + ORDER_CLEARANCE,
       text: sectionText(liveText(config.promptSuffix)),
       interpolate: false,

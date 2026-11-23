@@ -1,7 +1,7 @@
 /**
  * tongji's own route: fold per-turn/per-step token usage for one session.
  *
- * This is the capability dsh-context does not provide — dsh-context measures
+ * This is the capability the context panel does not provide — the panel measures
  * what is *in* the context window, while this measures what went *through* the
  * model. The client renders it as a section inside the merged panel.
  */
@@ -40,7 +40,7 @@ export function registerUsageRoute(ctx: Context): void {
   const host = ctx as unknown as UsageHost
   const connection = host.connection
   const sessionQuery = host.sessionQuery
-  // The route is optional: a host without these services still gets the dsh-context panel.
+  // The route is optional: a host without these services still gets the context panel.
   if (connection?.fetch?.register === undefined || sessionQuery === undefined) return
 
   const usage = createUsageCollector(async (sessionId: string, signal?: AbortSignal) => {

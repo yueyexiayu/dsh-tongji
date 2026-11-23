@@ -486,7 +486,7 @@ export const DICT_RU = {
   'error': 'Не удалось прочитать данные контекста: ',
   'error.retry': 'Повторить',
   'gate.title': 'Обновите DeepSeek Harness',
-  'gate.body': 'dsh-context поддерживает DeepSeek Harness v{minimum} или новее.',
+  'gate.body': 'tongji поддерживает DeepSeek Harness v{minimum} или новее.',
   'gate.current': 'Текущая версия',
   'gate.minimum': 'Минимально требуется',
   'gate.orNewer': 'или новее',

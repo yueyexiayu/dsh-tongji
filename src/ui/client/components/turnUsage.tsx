@@ -1,12 +1,12 @@
 /**
  * tongji's per-turn usage fold, rendered as the bottom-most card of the
- * dsh-context view.
+ * context view.
  *
- * dsh-context measures what sits *in* the window; this measures what passed
+ * The context panel measures what sits *in* the window; this measures what passed
  * *through* the model, and it keeps the two levels tongji always had: a turn
  * expands into the steps that spent it.
  *
- * Styling reuses dsh-context's own vocabulary (.lc-card / .lc-stat / .lc-sl and
+ * Styling reuses the panel's own vocabulary (.lc-card / .lc-stat / .lc-sl and
  * the semantic colours from stats.css) so this block reads as part of the panel
  * and inherits its container queries.
  *

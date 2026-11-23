@@ -7,9 +7,10 @@ export const CATALOG_TTL_MS = 60 * 60 * 1000
 
 const PRICES_FAILURE_BACKOFF_MS = 30_000
 
+// The panel is not published to a package registry, so its newest version is
+// whatever the repository's latest release says.
 const VERSION_URLS = [
-  'https://registry.npmjs.org/dsh-context/latest',
-  'https://registry.npmmirror.com/dsh-context/latest',
+  'https://api.github.com/repos/yueyexiayu/dsh-tongji/releases/latest',
 ]
 
 const PRICES_URL = 'https://models.dev/api.json'
@@ -54,7 +55,9 @@ function slotOf<T>(): Slot<T> {
 }
 
 function readVersion(body: unknown): string | null {
-  const version = asRecord(body)?.version
+  const record = asRecord(body)
+  // Registries answer with version; the GitHub releases API answers with tag_name.
+  const version = record?.version ?? record?.tag_name
   return typeof version === 'string' && version !== '' ? version : null
 }
 
@@ -156,9 +159,13 @@ export function createCatalogService(options: CatalogOptions = {}): CatalogServi
   }
 }
 
+// lib/index.js sits one level under the package root, so the manifest is read
+// relative to this module instead of by package name.
+const OWN_MANIFEST = new URL('../package.json', import.meta.url)
+
 function currentVersionOf(): string | undefined {
   try {
-    const parsed: unknown = JSON.parse(readFileSync(fileURLToPath(import.meta.resolve('dsh-context/package.json')), 'utf8'))
+    const parsed: unknown = JSON.parse(readFileSync(fileURLToPath(OWN_MANIFEST), 'utf8'))
     const version = asRecord(parsed)?.version
     /* v8 ignore next 1 */
     return typeof version === 'string' && version !== '' ? version : undefined

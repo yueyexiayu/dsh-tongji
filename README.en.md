@@ -1,42 +1,71 @@
 <div align="center">
-  <img src="docs/assets/hero.svg" width="100%" alt="Illustrative tongji banner for a DSH session statistics card" />
+  <img src="docs/assets/hero.svg" width="100%" alt="Illustrative tongji banner for the DSH session observability panel" />
   <h1>tongji</h1>
-  <p><strong>Session statistics in the DSH conversation sidebar</strong></p>
-  <p>A local Desktop UI plugin that reads DSH statistics snapshots and session projections to show totals, per-turn metrics, and step summaries.</p>
+  <p><strong>Session observability for DSH: usage, cost, context, fleet and insights</strong></p>
+  <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage and cost, context composition, tool and command activity, sub-agent fleets and cross-session overviews.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.15</p>
-  <p><a href="#features">Features</a> · <a href="#how-it-works">How it works</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#validation-and-limitations">Validation and limitations</a></p>
+  <p>Desktop plugin · v0.1.17 · Apache-2.0</p>
+  <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
 ---
 
-`tongji` places a session statistics summary in the DSH right sidebar. It reads the session statistics snapshot and reported usage from session logs. It makes no additional model or tool calls, and the built-in Statistics view remains unchanged.
+`tongji` puts session observability inside the DSH interface. It only reads local session data: it makes no model calls and runs no tools on your behalf, and the built-in Statistics view keeps working as before.
+
+## Surfaces
+
+| Surface | Where | What it shows |
+| --- | --- | --- |
+| Statistics | Right sidebar tab of a conversation (opens automatically over the default guide) | Session totals, per-turn usage, cost, platform balance |
+| Context | Conversation view tab | Context timeline, request detail, tool definitions, file activity, command log, context events |
+| Fleet | Conversation view tab (can be hidden) | Sub-agent tree, agent network, tasks and exchanged messages |
+| Context insights | Main page plus a sidebar panel entry (can be hidden) | Cross-session overview, trends, skill catalog, recommendations |
+| Context jump | Assistant message actions | Jump from a turn to its place in the context view |
+| Context modal | Composer overlay | Quick context glance while writing |
+| Settings card | Plugin page, "Configuration" | Placement, view defaults, system-prompt prefix and suffix |
 
 ## Features
 
-| Session totals | Per-turn summary | Step status |
-| --- | --- | --- |
-| Uncached input, cached input with cache hit rate, cumulative input, cumulative output, cumulative total tokens, and main-agent output speed | Input, output, and total tokens, including available child usage; turns are collapsed by default | Expand a turn to see main-agent step summaries |
+### Usage and cost
 
-Totals and turns both accumulate reported input, output, and total tokens, including retries and available child-agent usage. A child's later work and descendants are assigned to the main-session turn that created it; usage without an identifiable creation turn is listed separately. Inherited child history is excluded to prevent double counting. Uncached input comes from non-cached input; cached input comes from cache reads; cumulative input also includes cache writes; cumulative total tokens also includes output. The parentheses after cached input show the cache hit rate directly; its tooltip provides exact token counts and hit rate. External agents and missing usage are unknown: `+` marks an incomplete known amount, `—` means no available amount, and “partial” marks excluded samples. Speed and step details cover the main agent only. Official conversation or per-turn figures can have a different scope and should not be treated as session totals including children. Counts below 1,000 tokens stay exact; larger amounts use `K` / `M` abbreviations, with exact values available on hover. The interface supports Chinese and English and falls back to English for other languages.
+- Session totals, per-turn summary and per-step detail; turns stay collapsed until expanded.
+- Uncached input, cached input with hit rate, cumulative input (including cache writes), cumulative output, cumulative total tokens, and main-agent output speed.
+- Child-agent usage is assigned to the main-session turn that created it, including retries and descendants; inherited child history is never double counted. Usage without an identifiable creation turn is listed separately, and external agents or missing usage are marked unknown.
+- Cost comes from the models.dev price catalog: one-hour TTL, eight-second timeout, thirty-second backoff on failure. DeepSeek providers bill peak periods at twice the rate, and USD/CNY converts at a fixed 0.15 USD per CNY.
+- Every model reports how its price was resolved (direct hit, branch suffix, normalized, provider alias, maker branch, canonical maker, family, index) with a confidence level, or why it could not be (catalog unavailable, unknown model, ambiguous, no entry).
 
-## How it works
+### Context
 
-![tongji data flow: the current session's official statistics snapshot and projections feed the sidebar card](docs/assets/workflow.en.svg)
+- Timeline: grouped by step or turn, switchable between cumulative and delta, with an optional duration curve, a fit-to-width overview mode, and a DNA mode that colours every request by what entered the window.
+- Request detail: what each model request carried (system prompt, tool schemas, user messages, injected content, skill injections, assistant output).
+- Context events: injection, compaction, pruning, model switch, mode switch.
+- Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
+- Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
+- Attachment previews and history paging: older history loads on request through the official `Session.loadOlder()`, never eagerly when the panel opens.
 
-The plugin reads the current session's statistics snapshot and uses the Host `sessionQuery` to calculate usage from the session and child logs. The Host keeps an incremental per-session fold cache so each refresh processes only appended events, reads children with bounded concurrency, and evicts cached sessions in least-recently-used order. It renders the result in its own right-sidebar tab; the original Statistics view remains available in its existing location.
+### Fleet and insights
 
-While the pane is open, it refreshes about every 5 seconds during a main-session turn and every 30 seconds while idle; background child updates can therefore be delayed. Read errors show a stable error code, the last successful update time, and a retry button, while any last successful result remains visible as stale data.
+- Fleet: sub-agent hierarchy, roles and task badges, an agent network graph, and the messages exchanged between agents.
+- Insights: cross-session overview (today, 7 days, 30 days), daily heat and trends, skill catalog, recommendations and platform balance.
+
+### System prompt
+
+The prefix and suffix from the settings card are spliced at the very start and end of every session system prompt, for every agent including sub-agents. Both are empty by default, and a change applies from the next turn. This is the highest-privilege feature in the plugin and is not a statistics feature.
+
+## Data and refresh
+
+- Data comes from DSH statistics snapshots, `sessionProjections` projections and session logs. The Host keeps a per-session incremental fold cache, folds steps on a worker pool, and evicts cached sessions in least-recently-used order.
+- While the pane is open, the per-turn usage card polls every five seconds and the overview refreshes on its own cadence; closing the pane stops the polling.
+- Only two network calls exist: the price catalog at `models.dev/api.json`, and the update check against this repository's GitHub releases. A failure in either affects only its own section.
+- The Host exposes fifteen routes under `/api/tongji/`: `version`, `balance`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`.
 
 ## Installation
 
 ### 1. Requirements
 
-DSH Desktop, a local plugin directory, and an editable Desktop profile are required. This repository does not declare a minimum DSH version; the plugin API may vary across DSH releases.
+DSH Desktop, a local plugin directory and an editable Desktop profile are required. The code declares a `0.2.0-rc.2` baseline: older DSH releases fall back to reduced projections and some panels do not appear.
 
 ### 2. Install the plugin files
-
-Clone the repository into the local plugin directory:
 
 ```sh
 git clone https://github.com/yueyexiayu/dsh-tongji.git ~/.dsh/plugins/tongji
@@ -52,34 +81,63 @@ Add this entry to `dependencies` in `~/.dsh/profiles/desktop/package.json`:
 "tongji": "link:/Users/YOUR_USERNAME/.dsh/plugins/tongji"
 ```
 
-Add `"tongji"` to the `dsh.profile.bundles` array as well. Replace the sample username with the actual local path, then run in the Desktop profile directory:
+Add `"tongji"` to the `dsh.profile.bundles` array as well, then install from the profile directory:
 
 ```sh
 cd ~/.dsh/profiles/desktop
 pnpm install
 ```
 
-Quit DSH completely and reopen it. On entering a conversation, “统计” opens automatically when the sidebar only contains its default guide. If a browser or another page is already open, that page keeps focus and “统计” remains available from the sidebar. If the sidebar is closed, reopen it through DSH's existing controls.
+Quit DSH completely (⌘Q) and reopen it. On entering a conversation, "统计" opens automatically when the sidebar only shows its default guide; otherwise the current page keeps focus and "统计" stays available from the sidebar.
 
 ## Configuration
 
-The package, plugin ID, and bundle name are `tongji`. The visible tab title is “统计”. Install it at `~/.dsh/plugins/tongji` and point the profile dependency link to that directory.
+The plugin ID, package name and bundle name are all `tongji`; install it at `~/.dsh/plugins/tongji` and point the profile link there. Settings live in the plugin page configuration card and can also be overridden in the profile cordis config:
 
-The plugin has no additional settings. Turns are collapsed by default, and step details mount only after expansion. The turn area has its own scrollbar; earlier history loads on request through the official `Session.loadOlder()` method, without eagerly fetching the complete history when the pane opens. The card is only shown when a current Session is available.
+| Key | Values | Effect |
+| --- | --- | --- |
+| `defaultPlacement` | `all` / `tab` / `sidebar` / `hide` | Where the context panel is mounted |
+| `defaultGranularity` | `step` / `turn` | Timeline grouping |
+| `defaultTrendMode` | `total` / `delta` | Cumulative or delta trend |
+| `defaultDeltaBase` | `step` / `turn` | Delta baseline |
+| `defaultToolSort` / `defaultFileSort` | see the panel | Sorting for tool definitions and file activity |
+| `insightsEntry` | `show` / `hide` | Context insights entry |
+| `defaultDurationCurve` | `show` / `hide` | Duration curve on the trend chart |
+| `overviewAutoSteps` | `100` / `200` / `300` / `off` | Auto-overview step count |
+| `defaultOverviewRange` | `today` / `7d` / `30d` | Default insights range |
+| `fleetTab` | `show` / `hide` | Fleet tab |
+| `promptPrefix` / `promptSuffix` | text | Injected at the head and tail of the system prompt; empty by default |
 
-## Validation and limitations
+Eight further bounds (`maxRequestSteps`, `maxKeptTurns`, `maxEvents`, `maxNodes`, `maxArchiveNodes`, `maxFileOps`, `maxCommands`, `maxCommandChars`) cap how much a single fold keeps.
 
-The v0.1.16 `lib/` artifacts were rebuilt on 2026-11-19 with every build-time dependency aligned to the running DSH `0.2.2-rc.5`. Previously `package.json` declared no `devDependencies` at all while the lockfile recorded `0.2.2-rc.2`, so the vendored copies could drift silently from the runtime; the manifest and `pnpm-workspace.yaml` now carry the full list so the next upgrade follows declarations instead of leftover `node_modules`. `npm run verify` passes syntax checks plus 22 automated tests.
+## Build and verification
 
-The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime. The earlier live Desktop verification (DSH `0.2.2-rc.1`, v0.1.13) covered the old six totals and per-turn summary only, not the context view, agent network, or command panel.
+```sh
+npm run build   # tsdown: src/ -> lib/ (ESM host, browser CJS wrapper for the client)
+npm run verify  # node --check on all three artifacts plus the whole test suite
+```
 
-- The plugin uses DSH client services and statistics snapshots; future API changes may require updates.
-- The card is not shown on the home screen when there is no current Session.
-- This repository has no license file. Do not assume an open-source license until the maintainers choose one.
-- The public repository excludes the Desktop profile, user sessions, databases, and dependency directories.
+The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-## Community and license
+On `v0.1.17`, `npm run build` and `npm run verify` both pass with 32 tests green: ten new pricing and cost cases that pin fixed inputs to fixed amounts, plus the 22 existing cases.
 
-Use GitHub Issues for questions and suggestions. No license is declared in this repository; until one is added, permission to use and redistribute the code is not granted.
+## Limitations
 
-<div align="center"><sub>A lightweight statistics entry point for DSH sessions · <a href="README.md">阅读中文版 →</a></sub></div>
+- The real UI was only load-verified on DSH `0.2.3-alpha.2` (the plugin writes under `~/.dsh/storages/tongji/`); the earlier live record covers the v0.1.13 panel and not the context view, agent network or command panel.
+- Build-time dependencies are pinned to `0.2.2-rc.5`, which can differ from the running DSH; a DSH upgrade needs a rebuild against the new modules.
+- With no current session on the home screen, the panel shows no session statistics.
+- The fold cache filters by existing sessions but has no byte cap; it is currently about 5 MB on this machine.
+- Error codes are `tongji/*` since `v0.1.17`; the legacy `dsh-context/*` prefix is still normalized.
+- The recommendation slot reads `data/recoms.json` from this repository and falls back to a built-in entry, marked degraded, when that file is absent.
+
+## License
+
+This repository is released under the Apache License 2.0; see [LICENSE](LICENSE).
+
+`src/ui/` is derived from [bowenliang123/dsh-context](https://github.com/bowenliang123/dsh-context) v0.84.1 (Apache-2.0, copyright the original author). Its license text is kept at [`src/ui/LICENSE`](src/ui/LICENSE), and the change record plus provenance are in [`src/ui/NOTICE.md`](src/ui/NOTICE.md). `src/host/` is tongji's own code.
+
+## Community
+
+Use GitHub Issues for questions and suggestions: https://github.com/yueyexiayu/dsh-tongji/issues
+
+<div align="center"><sub>An observability panel for DSH sessions · <a href="README.md">阅读中文版 →</a></sub></div>

@@ -109,7 +109,7 @@ export function watchCommandPageChannel(
     ctx,
     deps: ['connection', 'sessionQuery'],
     path: COMMANDS_ROUTE,
-    label: 'dsh-context: command page route',
+    label: 'tongji: command page route',
     handler: (c) => {
       const observe = observeOf(c)
       if (observe === undefined) return undefined
@@ -122,10 +122,10 @@ export function watchCommandPageChannel(
         const beforeSeq = body !== null && typeof body === 'object' ? (body as { beforeSeq?: unknown }).beforeSeq : undefined
         const limit = body !== null && typeof body === 'object' ? (body as { limit?: unknown }).limit : undefined
         if (typeof sessionId !== 'string' || sessionId === '') {
-          return failure('dsh-context/bad-request', 'missing sessionId')
+          return failure('tongji/bad-request', 'missing sessionId')
         }
         if (beforeSeq !== undefined && (typeof beforeSeq !== 'number' || !Number.isFinite(beforeSeq) || beforeSeq < 0)) {
-          return failure('dsh-context/bad-request', 'beforeSeq must be a non-negative number')
+          return failure('tongji/bad-request', 'beforeSeq must be a non-negative number')
         }
         const pageSize = typeof limit === 'number' && Number.isFinite(limit)
           ? Math.min(PAGE_LIMIT_MAX, Math.max(1, Math.floor(limit)))

@@ -10,15 +10,12 @@ const RUNNING_PROBE_PACKAGES = ['@deepseek-ai/dsh-session', '@deepseek-ai/dsh-se
 
 const HOME_PROBE_PACKAGES = ['@deepseek-ai/dsh', ...LIBRARY_PROBE_PACKAGES] as const
 
-function ownPackageRoot(): string {
-  try {
-    return dirname(fileURLToPath(import.meta.resolve('dsh-context/package.json')))
-  } catch {
-    /* v8 ignore next */
-    return dirname(fileURLToPath(import.meta.url))
-  }
-}
-const PLUGIN_ROOT = ownPackageRoot()
+/**
+ * The package root: this build lands in lib/, so the root is one level up.
+ * Resolving tongji/package.json by name only works from inside the desktop
+ * profile, and the old spelling left the fallback pointing at lib/ itself.
+ */
+const PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 
 type Resolve = (specifier: string) => string
 type ResolveUrl = (specifier: string) => string
@@ -98,14 +95,14 @@ export function detectHarnessVersion(
 ): string | undefined {
   const running = probeRunningTree((specifier) => {
     const url = resolveUrl(specifier)
-    if (!url.startsWith('file:')) throw new Error(`dsh-context: non-file module URL for ${specifier}`)
+    if (!url.startsWith('file:')) throw new Error(`tongji: non-file module URL for ${specifier}`)
     return fileURLToPath(url)
   }, pluginRoot)
   if (running !== undefined) return running
   try {
     const homePath = ctx.get('dshHomePath') as unknown
     if (typeof homePath === 'function') {
-      const req = createRequire((homePath as (...segments: string[]) => string)('profiles', 'dsh-context-version-probe.cjs'))
+      const req = createRequire((homePath as (...segments: string[]) => string)('profiles', 'tongji-version-probe.cjs'))
       const home = probeAnchor(specifier => req.resolve(specifier), HOME_PROBE_PACKAGES)
       if (home !== undefined) return home
     }

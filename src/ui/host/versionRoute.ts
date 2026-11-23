@@ -10,7 +10,7 @@ export function watchVersionChannel(ctx: Context, catalog: CatalogService): void
     ctx,
     deps: ['connection'],
     path: VERSION_ROUTE,
-    label: 'dsh-context: version route',
+    label: 'tongji: version route',
     handler: () => async (): Promise<Response> => {
       try {
         const entry = await catalog.version()

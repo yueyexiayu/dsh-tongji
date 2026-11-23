@@ -85,7 +85,7 @@ export function watchSnapshotRoute(ctx: Context, backfill?: BackfillHandle): voi
     ctx,
     deps: ['connection', 'sessionQuery', 'sessions', 'sessionProjectionCache', 'sessionProjections'],
     path: SNAPSHOT_ROUTE,
-    label: 'dsh-context: snapshot route',
+    label: 'tongji: snapshot route',
     handler: (c) => {
       const query = c.get('sessionQuery') as SessionQueryFace
       const cache = c.get('sessionProjectionCache') as CachedSnapshotFace
@@ -104,7 +104,7 @@ export function watchSnapshotRoute(ctx: Context, backfill?: BackfillHandle): voi
           : undefined
         const wanted = body === undefined ? undefined : wantedIdsOf(body)
         if (wanted === null) {
-          return failure('dsh-context/bad-request', `at most ${String(SNAPSHOT_IDS_MAX)} ids per request`)
+          return failure('tongji/bad-request', `at most ${String(SNAPSHOT_IDS_MAX)} ids per request`)
         }
         const requestedRevision = typeof body?.revision === 'string' && body.revision !== '' ? body.revision : undefined
         const servedKey = wanted === undefined ? 'all' : [...wanted].sort().join('\u0000')

@@ -85,7 +85,7 @@ export function makeContextBrowser(
     const miss = useFetchOnMiss(
       openSeq !== null && !convBySeq.has(openSeq) ? openSeq : null,
       fetchContent,
-      'dsh-context: targeted history read failed',
+      'tongji: targeted history read failed',
       sessionScope,
     )
     const bySeq = useMemo(() => {
@@ -248,7 +248,7 @@ export function makeContextBrowser(
     const epoch = useFetchOnMiss(
       contentSeq,
       fetchHeader,
-      'dsh-context: header content fetch failed',
+      'tongji: header content fetch failed',
       sessionScope,
     )
     const headerContent = epoch.values

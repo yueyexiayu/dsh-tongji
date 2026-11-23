@@ -44,7 +44,7 @@ interface ContextIconProps {
 }
 
 export function ContextIcon({ size = 20, className, mono = false }: ContextIconProps): ReactElement {
-  const id = `dsh-context-sheet-${useId().replaceAll(':', '')}`
+  const id = `tongji-sheet-${useId().replaceAll(':', '')}`
   return (
     <svg
       width={size}

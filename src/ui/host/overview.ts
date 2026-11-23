@@ -282,7 +282,7 @@ export function watchOverviewRoute(
     ctx,
     deps: ['connection', 'sessionQuery', 'sessions', 'sessionProjectionCache', 'sessionProjections'],
     path: OVERVIEW_ROUTE,
-    label: 'dsh-context: overview route',
+    label: 'tongji: overview route',
     handler: (c) => {
       const query = c.get('sessionQuery') as SessionQueryFace
       const cacheFace = c.get('sessionProjectionCache') as CachedSnapshotFace
@@ -500,7 +500,7 @@ export function watchOverviewRoute(
         const read = await readBody(request)
         if (!read.ok) return read.response
         const parsed = requestOf(read.body)
-        if (parsed === null) return failure('dsh-context/bad-request', 'unknown overview part')
+        if (parsed === null) return failure('tongji/bad-request', 'unknown overview part')
         resetIdle()
         try {
           const scanned = await awaitScan()

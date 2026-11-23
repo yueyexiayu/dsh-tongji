@@ -1,11 +1,22 @@
 {
   "name": "tongji",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "private": true,
   "type": "module",
-  "description": "在 Desktop 对话右侧显示官方会话统计摘要。",
+  "description": "DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。",
+  "license": "Apache-2.0",
+  "author": "yueyexiayu <yueyexiayu@users.noreply.github.com>",
+  "homepage": "https://github.com/yueyexiayu/dsh-tongji#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yueyexiayu/dsh-tongji.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yueyexiayu/dsh-tongji/issues"
+  },
   "main": "lib/index.js",
   "scripts": {
+    "build": "tsdown",
     "check": "node --check lib/index.js && node --check lib/usage.js && node --check lib/client.js",
     "test": "node --test tests/*.test.js",
     "verify": "npm run check && npm test"

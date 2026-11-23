@@ -90,7 +90,7 @@ export function watchHeadsChannel(ctx: Context, options: HeadsRouteOptions = {})
     ctx,
     deps: ['connection', 'sessionQuery', 'sessions', 'sessionProjectionCache', 'sessionProjections'],
     path: HEADS_ROUTE,
-    label: 'dsh-context: heads route',
+    label: 'tongji: heads route',
     handler: (c) => {
       const observe = observeOf(c)
       const query = c.get('sessionQuery') as SessionQueryFace
@@ -110,7 +110,7 @@ export function watchHeadsChannel(ctx: Context, options: HeadsRouteOptions = {})
         const read = await readBody(request)
         if (!read.ok) return read.response
         const ids = wantedIdsOf(read.body)
-        if (ids.length === 0) return failure('dsh-context/bad-request', 'missing ids')
+        if (ids.length === 0) return failure('tongji/bad-request', 'missing ids')
         try {
           let headers: Map<string, unknown> | undefined
           const headerOf = async (id: string): Promise<unknown> => {

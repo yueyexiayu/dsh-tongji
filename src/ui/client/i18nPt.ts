@@ -486,7 +486,7 @@ export const DICT_PT = {
   'error': 'Falha ao ler os dados de contexto: ',
   'error.retry': 'Tentar novamente',
   'gate.title': 'Atualize o DeepSeek Harness',
-  'gate.body': 'O dsh-context é compatível com DeepSeek Harness v{minimum} ou mais recente.',
+  'gate.body': 'O tongji é compatível com DeepSeek Harness v{minimum} ou mais recente.',
   'gate.current': 'Atual',
   'gate.minimum': 'Mínimo exigido',
   'gate.orNewer': 'ou mais recente',

@@ -486,7 +486,7 @@ export const DICT_FR = {
   'error': 'Échec de la lecture des données de contexte : ',
   'error.retry': 'Réessayer',
   'gate.title': 'Mettre à jour DeepSeek Harness',
-  'gate.body': 'dsh-context prend en charge DeepSeek Harness v{minimum} ou une version ultérieure.',
+  'gate.body': 'tongji prend en charge DeepSeek Harness v{minimum} ou une version ultérieure.',
   'gate.current': 'Actuelle',
   'gate.minimum': 'Version minimale requise',
   'gate.orNewer': 'ou version ultérieure',

@@ -4,7 +4,7 @@ import { BALANCE_ROUTE } from './apiRoutes'
 import { postRouteQuietly } from './route'
 import { asRecord } from './services'
 
-const STORAGE_KEY = 'dsh-context:platform-balance'
+const STORAGE_KEY = 'tongji:platform-balance'
 
 export const BALANCE_STORAGE_TTL_MS = 10 * 60 * 1000
 

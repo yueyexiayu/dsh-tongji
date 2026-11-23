@@ -38,7 +38,7 @@ export function watchTimelineRowSweep(ctx: Context): void {
     const table = tableOf(c)
     if (table === undefined) return
     void sweep(ctx, table).catch((error: unknown) => {
-      ctx.logger.warn(`dsh-context: timeline row sweep stopped early (${String(error)})`)
+      ctx.logger.warn(`tongji: timeline row sweep stopped early (${String(error)})`)
     })
   })
 }
@@ -69,9 +69,9 @@ async function sweep(ctx: Context, table: TableLike): Promise<void> {
     }
   }
   if (migrated > 0) {
-    ctx.logger.info(`dsh-context: compacted ${migrated} persisted contextTimeline row(s) to the head-only shape`)
+    ctx.logger.info(`tongji: compacted ${migrated} persisted contextTimeline row(s) to the head-only shape`)
   }
   if (stalled > 0) {
-    ctx.logger.warn(`dsh-context: ${stalled} legacy contextTimeline row(s) stayed behind (their sessions refold on the next read)`)
+    ctx.logger.warn(`tongji: ${stalled} legacy contextTimeline row(s) stayed behind (their sessions refold on the next read)`)
   }
 }

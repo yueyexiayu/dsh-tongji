@@ -258,7 +258,7 @@ export function watchBalanceChannel(ctx: Context, version = '0.0.0'): void {
     ctx,
     deps: ['connection'],
     path: BALANCE_ROUTE,
-    label: 'dsh-context: balance route',
+    label: 'tongji: balance route',
     handler: () => async (): Promise<Response> => {
       const account = await readAccountBalance(ctx, version)
       if (account !== null) return reply({ ok: true, value: account })

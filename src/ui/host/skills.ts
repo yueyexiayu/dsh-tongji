@@ -112,7 +112,7 @@ export function watchSkillCatalog(ctx: Context, coldReads: ColdReadGate = makeCo
     ctx,
     deps: ['connection'],
     path: SKILLS_ROUTE,
-    label: 'dsh-context: skills route',
+    label: 'tongji: skills route',
     handler: () => async (request: Request): Promise<Response> => {
       let value: { skills: SkillInfo[] } | null = null
       let lease: unknown

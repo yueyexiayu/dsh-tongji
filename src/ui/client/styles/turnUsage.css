@@ -1,6 +1,6 @@
-/* Per-turn usage card inside the dsh-context view.
+/* Per-turn usage card inside the context view.
  *
- * Only what dsh-context has no equivalent for lives here: the turn rows that
+ * Only what the panel has no equivalent for lives here: the turn rows that
  * expand into their steps. Card frame, titles and the metric grid come from
  * base.css/stats.css (.lc-card, .lc-card-title, .lc-sl, .lc-stat), so this block
  * inherits the panel's colours, radii and container queries.

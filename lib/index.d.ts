@@ -1,19 +1,19 @@
 /**
- * tongji v0.1.16
- * 在 Desktop 对话右侧显示官方会话统计摘要。
- * @author undefined
- * @license undefined
- * @homepage undefined
- * @built 2026-11-19T16:44:48+08:00
- * @commit 73f4d5f766bb (dirty working tree) on main
- * @commit-date 2026-11-18T08:41:24+08:00
+ * tongji v0.1.17
+ * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
+ * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
+ * @license Apache-2.0
+ * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
+ * @built 2026-11-23T13:10:05+08:00
+ * @commit c38404db27e0 (dirty working tree) on main
+ * @commit-date 2026-11-19T16:45:06+08:00
  */
 
 /**
  * Host half for the tongji plugin.
  *
- * Two capability sets live here after the dsh-context merge:
- *   - the vendored dsh-context host (context timeline, detail, overview, fleet, skills);
+ * Two capability sets live here:
+ *   - the panel host under ../ui/host (context timeline, detail, overview, fleet, skills);
  *   - tongji's own usage route, which folds per-turn/per-step token usage.
  *
  * Both share one `apply`, so the plugin stays a single Cordis row.
@@ -4594,6 +4594,98 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
+type CostCurrency = 'usd' | 'cny';
+interface PriceTriple {
+  hit: number;
+  miss: number;
+  write: number;
+  out: number;
+}
+type ModelPrices = Record<string, Record<string, PriceTriple>>;
+type PriceVia = 'direct' | 'branch-suffix' | 'branch-normalized' | 'provider-alias' | 'org-branch' | 'canonical-maker' | 'family' | 'index';
+type PriceConfidence = 'high' | 'medium' | 'low';
+interface PriceCandidate {
+  pid: string;
+  mid: string;
+  rate: PriceTriple;
+  canonical?: string;
+  lab?: string;
+}
+type PriceMiss = {
+  reason: 'ambiguous';
+  candidates: number;
+} | {
+  reason: 'book-unavailable' | 'model-unknown' | 'no-entry';
+};
+interface PriceFace {
+  pid: string;
+  mid: string;
+  rate: PriceTriple;
+  via: PriceVia;
+  confidence: PriceConfidence;
+  canonical?: string;
+}
+interface PriceBranch {
+  pid: string;
+  byExact: Map<string, PriceCandidate[]>;
+  bySuffix: Map<string, PriceCandidate[]>;
+  byNormalized: Map<string, PriceCandidate[]>;
+  byNormalizedSuffix: Map<string, PriceCandidate[]>;
+  labs: Set<string>;
+  multiVendor: boolean;
+}
+interface PriceIndex {
+  byModel: Map<string, PriceCandidate[]>;
+  byNormalized: Map<string, PriceCandidate[]>;
+  branches: Map<string, PriceBranch>;
+}
+interface ModelBook {
+  prices: ModelPrices;
+  index: PriceIndex;
+}
+type PriceLookup = {
+  provider: string;
+  model: string;
+  face: PriceFace;
+  miss?: undefined;
+} | {
+  provider: string;
+  model: string;
+  face: null;
+  miss: PriceMiss;
+};
+export declare function toCurrency(usd: number, currency: CostCurrency): number;
+export declare function priceFaceOf(book: ModelBook | null | undefined, provider: string, model: string): PriceFace | null;
+export declare function priceOf(book: ModelBook | null | undefined, provider: string, model: string): PriceTriple | null;
+export declare function priceLookupsOf(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined): PriceLookup[];
+export declare function estimateSessionCost(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined, currency: CostCurrency): number | null;
+export declare function billedTokensOf(usage: SessionCostUsage | null | undefined): number;
+export declare function mergeCostUsage(...usages: (SessionCostUsage | null | undefined)[]): SessionCostUsage | null;
+export declare function pricesBookOf(value: unknown): ModelBook | null;
+export declare function calculateSessionCost(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined): number | null;
+interface CatalogEntry<T> {
+  value: T | null;
+  ready: boolean;
+  failed: boolean;
+  checkedAt: number;
+}
+interface CatalogService {
+  ensure(): void;
+  book(): ModelBook | null;
+  pricesVersion(): number;
+  version(): Promise<CatalogEntry<string>>;
+  prices(): Promise<CatalogEntry<void>>;
+  currentVersion(): string | undefined;
+  dispose(): void;
+}
+interface CostSource {
+  read(usage: SessionCostUsage | null | undefined): SessionCostRead | undefined;
+  usd(usage: SessionCostUsage | null | undefined): number | null;
+  complete(usage: SessionCostUsage | null | undefined): boolean;
+  ready(): boolean;
+  version?(): number;
+}
+export declare function createCostSource(catalog: CatalogService): CostSource;
 export declare const name = "tongji";
 export declare const inject: string[];
 export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{

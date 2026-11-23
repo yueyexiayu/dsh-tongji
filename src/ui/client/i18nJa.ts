@@ -486,7 +486,7 @@ export const DICT_JA = {
   'error': 'コンテキストデータの読み取りに失敗しました：',
   'error.retry': '再試行',
   'gate.title': 'DeepSeek Harness を更新してください',
-  'gate.body': 'dsh-context プラグインは DeepSeek Harness v{minimum} 以降をサポートします。',
+  'gate.body': 'tongji プラグインは DeepSeek Harness v{minimum} 以降をサポートします。',
   'gate.current': '現在のバージョン',
   'gate.minimum': '最低要件',
   'gate.orNewer': '以降',

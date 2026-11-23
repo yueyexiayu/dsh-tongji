@@ -580,7 +580,7 @@ export function watchFleetChannel(
     ctx,
     deps: ['connection'],
     path: FLEET_ROUTE,
-    label: 'dsh-context: fleet route',
+    label: 'tongji: fleet route',
     handler: (c) => {
       const persistence = serviceIdentityOf(c.get('sessionPersistence'))
       const sessions = c.get('sessions') as { get(id: string): unknown } | undefined
@@ -691,7 +691,7 @@ export function watchFleetChannel(
         const sessionId = record?.sessionId
         const mode = detailModeOf(body)
         if (typeof sessionId !== 'string' || sessionId === '') {
-          return failure('dsh-context/bad-request', 'missing sessionId')
+          return failure('tongji/bad-request', 'missing sessionId')
         }
         try {
           if (record?.summary === true) return await serveSummary(sessionId)

@@ -1,8 +1,8 @@
 /**
  * Host half for the tongji plugin.
  *
- * Two capability sets live here after the dsh-context merge:
- *   - the vendored dsh-context host (context timeline, detail, overview, fleet, skills);
+ * Two capability sets live here:
+ *   - the panel host under ../ui/host (context timeline, detail, overview, fleet, skills);
  *   - tongji's own usage route, which folds per-turn/per-step token usage.
  *
  * Both share one `apply`, so the plugin stays a single Cordis row.
@@ -17,8 +17,23 @@ export const inject = [...new Set([...upstreamInject, 'connection', 'sessionQuer
 
 export const Config = UpstreamConfig
 
+// Pricing and cost are pure functions; the Host entry re-exports them so
+// tests/pricing.test.js can pin fixed inputs to fixed amounts.
+export {
+  billedTokensOf,
+  calculateSessionCost,
+  estimateSessionCost,
+  mergeCostUsage,
+  priceFaceOf,
+  priceLookupsOf,
+  priceOf,
+  pricesBookOf,
+  toCurrency,
+} from '../ui/shared/pricing'
+export { createCostSource } from '../ui/host/cost'
+
 export function apply(ctx: Context, config: UpstreamConfig): void {
-  // Register tongji's own route first: it survives a dsh-context baseline
+  // Register tongji's own route first: it survives a version baseline
   // short-circuit, and a later upstream throw must not strand the panel's
   // per-turn section without its data source.
   registerUsageRoute(ctx)

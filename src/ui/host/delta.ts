@@ -84,7 +84,7 @@ export function watchDeltaChannel(
     ctx,
     deps: ['connection', 'sessions'],
     path: DELTA_ROUTE,
-    label: 'dsh-context: delta route',
+    label: 'tongji: delta route',
     gate,
     handler: (c) => {
       const sessions = c.get('sessions') as { get?(id: string): unknown } | undefined
@@ -99,7 +99,7 @@ export function watchDeltaChannel(
         const seq = seqOf(body?.seq)
         const baseSeq = seqOf(body?.baseSeq)
         if (typeof sessionId !== 'string' || sessionId === '' || seq === undefined || baseSeq === undefined) {
-          return failure('dsh-context/bad-request', 'sessionId, seq and baseSeq are required')
+          return failure('tongji/bad-request', 'sessionId, seq and baseSeq are required')
         }
 
         try {

@@ -72,7 +72,7 @@ function apply(ctx: ClientCtx): void {
   if (entrySeated(ctx, JUMP_SLOT, JUMP_ID)) return
   ctx.effect(() => {
     return ctx.locale.register(NS, DICTS)
-  }, 'dsh-context: dictionaries')
+  }, 'tongji: dictionaries')
   const t = ctx.locale.bind(NS)
 
   const kit = makeViewKit(t, ctx.locale)
@@ -83,8 +83,8 @@ function apply(ctx: ClientCtx): void {
     resetVersionSource()
     resetCostRefresh()
     disposeRetention()
-  }, 'dsh-context: warm-up timers')
-  ctx.effect(() => registerCostRefresh(() => { refreshCostDependents(ctx) }), 'dsh-context: cost refresh')
+  }, 'tongji: warm-up timers')
+  ctx.effect(() => registerCostRefresh(() => { refreshCostDependents(ctx) }), 'tongji: cost refresh')
   watchHistoryFaces(ctx)
   const settings = createContextSettings()
   const heads = makeAgentHeads()
@@ -97,7 +97,7 @@ function apply(ctx: ClientCtx): void {
       props => h(ContextView, props),
     )),
     sidebar: () => watchSidebarContextTab(ctx, ContextView, t, NS),
-  }), 'dsh-context: placement')
+  }), 'tongji: placement')
 
   ctx.effect(() => watchFleetTab(
     ctx,
@@ -105,7 +105,7 @@ function apply(ctx: ClientCtx): void {
     props => h(FleetView, props as unknown as Parameters<typeof FleetView>[0]),
     t,
     NS,
-  ), 'dsh-context: fleet tab')
+  ), 'tongji: fleet tab')
 
   const ContextJump = makeContextJumpButton(ctx, kit, settings)
   ctx.slots.inject(JUMP_SLOT, () => {
@@ -135,7 +135,7 @@ function apply(ctx: ClientCtx): void {
     props => h(OverviewPanel, props as unknown as Parameters<typeof OverviewPanel>[0]),
     t,
     NS,
-  ), 'dsh-context: insight page')
+  ), 'tongji: insight page')
 
   const cardFace = (): {
     hooks: { contextSettings: typeof settings.store }
@@ -149,7 +149,7 @@ function apply(ctx: ClientCtx): void {
     const c = raw as ClientCtx & { configForms?: ConfigFormsFace }
     const forms = c.configForms
     if (forms === undefined || typeof forms.get !== 'function' || typeof forms.whileServed !== 'function') return
-    c.effect(() => settings.attach(forms.get(NS)), 'dsh-context: config forms')
+    c.effect(() => settings.attach(forms.get(NS)), 'tongji: config forms')
     const PluginConfigCard = makePluginConfigCard(kit)
     c.effect(() => forms.whileServed([NS], () => {
       return c.slots.inject('plugins.bundle.config', () => {
@@ -158,7 +158,7 @@ function apply(ctx: ClientCtx): void {
           props => h(PluginConfigCard, props as unknown as Parameters<typeof PluginConfigCard>[0]),
         )
       }) as () => void
-    }), 'dsh-context: plugins-page card')
+    }), 'tongji: plugins-page card')
   })
 }
 

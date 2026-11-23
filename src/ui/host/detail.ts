@@ -84,7 +84,7 @@ export function watchDetailChannel(
     ctx,
     deps: ['connection', 'sessions'],
     path: DETAIL_ROUTE,
-    label: 'dsh-context: detail route',
+    label: 'tongji: detail route',
     gate,
     handler: (c) => {
       const sessions = c.get('sessions') as SessionsHostFace | undefined
@@ -101,7 +101,7 @@ export function watchDetailChannel(
           : undefined
         const headOnly = body !== null && typeof body === 'object' && (body as { head?: unknown }).head === true
         if (typeof sessionId !== 'string' || sessionId === '') {
-          return failure('dsh-context/bad-request', 'missing sessionId')
+          return failure('tongji/bad-request', 'missing sessionId')
         }
         try {
           const session = getSession(sessionId)

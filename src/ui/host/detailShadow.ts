@@ -77,7 +77,7 @@ export class DetailShadow {
       this.entries.clear()
       if (this.sweepTimer !== null) clearTimeout(this.sweepTimer)
       this.sweepTimer = null
-    }, 'dsh-context.detailShadow')
+    }, 'tongji: detail shadow')
     ctx.on('session/event', (session: SessionLike, event: unknown) => {
       if (typeof session.id !== 'string') return
       this.advance(session.id, event)

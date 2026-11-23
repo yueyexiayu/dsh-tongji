@@ -87,7 +87,7 @@ const NODE_ENV = process.env.NODE_ENV ?? 'production'
 
 // The watch build feeds the local dsh web server, which loads the emitted JavaScript alone; skipping the declaration
 // file and the source maps keeps the watcher's rebuild churn and resident set low. `pnpm run build` keeps every artifact.
-const WATCH = process.env.DSH_CTX_WATCH === '1'
+const WATCH = process.env.DSH_TONGJI_WATCH === '1'
 
 // Rolldown wraps each rebuild's artifacts in napi objects that a pressure-free V8 never finalizes, so a watcher's resident set
 // climbs with every rebuild; the watch script exposes gc and every successful build collects.
@@ -264,8 +264,8 @@ export default defineConfig([
       'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
       'import.meta.env.MODE': JSON.stringify(NODE_ENV),
       'import.meta.env': JSON.stringify({ MODE: NODE_ENV }),
-      __DSH_CTX_VERSION__: JSON.stringify(pkg.version),
-      __DSH_CTX_REPO__: JSON.stringify(
+      __DSH_TONGJI_VERSION__: JSON.stringify(pkg.version),
+      __DSH_TONGJI_REPO__: JSON.stringify(
         String((pkg.repository && pkg.repository.url) || '').replace(/^git\+/, '').replace(/\.git$/, ''),
       ),
     },

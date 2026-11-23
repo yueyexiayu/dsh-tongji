@@ -484,7 +484,7 @@ export const DICT_ZH = {
   'error': '上下文数据读取失败：',
   'error.retry': '重试',
   'gate.title': '请更新 DeepSeek Harness 版本',
-  'gate.body': 'dsh-context 插件支持 DeepSeek Harness v{minimum} 或更新版本。',
+  'gate.body': 'tongji 插件支持 DeepSeek Harness v{minimum} 或更新版本。',
   'gate.current': '当前版本',
   'gate.minimum': '最低要求',
   'gate.orNewer': '及更新的版本',

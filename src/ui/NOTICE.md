@@ -21,8 +21,16 @@ Apache License 2.0，原文见同目录 `LICENSE`。
 - 侧栏标签改用独立键 `tab.stats`（显示为「统计」），`tab.context` 保留给视图内 tab 与弹窗
 - 新增 `client/components/turnUsage.tsx` 与 `client/styles/turnUsage.css`：把 tongji 的每轮/每步用量
   渲染成面板底部的一张卡片，样式复用面板既有的 `.lc-card` / `.lc-stat` / `.lc-sl` 与语义色
+- 0.1.17：自标识全部改为 `tongji`（`PLUGIN_NAME`、effect 标签、日志前缀、系统提示词 section 名、
+  `tongji-sheet-` 元素 id）；错误码前缀 `dsh-context/*` → `tongji/*` 并保留旧前缀归一化
+- 0.1.17：平台余额的本地存储键改为 `tongji:platform-balance`；旧键不再读取，重开面板即重建
+- 0.1.17：版本检查由 npm registry 的 `dsh-context` 改为本仓库 GitHub Releases；
+  `currentVersionOf()` 与 `host/version.ts` 的 `PLUGIN_ROOT` 改为按 `lib/index.js` 的相对路径取包根
+- 0.1.17：仓库根新增 `LICENSE`（Apache-2.0），`package.json` 补 `author` / `license` / `homepage` / `repository`
 
-`client/meta.ts` 里的 `PLUGIN_NAME`、`PLUGIN_REPO` 仍指向上游仓库，因为更新检查与插件信息卡需要它们
-指向真实来源；这不是遗漏。
+`client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
+都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
+错误码统一为 `tongji/*`，`postRoute.failure()` 仍接受旧的 `dsh-context/*` 前缀并归一化，
+避免同一份产物对外出现两种前缀。
 
 同步上游时注意：上述改动都是本地修改，直接覆盖 `src/ui` 会丢失。改动点集中在上面列出的位置。

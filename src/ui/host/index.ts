@@ -42,7 +42,7 @@ export function apply(ctx: Context, config: Config): void {
   const catalog = createCatalogService()
   const pricing = createCostSource(catalog)
   const harnessVersion = detectHarnessVersion(ctx)
-  ctx.effect(() => () => { catalog.dispose() }, 'dsh-context: catalog cache')
+  ctx.effect(() => () => { catalog.dispose() }, 'tongji: catalog cache')
   watchVersionChannel(ctx, catalog)
   watchBalanceChannel(ctx, harnessVersion ?? '0.0.0')
   watchRecomChannel(ctx)

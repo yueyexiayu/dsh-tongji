@@ -241,7 +241,7 @@ async function coldSnapshotSliced(
   try {
     await faces.write(prepared)
   } catch (error: unknown) {
-    ctx.logger.warn(`dsh-context: projection backfill write-back for "${header.id}" failed (cache stays stale): ${messageOf(error)}`)
+    ctx.logger.warn(`tongji: projection backfill write-back for "${header.id}" failed (cache stays stale): ${messageOf(error)}`)
   }
   return { outcome: 'done', workMs }
 }
@@ -284,7 +284,7 @@ export function watchActivityBackfill(
   ctx.effect(() => () => {
     pool?.dispose()
     pool = null
-  }, 'dsh-context: fold worker pool')
+  }, 'tongji: fold worker pool')
   const coverage: BackfillCoverage = {
     complete: false,
     remaining: 0,
@@ -313,7 +313,7 @@ export function watchActivityBackfill(
     ctx,
     deps: ['connection'],
     path: BACKFILL_ROUTE,
-    label: 'dsh-context: backfill route',
+    label: 'tongji: backfill route',
     handler: () => () => {
       requestPass()
       return reply({ ok: true, coverage: { ...coverage } })
@@ -397,7 +397,7 @@ export function watchActivityBackfill(
         roundWork += costMs
         if (roundWork >= pacing.workBudgetMs) {
           roundWork = 0
-          ctx.logger.info(`dsh-context: projection backfill pausing after ${Math.round(pacing.workBudgetMs / 1000)}s of fold work; resuming in ${Math.round(pacing.roundPauseMs / 1000)}s`)
+          ctx.logger.info(`tongji: projection backfill pausing after ${Math.round(pacing.workBudgetMs / 1000)}s of fold work; resuming in ${Math.round(pacing.roundPauseMs / 1000)}s`)
           await sleep(pacing.roundPauseMs)
           return
         }
@@ -492,7 +492,7 @@ export function watchActivityBackfill(
                     return 'done' as const
                   } catch (error) {
                     if (abort.signal.aborted) return 'aborted' as const
-                    ctx.logger.warn(`dsh-context: worker fold for "${header.id}" failed; folding on the host thread instead (${messageOf(error)})`)
+                    ctx.logger.warn(`tongji: worker fold for "${header.id}" failed; folding on the host thread instead (${messageOf(error)})`)
                   }
                 }
               }
@@ -519,10 +519,10 @@ export function watchActivityBackfill(
           } catch (error: unknown) {
             if (isUnsupportedFormat(error)) {
               pass.unsupported++
-              ctx.logger.debug(`dsh-context: projection backfill skipped "${header.id}" (${messageOf(error)})`)
+              ctx.logger.debug(`tongji: projection backfill skipped "${header.id}" (${messageOf(error)})`)
             } else {
               pass.failed++
-              ctx.logger.warn(`dsh-context: projection backfill skipped "${header.id}" (${messageOf(error)})`)
+              ctx.logger.warn(`tongji: projection backfill skipped "${header.id}" (${messageOf(error)})`)
             }
           }
           await rest(Math.max(0, pacing.now() - started - slicedWorkMs))
@@ -546,17 +546,17 @@ export function watchActivityBackfill(
           if (folded > 0 || changed) version++
         }
       }
-      if (folded > 0) ctx.logger.info(`dsh-context: projection rows backfilled for ${folded} session(s)`)
+      if (folded > 0) ctx.logger.info(`tongji: projection rows backfilled for ${folded} session(s)`)
       if (paused) {
-        ctx.logger.info('dsh-context: projection backfill stopped early under heap pressure (remaining sessions refold on their next live activity)')
+        ctx.logger.info('tongji: projection backfill stopped early under heap pressure (remaining sessions refold on their next live activity)')
       }
       if (pass.unsupported > 0) {
-        ctx.logger.info(`dsh-context: projection backfill skipped ${pass.unsupported} session(s) (legacy log format is not migratable; sources left unchanged)`)
+        ctx.logger.info(`tongji: projection backfill skipped ${pass.unsupported} session(s) (legacy log format is not migratable; sources left unchanged)`)
       }
     }
     launch = () => {
       void run().catch((error: unknown) => {
-        if (!abort.signal.aborted) ctx.logger.warn(`dsh-context: projection backfill stopped early (${messageOf(error)})`)
+        if (!abort.signal.aborted) ctx.logger.warn(`tongji: projection backfill stopped early (${messageOf(error)})`)
       }).finally(() => {
         running = false
         coverage.running = false

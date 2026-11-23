@@ -35,15 +35,25 @@ export function revisionOf(observation: unknown): string | undefined {
   return typeof revision === 'string' && revision !== '' ? revision : undefined
 }
 
+/**
+ * Error codes moved from `dsh-context/*` to `tongji/*` in 0.1.17. The legacy
+ * prefix is normalized here so a route that was written before the rename, or
+ * a client that still matches the old spelling, keeps seeing one prefix.
+ */
+const LEGACY_CODE_PREFIX = 'dsh-context/'
+
 export function failure(code: string, message: string): Response {
-  return reply({ ok: false, error: { code, message } })
+  const normalized = code.startsWith(LEGACY_CODE_PREFIX)
+    ? `tongji/${code.slice(LEGACY_CODE_PREFIX.length)}`
+    : code
+  return reply({ ok: false, error: { code: normalized, message } })
 }
 
 export async function readBody(request: Request): Promise<BodyRead> {
   try {
     return { ok: true, body: await request.json() }
   } catch {
-    return { ok: false, response: failure('dsh-context/bad-request', 'body is not JSON') }
+    return { ok: false, response: failure('tongji/bad-request', 'body is not JSON') }
   }
 }
 

@@ -233,7 +233,7 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
     ctx,
     deps: ['connection'],
     path: FACTS_ROUTE,
-    label: 'dsh-context: facts route',
+    label: 'tongji: facts route',
     handler: (c) => {
       const gates = deps.gates
 
@@ -264,7 +264,7 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
         const read = await readBody(request)
         if (!read.ok) return read.response
         const wanted = partsOf(read.body, caps)
-        if (wanted === null) return failure('dsh-context/bad-request', 'missing sessionId')
+        if (wanted === null) return failure('tongji/bad-request', 'missing sessionId')
         const wantedDetail = detailPartsRequested(wanted.parts)
         try {
           const session = getSession?.(wanted.sessionId)

@@ -203,12 +203,12 @@ export function watchAttachmentChannel(
   coldReads: ColdReadGate = makeColdReadGate(),
   sweeper: PreviewSweeper = makePreviewSweeper(),
 ): void {
-  ctx.effect(() => () => { sweeper.dispose() }, 'dsh-context: attachment previews sweeper')
+  ctx.effect(() => () => { sweeper.dispose() }, 'tongji: attachment previews sweeper')
   mountPostRoute({
     ctx,
     deps: ['connection'],
     path: ATTACHMENT_ROUTE,
-    label: 'dsh-context: attachment route',
+    label: 'tongji: attachment route',
     handler: () => async (request: Request): Promise<Response> => {
       const read = await readBody(request)
       if (!read.ok) return read.response
@@ -216,10 +216,10 @@ export function watchAttachmentChannel(
       const sessionId = body?.sessionId
       const attachmentId = body?.attachmentId
       if (typeof sessionId !== 'string' || sessionId === '') {
-        return failure('dsh-context/bad-request', 'missing sessionId')
+        return failure('tongji/bad-request', 'missing sessionId')
       }
       if (typeof attachmentId !== 'string' || attachmentId === '') {
-        return failure('dsh-context/bad-request', 'missing attachmentId')
+        return failure('tongji/bad-request', 'missing attachmentId')
       }
       try {
         const observe = observeOf(ctx)

@@ -37,6 +37,6 @@ export function registerContextCommand(ctx: ClientCtx, kit: ViewKit): void {
         modalStoreOf(session.sessionId).set(true)
         return Promise.resolve<'handled'>('handled')
       },
-    }), 'dsh-context: /context command')
+    }), 'tongji: /context command')
   })
 }
