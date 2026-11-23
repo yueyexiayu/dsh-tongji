@@ -326,6 +326,7 @@ export const DICT_ZH = {
   'agents.taskTotal': '任务 {n}',
   'agents.status.pending': '待处理',
   'agents.status.in_progress': '进行中',
+  'agents.status.interrupted': '已中断',
   'agents.status.completed': '已完成',
   'agents.legend.free': '空闲窗口',
   'agents.oneshot': '一次性',

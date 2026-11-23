@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.27 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.28 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -124,7 +124,7 @@ npm run verify  # node --check on all three artifacts, tsc --noEmit, and the who
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.27`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 34 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.28`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 37 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 

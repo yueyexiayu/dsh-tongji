@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.27
+ * tongji v0.1.28
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T17:39:22+08:00
- * @commit 50d171fb3854 (dirty working tree) on main
- * @commit-date 2026-11-23T17:25:33+08:00
+ * @built 2026-11-23T17:56:23+08:00
+ * @commit 0609531ccd31 (dirty working tree) on main
+ * @commit-date 2026-11-23T17:39:33+08:00
  */
 
 /**
@@ -4196,6 +4196,8 @@ interface TimelineState {
   commandCalls?: string[];
   commandCallsOverflow?: boolean;
   agents?: Record<string, AgentAlias>;
+  /** Subagent sessions whose settle notice reported an error. */
+  failedAgents?: Record<string, boolean>;
   pendingCodeCmds?: Record<string, CommandStateRecord[]>;
   pendingCodeOps?: Record<string, FileOpRecord[]>;
   pendingCodeStarts?: Record<string, number>;
@@ -4331,6 +4333,8 @@ interface Snapshot extends SurfaceNodeWindow {
   counts?: TimelineCounts;
   last?: TimelineLast;
   detailRev?: number;
+  /** Subagent sessions whose settle notice reported an error. */
+  failedAgents?: Record<string, boolean>;
   requests: RequestRecord[];
   events: ContextEventRecord[];
   cost?: SessionCostUsage;

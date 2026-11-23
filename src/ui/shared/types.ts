@@ -242,6 +242,8 @@ export interface Snapshot extends SurfaceNodeWindow {
   counts?: TimelineCounts
   last?: TimelineLast
   detailRev?: number
+  /** Subagent sessions whose settle notice reported an error. */
+  failedAgents?: Record<string, boolean>
   requests: RequestRecord[]
   events: ContextEventRecord[]
   cost?: SessionCostUsage

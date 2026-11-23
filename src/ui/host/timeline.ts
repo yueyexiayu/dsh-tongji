@@ -327,6 +327,7 @@ const timelineStateSchema = z.object({
     memberName: z.string().optional(),
     catalogLabel: z.string().optional(),
   }).strict()).optional(),
+  failedAgents: z.record(z.string(), z.boolean()).optional(),
   pendingShadowedSeqs: z.array(z.number()).optional(),
   pendingShadowEventSeq: z.number().optional(),
   detailRev: z.number().int().nonnegative().optional(),
@@ -347,7 +348,7 @@ const timelineStateSchema = z.object({
 }) as unknown as z.ZodType<TimelineState>
 
 // 44: `seedCut`, so a fork stops billing its parent's turns and timing.
-export const TIMELINE_STATE_VERSION = 44
+export const TIMELINE_STATE_VERSION = 45
 
 export function createContextTimelineDefinition(
   config: Config,

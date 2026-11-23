@@ -852,6 +852,7 @@ export function makeContextView(
           <AgentGraph
             sessionId={typeof sessionId === 'string' ? sessionId : undefined}
             self={agentSelfOf(data, pressure, breakdown, usage)}
+            failedSubagents={data.failedAgents}
             focusId={focusMember}
           />
         ) : null}

@@ -137,6 +137,8 @@ export interface MessageSource {
   senderSessionId?: string
   senderId?: string
   senderName?: string
+  /** How a settled subagent stopped: `completed` or `error`. */
+  stopReason?: string
   references?: ({ sessionId?: string; label?: string } | null)[]
 }
 

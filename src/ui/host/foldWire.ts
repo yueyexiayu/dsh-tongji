@@ -67,6 +67,9 @@ function headFieldsOf(state: TimelineState): Snapshot {
   if (state.systems !== undefined && state.systems.length > 0) {
     result.systems = state.systems.map(n => ({ ...n }))
   }
+  if (state.failedAgents !== undefined && Object.keys(state.failedAgents).length > 0) {
+    result.failedAgents = { ...state.failedAgents }
+  }
   return result
 }
 

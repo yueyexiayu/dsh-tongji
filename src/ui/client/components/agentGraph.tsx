@@ -35,6 +35,8 @@ export interface AgentGraphProps {
   sessionId?: string
   compact?: boolean
   self?: AgentSelfStats
+  /** Subagent ids whose settle notice reported an error. */
+  failedSubagents?: Readonly<Record<string, boolean>>
   forest?: AgentForest | null
   team?: FleetTeam | null
   pinnedId?: string | null
@@ -44,6 +46,8 @@ export interface AgentGraphProps {
   onSelect?: (id: string) => void
   inspector?: boolean
 }
+
+const EMPTY_FAILED: Readonly<Record<string, boolean>> = {}
 
 const STAGGER_CAP = 8
 const STAGE_H = 560
@@ -81,6 +85,7 @@ export function makeAgentGraph(
     const forest = props.forest !== undefined ? props.forest : internal.forest
     const team = props.team !== undefined ? props.team : internal.team
     const members = team?.members ?? []
+    const failedSubagents = props.failedSubagents ?? EMPTY_FAILED
 
     const [internalHover, setInternalHover] = useState<string | null>(null)
     const [showAll, setShowAll] = useState(false)
@@ -309,7 +314,7 @@ export function makeAgentGraph(
                       onSelect={select}
                       onKeyOpen={keyOpen(node.id)}
                       memberName={teammateNameOf(team, node)}
-                      {...statusBadgeOf(team, node, t)}
+                      {...statusBadgeOf(team, node, t, failedSubagents[node.id] === true)}
                       avatar={{
                         id: node.id,
                         ...avatarIdentityOf(team, node, t),
@@ -350,7 +355,8 @@ function statusBadgeOf(
   team: FleetTeam | null,
   node: AgentNode,
   t: ViewKit['t'],
-): { taskLabel: string; taskTitle: string; taskOn: boolean } {
+  failed: boolean,
+): { taskLabel: string; taskTitle: string; taskOn: boolean; taskErr: boolean } {
   const rollup = ownerTaskRollupOf(team, node.id)
   const counts = rollup.counts
   const parts: string[] = []
@@ -362,17 +368,23 @@ function statusBadgeOf(
   }
   const taskTitle = parts.join(' · ')
   if (node.running && !node.isCurrent) {
-    return { taskLabel: t('agents.status.in_progress'), taskTitle, taskOn: true }
+    return { taskLabel: t('agents.status.in_progress'), taskTitle, taskOn: true, taskErr: false }
+  }
+  // A failed subagent outranks its task rollup: the task may still read
+  // in_progress simply because nobody closed it after the agent died.
+  if (failed) {
+    return { taskLabel: t('agents.status.interrupted'), taskTitle, taskOn: false, taskErr: true }
   }
   if (rollup.headline !== null) {
     return {
       taskLabel: t(`agents.status.${rollup.headline}`),
       taskTitle,
       taskOn: rollup.headline === 'in_progress' || node.running,
+      taskErr: false,
     }
   }
-  if (node.completed) return { taskLabel: t('agents.status.completed'), taskTitle: '', taskOn: false }
-  return { taskLabel: '', taskTitle: '', taskOn: false }
+  if (node.completed) return { taskLabel: t('agents.status.completed'), taskTitle: '', taskOn: false, taskErr: false }
+  return { taskLabel: '', taskTitle: '', taskOn: false, taskErr: false }
 }
 
 /* v8 ignore next 2 */
@@ -400,6 +412,7 @@ interface CardProps {
   taskLabel: string
   taskTitle: string
   taskOn: boolean
+  taskErr?: boolean
   t: ViewKit['t']
   fmt: ViewKit['fmt']
 }
@@ -449,7 +462,7 @@ function AgentCard(props: CardProps): ReactElement {
         {props.taskLabel !== ''
           ? (
             <span
-              className={'lc-agents-badge lc-agent-task' + (props.taskOn ? ' lc-agents-badge-on' : '')}
+              className={'lc-agents-badge lc-agent-task' + (props.taskOn ? ' lc-agents-badge-on' : '') + (props.taskErr === true ? ' lc-agents-badge-err' : '')}
               title={props.taskTitle === '' ? undefined : props.taskTitle}
             >{props.taskLabel}</span>
             )

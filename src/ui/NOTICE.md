@@ -74,6 +74,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   为 0；父的 54 轮仍记在父会话上。
 - 0.1.27：右侧面板把「Agent 网络」从命令面板之后提到「Token 统计 / 耗时统计」之下、
   「当前上下文」之上，成为第三块。该块只在侧栏渲染，整页 tab 的顺序不变。
+- 0.1.28：Agent 网络区分「已中断」。折叠层在写入 `subagent-settled` 通知时读 `stopReason`，把 `error`
+  的子会话记进 `failedAgents`；徽章优先显示「已中断」（错误色），不再被任务 rollup 的 in_progress 盖成
+  「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
+  `949f3d72`（metrics），另外三个 completed 不入表。
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。

@@ -109,6 +109,8 @@ export interface TimelineState {
   commandCalls?: string[]
   commandCallsOverflow?: boolean
   agents?: Record<string, AgentAlias>
+  /** Subagent sessions whose settle notice reported an error. */
+  failedAgents?: Record<string, boolean>
   pendingCodeCmds?: Record<string, CommandStateRecord[]>
   pendingCodeOps?: Record<string, FileOpRecord[]>
   pendingCodeStarts?: Record<string, number>

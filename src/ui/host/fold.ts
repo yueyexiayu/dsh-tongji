@@ -738,6 +738,11 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
             rec.agent = agent
             node.agent = agent
           }
+          // A subagent's settle notice is the only place DSH reports how it ended.
+          if (source?.kind === 'subagent-settled' && source.stopReason === 'error'
+            && typeof source.senderSessionId === 'string' && source.senderSessionId !== '') {
+            s.failedAgents = { ...(state.failedAgents ?? {}), [source.senderSessionId]: true }
+          }
           if (source?.kind === 'skill-invocation') {
             rec.sub = 'skill'
             rec.name = typeof source.name === 'string' ? source.name : '?'
