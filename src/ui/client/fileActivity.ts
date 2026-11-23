@@ -1,7 +1,7 @@
 import type { FileOpRecord, RequestRecord, SurfaceNode } from '../shared/types'
 import { isImageFileOp, opsOfCall, parseCallArgs } from '../shared/fileOps'
 import { leafNameOf } from '../shared/attachment'
-import { fileAddressFor, isAbsoluteWorkspacePath, resolveWorkspacePath } from '@deepseek-ai/dsh-util-workspace-path'
+import { isAbsoluteWorkspacePath, resolveWorkspacePath, sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 import type { ConversationNodeLike } from './services'
 
 export type FileOp = FileOpRecord
@@ -211,7 +211,11 @@ export function previewAddressOf(
 ): string | undefined {
   if (pattern === true || form === 'dir' || sessionId === undefined || sessionId === '') return undefined
   try {
-    return fileAddressFor(sessionId, workspace, path)
+    // The host resolves a Session file address against the workspace it holds,
+    // and since DSH 0.2.3 it spells the path absolutely so the address survives a
+    // Session directory move. Resolve here and hand over the absolute path
+    // instead of leaning on the bundled helper's older spelling.
+    return sessionFileAddress(sessionId, resolveWorkspacePath(workspace ?? '', path))
   } catch {
     return undefined
   }

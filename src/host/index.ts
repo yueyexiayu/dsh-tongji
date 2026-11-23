@@ -31,6 +31,8 @@ export {
   toCurrency,
 } from '../ui/shared/pricing'
 export { createCostSource } from '../ui/host/cost'
+export { detectHarnessVersion, detectedHarnessVersion } from '../ui/host/version'
+export { startFoldWorkerChannel } from '../ui/host/foldWorker'
 
 export function apply(ctx: Context, config: UpstreamConfig): void {
   // Register tongji's own route first: it survives a version baseline

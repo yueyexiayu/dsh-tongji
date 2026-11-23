@@ -86,6 +86,9 @@ test('Host endpoint returns stable error codes and logs failures', async () => {
   } };
   try { apply(ctx); } catch { /* the upstream half needs the full Host; the route is already registered */ }
   assert.ok(route, 'the usage route must be registered before the upstream half runs');
+  // apply() also runs the version probe, which cannot detect a version in this
+  // fake ctx; count only the route's own failure log from here.
+  warnings = 0
   const response = await route.fetch(new Request('http://localhost/api/tongji/usage?sessionId=missing'));
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { error: { code: 'session-not-found', message: '会话不存在', retryable: true } });

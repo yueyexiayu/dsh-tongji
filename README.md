@@ -4,7 +4,7 @@
   <p><strong>DSH 会话可观测性面板：用量、成本、上下文、编队与洞察</strong></p>
   <p>本地 Desktop 插件。读取 DSH 会话统计快照、会话投影与会话日志，展示 token 用量与成本、上下文构成、工具与命令活动、子代理编队和跨会话总览。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.17 · Apache-2.0</p>
+  <p>Desktop 插件 · v0.1.20 · Apache-2.0</p>
   <p><a href="#功能面">功能面</a> · <a href="#数据来源与刷新">数据来源与刷新</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#构建与验证">构建与验证</a> · <a href="#限制">限制</a> · <a href="#许可">许可</a></p>
 </div>
 
@@ -123,7 +123,7 @@ npm run verify  # node --check 三个产物 + 全部测试
 
 产物自包含：`lib/index.js` 只依赖 `node:` 内置与 `./usage.js`，`lib/client.js` 没有外部 `require`，运行时不需要 `node_modules`。
 
-当前 `v0.1.17` 的实测结果：`npm run build` 与 `npm run verify` 通过，测试 32 例全绿（含 10 例价格与成本定点用例、22 例既有用例）。
+当前 `v0.1.20` 的实测结果：`npm run build` 与 `npm run verify` 通过，测试 35 例全绿（含 10 例价格与成本定点用例、3 例版本探测用例、22 例既有用例）。
 
 ## 限制
 
@@ -133,6 +133,8 @@ npm run verify  # node --check 三个产物 + 全部测试
 - 折叠缓存按现存会话过滤，但没有按字节数设上限；本机当前约 5 MB。
 - 错误码自 `v0.1.17` 起统一为 `tongji/*`，`dsh-context/*` 旧前缀仍会被归一化处理。
 - 推荐位读取本仓库 `data/recoms.json`；该文件不存在时回落内置条目并标记为降级。
+- 版本守卫先读安装包（`app.asar/dsh/package.json`、macOS 包的 `Info.plist`），再读模块树；全都读不到时写一条 warn 并按「未知」处理，`/api/tongji/version` 的 `harness` 字段返回 `null`。
+- 面板的工作区根取自 DSH 的 `workingDirectory` 投影（跟随目录切换）；DSH 自己的会话列表仍用会话头里的根，切目录后两者可能不一致。
 
 ## 许可
 

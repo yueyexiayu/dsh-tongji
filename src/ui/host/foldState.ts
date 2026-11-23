@@ -18,92 +18,6 @@ export function slimSurfaceNode(node: SurfaceNode): SurfaceNode {
   return slim
 }
 
-function slimSurfaceVal(node: unknown): SurfaceNode | undefined {
-  if (node === null || typeof node !== 'object') return undefined
-  const n = node as Record<string, unknown>
-  if (!finiteOf(n.seq) || !finiteOf(n.tokens)) return undefined
-  if (typeof n.cat !== 'string' || !(SURFACE_CATS as readonly string[]).includes(n.cat)) return undefined
-  return slimSurfaceNode({
-    seq: n.seq,
-    cat: n.cat as Category,
-    tokens: n.tokens,
-    ...(finiteOf(n.reasoning) ? { reasoning: n.reasoning } : {}),
-    ...(finiteOf(n.answerTokens) ? { answerTokens: n.answerTokens } : {}),
-    ...(finiteOf(n.callTokens) ? { callTokens: n.callTokens } : {}),
-    ...(finiteOf(n.imgs) ? { imgs: n.imgs } : {}),
-    ...(typeof n.tool === 'string' ? { tool: n.tool } : {}),
-  })
-}
-
-function slimRequestVal(rec: unknown): SlimRequestRecord | undefined {
-  if (rec === null || typeof rec !== 'object') return undefined
-  const r = rec as Record<string, unknown>
-  if (!finiteOf(r.time) || !finiteOf(r.seq) || !finiteOf(r.total)) return undefined
-  const slim: SlimRequestRecord = { time: r.time, seq: r.seq, total: r.total }
-  if (finiteOf(r.turn)) slim.turn = r.turn
-  if (finiteOf(r.step)) slim.step = r.step
-  if (finiteOf(r.prompt)) slim.prompt = r.prompt
-  if (finiteOf(r.activeMs)) slim.activeMs = r.activeMs
-  return slim
-}
-
-function sumsOf(value: unknown): TimelineState['sums'] | undefined {
-  if (value === null || typeof value !== 'object') return undefined
-  const sums: Record<Category, number> = { user: 0, inject: 0, skill: 0, assistant: 0, tool: 0 }
-  for (const cat of SURFACE_CATS) {
-    const n = (value as Record<string, unknown>)[cat]
-    if (!finiteOf(n)) return undefined
-    sums[cat] = n
-  }
-  return sums
-}
-
-export function deriveHeadState(val: unknown): TimelineState | undefined {
-  if (val === null || typeof val !== 'object') return undefined
-  const prev = val as Record<string, unknown>
-  if (!Array.isArray(prev.surface) || !Array.isArray(prev.requests) || !Array.isArray(prev.commands)
-    || !Array.isArray(prev.events)) return undefined
-  const sums = sumsOf(prev.sums)
-  if (sums === undefined) return undefined
-  const surface: SurfaceNode[] = []
-  for (const node of prev.surface) {
-    const slim = slimSurfaceVal(node)
-    if (slim === undefined) return undefined
-    surface.push(slim)
-  }
-  const requests: SlimRequestRecord[] = []
-  for (const rec of prev.requests) {
-    const slim = slimRequestVal(rec)
-    if (slim === undefined) return undefined
-    requests.push(slim)
-  }
-  const commands = slimCommands(prev.commands)
-  const pendingCodeCmds = slimPendingCommands(prev.pendingCodeCmds)
-  const { pendingCodeCmds: _prevPending, ...rest } = prev
-  const state = {
-    ...rest,
-    sums,
-    surface,
-    requests,
-    commands,
-    ...(pendingCodeCmds === undefined ? {} : { pendingCodeCmds }),
-    spans: [],
-    fileOps: [],
-    archived: [],
-  } as unknown as TimelineState
-  for (const rec of commands) {
-    if (typeof rec.call === 'string') noteCommandCall(state, rec.call)
-  }
-  if (pendingCodeCmds !== undefined) {
-    for (const records of Object.values(pendingCodeCmds)) {
-      for (const rec of records) {
-        if (typeof rec.call === 'string') noteCommandCall(state, rec.call)
-      }
-    }
-  }
-  trimHeadState(state)
-  return state
-}
 
 export interface CommandStateRecord extends CommandRecord {
   call?: string
@@ -124,19 +38,6 @@ function slimCommands(records: unknown): CommandStateRecord[] {
   return commands
 }
 
-function slimPendingCommands(pending: unknown): TimelineState['pendingCodeCmds'] {
-  if (pending === null || typeof pending !== 'object') return undefined
-  const slimmed: Record<string, CommandStateRecord[]> = {}
-  let count = 0
-  for (const [root, records] of Object.entries(pending as Record<string, unknown>)) {
-    const slim = slimCommands(records)
-    if (slim.length > 0) {
-      slimmed[root] = slim
-      count += slim.length
-    }
-  }
-  return count > 0 ? slimmed : undefined
-}
 
 export interface TimelineEvent {
   type: string

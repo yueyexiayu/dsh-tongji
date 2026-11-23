@@ -36,6 +36,7 @@ interface FactParts {
 export interface FactsRead {
   rev: number
   live: boolean
+  cwd?: string
   asOfSeq?: number
   parts: FactParts
   missing?: readonly string[]
@@ -86,9 +87,11 @@ export function factsOf(value: unknown): FactsRead | null {
   const fileOpsFloor = files === null ? undefined : numOf(files.fileOpsFloor)
   const commandsFloor = commands === null ? undefined : numOf(commands.commandsFloor)
   const missing = Array.isArray(data.missing) ? data.missing.filter((entry): entry is string => typeof entry === 'string') : undefined
+  const cwd = typeof data.cwd === 'string' && data.cwd !== '' ? data.cwd : undefined
   return {
     rev,
     live: data.live === true,
+    ...(cwd === undefined ? {} : { cwd }),
     ...(numOf(data.asOfSeq) === undefined ? {} : { asOfSeq: numOf(data.asOfSeq) }),
     parts: {
       ...(head === null || head === undefined ? {} : { head }),
@@ -292,6 +295,7 @@ function mergeFactsInto(detail: ContextTimelineDetail, facts: FactsRead): Contex
   const parts = facts.parts
   const next: ContextTimelineDetail = {
     ...detail,
+    ...(facts.cwd === undefined ? {} : { cwd: facts.cwd }),
     ...(parts.requests === undefined ? {} : { requests: parts.requests }),
     ...(parts.events === undefined ? {} : { events: parts.events }),
     ...(parts.nodes === undefined ? {} : parts.nodes),

@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, cost, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage and cost, context composition, tool and command activity, sub-agent fleets and cross-session overviews.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.17 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.20 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -123,7 +123,7 @@ npm run verify  # node --check on all three artifacts plus the whole test suite
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.17`, `npm run build` and `npm run verify` both pass with 32 tests green: ten new pricing and cost cases that pin fixed inputs to fixed amounts, plus the 22 existing cases.
+On `v0.1.20`, `npm run build` and `npm run verify` both pass with 35 tests green: ten pricing and cost cases that pin fixed inputs to fixed amounts, three version-probe cases, plus the 22 existing cases.
 
 ## Limitations
 
@@ -133,6 +133,8 @@ On `v0.1.17`, `npm run build` and `npm run verify` both pass with 32 tests green
 - The fold cache filters by existing sessions but has no byte cap; it is currently about 5 MB on this machine.
 - Error codes are `tongji/*` since `v0.1.17`; the legacy `dsh-context/*` prefix is still normalized.
 - The recommendation slot reads `data/recoms.json` from this repository and falls back to a built-in entry, marked degraded, when that file is absent.
+- The version guard reads the installation first (`app.asar/dsh/package.json`, then the macOS bundle `Info.plist`) and the module tree after that; when every probe fails it logs one warning and treats the version as unknown, and `/api/tongji/version` reports `harness: null`.
+- The panel's workspace root comes from DSH's `workingDirectory` projection, which follows a directory change; DSH's own session list still uses the root in the session header, so the two can differ after a `cd`.
 
 ## License
 

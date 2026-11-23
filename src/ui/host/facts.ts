@@ -124,6 +124,23 @@ function kernelOfLive(projections: StateProjectionsFace | undefined, session: un
   }
 }
 
+/**
+ * The Session's live workspace root. DSH keeps it in its own `workingDirectory`
+ * projection, which follows `workspace-root/change`; the Session header keeps the
+ * root the Session started in, so a Session that moved would otherwise report a
+ * stale one.
+ */
+function cwdOfLive(projections: StateProjectionsFace | undefined, session: unknown): string | undefined {
+  if (projections?.snapshot === undefined) return undefined
+  try {
+    const read = asRecord(projections.snapshot.call(projections, session, ['workingDirectory']))
+    const cwd = read?.workingDirectory
+    return typeof cwd === 'string' && cwd !== '' ? cwd : undefined
+  } catch {
+    return undefined
+  }
+}
+
 function kernelOfCold(cache: CachedSnapshotFace | undefined, header: unknown): KernelFacts {
   if (cache?.cachedSnapshot === undefined || header === undefined) return {}
   try {
@@ -273,11 +290,13 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
             if (state === null || state === undefined) return reply({ ok: true, value: null })
             const projections = c.get('sessionProjections') as StateProjectionsFace | undefined
             const kernel = kernelOfLive(projections, session)
+            const cwd = cwdOfLive(projections, session)
             const needsDetail = wantedDetail.length > 0 || wanted.parts.has('series')
             const detailState = needsDetail ? await liveDetailState(wanted.sessionId) : null
+            const value = valueOf(state as TimelineState, true, wanted, kernel, detailState, bounds.maxArchiveNodes, deps.cost)
             return reply({
               ok: true,
-              value: valueOf(state as TimelineState, true, wanted, kernel, detailState, bounds.maxArchiveNodes, deps.cost),
+              value: cwd === undefined ? value : { ...value, cwd },
             })
           }
           if (observe === undefined) return reply({ ok: true, value: null })

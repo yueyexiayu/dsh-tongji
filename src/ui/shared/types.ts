@@ -289,6 +289,7 @@ export interface SessionCostRead {
 
 export interface ContextTimelineDetail extends SurfaceNodeWindow {
   rev: number
+  cwd?: string
   head?: ContextTimeline
   requests: RequestRecord[]
   events: ContextEventRecord[]

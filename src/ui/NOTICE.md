@@ -31,6 +31,12 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   其他界面语言由 DSH 语言服务回退到英文；`lib/client.js` 由 962 KB 降到 709 KB
 - 0.1.19：界面只保留中文，删除英文词典；`en` 位置指向同一份中文词典，避免 DSH 切成英文时
   露出键名。`lib/client.js` 再降到 675 KB
+- 0.1.20：版本守卫改为先读安装包（`app.asar/dsh/package.json`、macOS 包的 `Info.plist`），再读
+  模块树；全都读不到时 `ctx.logger.warn` 一条并按「未知」处理，`/api/tongji/version` 增 `harness` 字段
+- 0.1.20：面板工作区根改用 DSH 的 `workingDirectory` 投影（跟随目录切换），`facts` 载荷顶层增
+  `cwd`；文件地址按 0.2.3 的口径自行拼出绝对路径，不再依赖随包固定的 `fileAddressFor`
+- 0.1.20：`src/host/index.ts` 补出 `startFoldWorkerChannel` 与版本探测导出；删除已失效的
+  `ui/host/sweep.ts`（状态版本 36→37 的行迁移）及只被它使用的 `deriveHeadState` 等死函数
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。

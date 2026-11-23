@@ -522,7 +522,12 @@ export function makeContextView(
       sessionKey,
     )
     const fullCommandList = commandLog.records
-    const workspace = typeof ctx.get === 'function' ? workspaceOf(ctx, typeof sessionId === 'string' ? sessionId : undefined) : undefined
+    // DSH's Session list metadata keeps the root the Session started in; the host
+    // sends the live one (its workingDirectory projection follows a directory
+    // change), so prefer it and fall back to the list row.
+    const liveCwd = typeof data.cwd === 'string' && data.cwd !== '' ? data.cwd : undefined
+    const workspace = liveCwd
+      ?? (typeof ctx.get === 'function' ? workspaceOf(ctx, typeof sessionId === 'string' ? sessionId : undefined) : undefined)
     const commandBoard = useMemo(() => {
       const stats = data.commandStats ?? (fullCommandList.length > 0 ? tallyOfCommands(fullCommandList) : null)
       const top = data.programTally !== undefined

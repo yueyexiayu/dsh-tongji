@@ -2,6 +2,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { CatalogService } from './catalog'
 import { isNewerRelease } from '../shared/version'
 import { failure, mountPostRoute, reply } from './postRoute'
+import { detectedHarnessVersion } from './version'
 
 export const VERSION_ROUTE = '/api/tongji/version'
 
@@ -22,6 +23,7 @@ export function watchVersionChannel(ctx: Context, catalog: CatalogService): void
             failed: entry.failed,
             checkedAt: entry.checkedAt,
             current,
+            harness: detectedHarnessVersion() ?? null,
             updateAvailable: entry.value !== null && current !== null
               ? isNewerRelease(entry.value, current)
               : null,

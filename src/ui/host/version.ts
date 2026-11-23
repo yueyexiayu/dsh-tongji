@@ -88,23 +88,82 @@ function resolveRunningModule(specifier: string): string {
   return import.meta.resolve(specifier)
 }
 
+/**
+ * Manifests of the running installation. The desktop build keeps the DSH tree
+ * inside app.asar, which only the Electron host can read; a plain Node probe
+ * never sees it, so this runs before the module-resolution probes.
+ */
+function installManifestPaths(): string[] {
+  const paths: string[] = []
+  const resources = (process as { resourcesPath?: unknown }).resourcesPath
+  if (typeof resources === 'string' && resources !== '') {
+    paths.push(join(resources, 'app.asar', 'dsh', 'package.json'))
+    paths.push(join(resources, 'app', 'dsh', 'package.json'))
+  }
+  paths.push(join(dirname(process.execPath), '..', 'Resources', 'app.asar', 'dsh', 'package.json'))
+  return paths
+}
+
+function versionViaInstall(): string | undefined {
+  for (const manifest of installManifestPaths()) {
+    const version = versionOfManifest(manifest)
+    if (version !== undefined) return version
+  }
+  return undefined
+}
+
+/**
+ * The macOS bundle manifest carries the product version even when app.asar is
+ * unreadable, so a packaged app still reports the version it actually runs.
+ */
+function versionViaBundlePlist(): string | undefined {
+  if (process.platform !== 'darwin') return undefined
+  try {
+    const plist = readFileSync(join(dirname(process.execPath), '..', 'Info.plist'), 'utf8')
+    const version = /<key>CFBundleShortVersionString<\/key>\s*<string>([^<]+)<\/string>/.exec(plist)?.[1]?.trim()
+    return version !== undefined && version !== '' ? version : undefined
+  } catch {
+    return undefined
+  }
+}
+
+let lastDetected: string | undefined
+
+/**
+ * The version the last {@link detectHarnessVersion} call settled on, so routes
+ * and diagnostics can report what the guard actually sees instead of guessing.
+ */
+export function detectedHarnessVersion(): string | undefined {
+  return lastDetected
+}
+
 export function detectHarnessVersion(
   ctx: Context,
   resolveUrl: ResolveUrl = resolveRunningModule,
   pluginRoot: string = PLUGIN_ROOT,
 ): string | undefined {
-  const running = probeRunningTree((specifier) => {
+  const installed = versionViaInstall() ?? versionViaBundlePlist()
+  const running = installed ?? probeRunningTree((specifier) => {
     const url = resolveUrl(specifier)
     if (!url.startsWith('file:')) throw new Error(`tongji: non-file module URL for ${specifier}`)
     return fileURLToPath(url)
   }, pluginRoot)
-  if (running !== undefined) return running
+  const detected = running ?? versionViaHome(ctx)
+  lastDetected = detected
+  if (detected === undefined) {
+    ctx.logger?.warn?.(
+      'tongji: 未能探测运行中的 DSH 版本，版本守卫按「未知」处理（不注册降级投影，也不声称兼容）',
+    )
+  }
+  return detected
+}
+
+function versionViaHome(ctx: Context): string | undefined {
   try {
     const homePath = ctx.get('dshHomePath') as unknown
     if (typeof homePath === 'function') {
       const req = createRequire((homePath as (...segments: string[]) => string)('profiles', 'tongji-version-probe.cjs'))
-      const home = probeAnchor(specifier => req.resolve(specifier), HOME_PROBE_PACKAGES)
-      if (home !== undefined) return home
+      return probeAnchor(specifier => req.resolve(specifier), HOME_PROBE_PACKAGES)
     }
   } catch {}
   return undefined

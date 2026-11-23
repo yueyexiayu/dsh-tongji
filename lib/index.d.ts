@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.19
+ * tongji v0.1.20
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T13:25:53+08:00
- * @commit e0822a47814f (dirty working tree) on main
- * @commit-date 2026-11-23T13:23:12+08:00
+ * @built 2026-11-23T13:54:02+08:00
+ * @commit c388fc8d8637 (dirty working tree) on main
+ * @commit-date 2026-11-23T13:26:09+08:00
  */
 
 /**
@@ -18,6 +18,7 @@
  *
  * Both share one `apply`, so the plugin stays a single Cordis row.
  */
+import { MessagePort } from "node:worker_threads";
 import { FileAttachmentRef, ImageAttachmentRef, ImageRequestTarget } from "@deepseek-ai/dsh-attachment";
 import { LocalizedText } from "@deepseek-ai/dsh-package-manifest";
 declare function isArrayBufferLike(value: any): value is ArrayBufferLike;
@@ -4594,6 +4595,8 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
+type FoldPort = Pick<MessagePort, 'on' | 'postMessage'>;
+export declare function startFoldWorkerChannel(port?: FoldPort | null): void;
 type CostCurrency = 'usd' | 'cny';
 interface PriceTriple {
   hit: number;
@@ -4686,6 +4689,13 @@ interface CostSource {
   version?(): number;
 }
 export declare function createCostSource(catalog: CatalogService): CostSource;
+type ResolveUrl = (specifier: string) => string;
+/**
+ * The version the last {@link detectHarnessVersion} call settled on, so routes
+ * and diagnostics can report what the guard actually sees instead of guessing.
+ */
+export declare function detectedHarnessVersion(): string | undefined;
+export declare function detectHarnessVersion(ctx: Context, resolveUrl?: ResolveUrl, pluginRoot?: string): string | undefined;
 export declare const name = "tongji";
 export declare const inject: string[];
 export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{

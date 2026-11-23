@@ -25,7 +25,6 @@ import { watchStepIdentity } from './stepIdentity'
 import { watchSkillCatalog } from './skills'
 import { watchRecomChannel } from './recoms'
 import { watchSnapshotRoute } from './snapshotRoute'
-import { watchTimelineRowSweep } from './sweep'
 import { createContextTimelineDefinition } from './timeline'
 import { detectHarnessVersion } from './version'
 import { meetsBaseline } from '../shared/version'
@@ -69,7 +68,6 @@ export function apply(ctx: Context, config: Config): void {
   gate.retain('contextTimeline', ctx.sessionProjections.register(createContextTimelineDefinition(config, () => gate.live, pricing)))
   ctx.sessionProjections.register(createContextHeadersDefinition(name => attribution.ownerOf(name)))
   ctx.sessionProjections.register(createContextActivityDefinition())
-  watchTimelineRowSweep(ctx)
   const cache = createOverviewCache()
   const backfill = watchActivityBackfill(ctx, coldReads, undefined, { ownCache: cache, config })
   watchSnapshotRoute(ctx, backfill)
