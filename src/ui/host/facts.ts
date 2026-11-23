@@ -6,7 +6,7 @@ import type { DetailChannelGate } from './detail'
 import type { CachedSnapshotFace, SessionsFace, StateProjectionsFace } from './faces'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
 import { makeFoldCache } from './foldCache'
-import { buildTimelineHead, eventsOf, requestRowsOf, serveCommand } from './foldWire'
+import { buildTimelineHead, eventsOf, requestRowsOf, serveCommand, serveJob } from './foldWire'
 import { TIMING_SPANS_MAX, surfaceWindowOf, type TimelineState } from './foldState'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply, revisionOf } from './postRoute'
 import { asRecord } from './record'
@@ -25,7 +25,7 @@ function coldCursorOf(events: readonly unknown[]): string {
 
 const KERNEL_KEYS = ['sessionStats', 'tokenUsage', 'contextBreakdown'] as const
 
-const DETAIL_PARTS = ['requests', 'nodes', 'events', 'files', 'commands', 'spans'] as const
+const DETAIL_PARTS = ['requests', 'nodes', 'events', 'files', 'commands', 'spans', 'jobs'] as const
 
 const FACT_PARTS = new Set<string>(['head', 'series', 'stats', ...DETAIL_PARTS])
 
@@ -189,6 +189,7 @@ function detailPartsOf(state: TimelineState, parts: ReadonlySet<string>, window:
     }
   }
   if (parts.has('spans')) out.spans = tailOf(state.spans, window.spansTail).map(span => ({ ...span }))
+  if (parts.has('jobs')) out.jobs = state.jobs === undefined ? [] : state.jobs.map(serveJob)
   return out
 }
 

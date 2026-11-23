@@ -79,6 +79,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.29：上下文视图新增「后台任务」卡片。Host 折叠层把 `job/registered` / `job/settled` 收进独立
+  `jobs` 集合（运行中最多 20 条、总计 80 条），按 `toolCall.callId` 与命令记录关联；`run_in_background`
+  参数、结果里的后台确认，或「结果已返回但作业未结束」都会标记为后台。`contextTimeline` 状态版本 45→46，
+  facts 路由新增 `jobs` 分块，前端按块增量刷新。命令识别同时补上 `zsh`（按 bash 方言解析，记录保留工具名）。
+
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
 错误码统一为 `tongji/*`，`postRoute.failure()` 仍接受旧的 `dsh-context/*` 前缀并归一化，

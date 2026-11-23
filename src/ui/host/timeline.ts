@@ -140,6 +140,23 @@ const commandStatsSchema = z.object({
   bg: z.number().int().nonnegative(),
 }).strict()
 
+const jobSchema = z.object({
+  id: z.string(),
+  seq: z.number().int().nonnegative(),
+  kind: z.string(),
+  label: z.string().optional(),
+  start: z.number(),
+  end: z.number().optional(),
+  status: z.enum(['running', 'completed', 'failed', 'killed']),
+  detail: z.string().optional(),
+  cause: z.string().optional(),
+  background: z.literal(true).optional(),
+  returned: z.literal(true).optional(),
+  turn: z.number().optional(),
+  step: z.number().optional(),
+  call: z.string().optional(),
+}).strict()
+
 const timingSpanSchema = z.object({
   kind: z.enum(['ttft', 'reasoning', 'text', 'toolarg', 'tools', 'other']),
   start: z.number(),
@@ -260,6 +277,7 @@ export const contextTimelineSchema = z.object({
   commands: z.array(commandSchema).optional(),
   commandsFloor: z.number().int().nonnegative().optional(),
   commandStats: commandStatsSchema.optional(),
+  jobs: z.array(jobSchema).optional(),
   spans: z.array(timingSpanSchema).optional(),
 }).strict() as unknown as z.ZodType<ContextTimeline>
 
@@ -336,6 +354,7 @@ const timelineStateSchema = z.object({
   commands: z.array(commandStateSchema),
   commandsFloor: z.number().int().nonnegative().optional(),
   commandStats: commandStatsSchema.optional(),
+  jobs: z.array(jobSchema).optional(),
   pendingCodeCmds: z.record(z.string(), z.array(commandStateSchema)).optional(),
   spans: z.array(timingSpanSchema),
   stepSpans: z.array(timingSpanSchema).optional(),
@@ -347,8 +366,9 @@ const timelineStateSchema = z.object({
   commandCallsOverflow: z.boolean().optional(),
 }) as unknown as z.ZodType<TimelineState>
 
+// 46: `jobs`, the detached-job list behind the background-task card.
 // 44: `seedCut`, so a fork stops billing its parent's turns and timing.
-export const TIMELINE_STATE_VERSION = 45
+export const TIMELINE_STATE_VERSION = 46
 
 export function createContextTimelineDefinition(
   config: Config,

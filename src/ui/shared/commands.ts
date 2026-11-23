@@ -4,7 +4,12 @@ import { parseCallArgs } from './fileOps'
 
 export type CommandTool = 'bash' | 'pwsh' | 'run_code'
 
+/**
+ * `zsh` takes the same arguments as `bash` (command, description, workdir,
+ * timeoutMs, run_in_background), so it folds into the bash dialect.
+ */
 export function commandTool(tool: string | undefined): CommandTool | null {
+  if (tool === 'zsh') return 'bash'
   if (tool === 'bash' || tool === 'pwsh' || tool === 'run_code') return tool
   return null
 }

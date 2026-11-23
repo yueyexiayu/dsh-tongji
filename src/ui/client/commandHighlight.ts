@@ -4,7 +4,7 @@ import type { CodeHighlighter, HighlightSpan } from '@deepseek-ai/dsh-client-ui-
 
 type ShellGrammar = 'bash' | 'powershell'
 
-const GRAMMARS: Partial<Record<string, ShellGrammar>> = { bash: 'bash', pwsh: 'powershell' }
+const GRAMMARS: Partial<Record<string, ShellGrammar>> = { bash: 'bash', zsh: 'bash', pwsh: 'powershell' }
 
 export function grammarOfTool(tool: string): ShellGrammar | undefined {
   const kind = commandTool(tool)

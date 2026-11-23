@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.28 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.29 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -26,7 +26,7 @@
 
 ## Languages
 
-The interface is **Chinese only**: one dictionary (751 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (122 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
+The interface is **Chinese only**: one dictionary (763 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (122 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
 
 ## Features
 
@@ -45,6 +45,7 @@ The interface is **Chinese only**: one dictionary (751 entries), no second copy 
 - Context events: injection, compaction, pruning, model switch, mode switch.
 - Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
 - Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
+- Background jobs: running or detached jobs with the command excerpt, state, duration, exit detail and job id; running jobs stay on top and their duration ticks by the second. Data comes from the `job/registered` and `job/settled` events in the session log; foreground jobs that finished stay in the command log only.
 - Attachment previews and history paging: older history loads on request through the official session query interface, never eagerly when the panel opens.
 
 ### Fleet and insights
@@ -124,7 +125,7 @@ npm run verify  # node --check on all three artifacts, tsc --noEmit, and the who
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.28`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 37 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.29`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 45 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, eight job-fold cases (registration, settlement, background marking, detachment, `zsh` and buffered commands), and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 
@@ -136,6 +137,8 @@ On `v0.1.28`, `npm run build` and `npm run verify` both pass (`verify` = artifac
 - The recommendation slot reads `data/recoms.json` from this repository and falls back to a built-in entry, marked degraded, when that file is absent.
 - The version guard reads the installation first (`app.asar/dsh/package.json`, then the macOS bundle `Info.plist`) and the module tree after that; when every probe fails it logs one warning and treats the version as unknown, and `/api/tongji/version` reports `harness: null`.
 - The panel's workspace root comes from DSH's `workingDirectory` projection, which follows a directory change; DSH's own session list still uses the root in the session header, so the two can differ after a `cd`.
+- The background-job card covers only jobs whose DSH job event can be tied to a command (`bash`, `zsh`, `pwsh` or a command inside `run_code`); the command log's background count also includes `run_code` records whose result text carried a background acknowledgement, so the two counts can disagree.
+- The background-job card was not re-rendered in the real UI for this change (plugin code loads only after DSH restarts); its data layer was verified by folding a real session log.
 
 ## License
 

@@ -1,4 +1,4 @@
-import type { Category, CommandRecord, CommandStats, ContextEventRecord, FileOpRecord, SessionCostUsage, SurfaceNode, SurfaceNodeWindow, SystemPromptNode, TimingSpan, TimingTotals } from '../shared/types'
+import type { Category, CommandRecord, CommandStats, ContextEventRecord, FileOpRecord, JobRecord, SessionCostUsage, SurfaceNode, SurfaceNodeWindow, SystemPromptNode, TimingSpan, TimingTotals } from '../shared/types'
 import type { SlimRequestRecord } from '../shared/types'
 import type { FoldBounds } from './config'
 
@@ -22,6 +22,17 @@ export function slimSurfaceNode(node: SurfaceNode): SurfaceNode {
 export interface CommandStateRecord extends CommandRecord {
   call?: string
 }
+
+export type JobStateRecord = JobRecord
+
+/** Kept jobs: every running one, plus the newest settled ones. */
+export const JOBS_MAX = 80
+
+export const RUNNING_JOBS_MAX = 20
+
+export const JOB_LABEL_MAX = 280
+
+export const JOB_DETAIL_MAX = 160
 
 function slimCommandRecord(rec: CommandStateRecord): CommandStateRecord {
   const { cmd: _cmd, cmdTruncated: _cmdTruncated, description: _description, cwd: _cwd, ...rest } = rec
@@ -104,6 +115,7 @@ export interface TimelineState {
   commands: CommandStateRecord[]
   commandsFloor?: number
   commandStats?: CommandStats
+  jobs?: JobStateRecord[]
   toolTally?: Record<string, number>
   programTally?: Record<string, number>
   commandCalls?: string[]
@@ -196,6 +208,24 @@ export function countTurnRuns(requests: readonly SlimRequestRecord[]): number {
   return runs
 }
 
+function trimJobs(st: TimelineState): void {
+  const jobs = st.jobs
+  if (jobs === undefined || jobs.length === 0) return
+  const kept: JobStateRecord[] = []
+  let running = 0
+  for (let i = jobs.length - 1; i >= 0; i--) {
+    const job = jobs[i]
+    if (job.status === 'running') {
+      if (running >= RUNNING_JOBS_MAX) continue
+      running++
+    }
+    kept.push(job)
+  }
+  kept.reverse()
+  if (kept.length > JOBS_MAX) st.jobs = kept.slice(kept.length - JOBS_MAX)
+  else if (kept.length !== jobs.length) st.jobs = kept
+}
+
 export function trimState(st: TimelineState, bounds: FoldBounds): void {
   st.turnRuns = st.turnRuns ?? countTurnRuns(st.requests)
   if (st.turnRuns > bounds.maxKeptTurns) {
@@ -233,6 +263,7 @@ export function trimState(st: TimelineState, bounds: FoldBounds): void {
     st.commandsFloor = Math.max(st.commandsFloor ?? 0, floor)
     st.commands = kept
   }
+  trimJobs(st)
   if (bounds.headOnly === true) {
     trimHeadState(st)
     return
@@ -275,6 +306,9 @@ export function trimHeadState(st: TimelineState): void {
   if (st.events.length > 0) st.events = []
   if (st.agents !== undefined) delete st.agents
   if (st.commands.length > 0) st.commands = st.commands.filter(rec => rec.status === 'running').slice(-16)
+  if (st.jobs !== undefined && st.jobs.length > 0) {
+    st.jobs = st.jobs.filter(job => job.status === 'running').slice(-RUNNING_JOBS_MAX)
+  }
   if (st.fileOps.length > 0) st.fileOps = []
   if (st.spans.length > 0) st.spans = []
   if (st.archived.length > 0) st.archived = []

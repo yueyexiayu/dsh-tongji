@@ -4,9 +4,9 @@
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T17:56:23+08:00
- * @commit 0609531ccd31 (dirty working tree) on main
- * @commit-date 2026-11-23T17:39:33+08:00
+ * @built 2026-11-24T05:12:26+08:00
+ * @commit e8f816b03eef (dirty working tree) on main
+ * @commit-date 2026-11-23T17:56:38+08:00
  */
 
 /**
@@ -4120,6 +4120,7 @@ interface HeadersState {
 interface CommandStateRecord extends CommandRecord {
   call?: string;
 }
+type JobStateRecord = JobRecord;
 interface TimelineEvent {
   type: string;
   seq: number;
@@ -4191,6 +4192,7 @@ interface TimelineState {
   commands: CommandStateRecord[];
   commandsFloor?: number;
   commandStats?: CommandStats;
+  jobs?: JobStateRecord[];
   toolTally?: Record<string, number>;
   programTally?: Record<string, number>;
   commandCalls?: string[];
@@ -4345,6 +4347,7 @@ interface Snapshot extends SurfaceNodeWindow {
   commands?: CommandRecord[];
   commandsFloor?: number;
   commandStats?: CommandStats;
+  jobs?: JobRecord[];
   spans?: TimingSpan[];
 }
 type CommandStatus = 'running' | 'completed' | 'failed' | 'killed';
@@ -4385,6 +4388,24 @@ interface CommandStats {
   failed: number;
   ms: number;
   bg: number;
+}
+type JobStatus = CommandStatus;
+interface JobRecord {
+  id: string;
+  seq: number;
+  kind: string;
+  label?: string;
+  start: number;
+  end?: number;
+  status: JobStatus;
+  detail?: string;
+  cause?: string;
+  background?: true;
+  returned?: true;
+  turn?: number;
+  step?: number;
+  /** Host state only: the tool call that registered this job. Stripped from the wire. */
+  call?: string;
 }
 interface FileOpRecord {
   seq: number;

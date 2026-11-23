@@ -494,8 +494,8 @@ export function makeCommandPanel(kit: ViewKit): ComponentType<CommandPanelProps>
               <span className={'lc-br-chev' + (open ? ' lc-br-chev-on' : '')} />
               <span className={'lc-cmd-st lc-cmd-st-' + st.cls} title={st.tip}>{st.glyph}</span>
               <span className="lc-cmd-cmd">
-                {rec.tool !== 'bash' ? <span className="lc-cmd-tool">{rec.tool === 'run_code' ? t('cmds.tool.code') : rec.tool}</span> : null}
-                {rec.codeMode === true && rec.tool === 'bash' ? <span className="lc-cmd-tool">{t('cmds.tool.nested')}</span> : null}
+                {rec.tool !== 'bash' && rec.tool !== 'zsh' ? <span className="lc-cmd-tool">{rec.tool === 'run_code' ? t('cmds.tool.code') : rec.tool}</span> : null}
+                {rec.codeMode === true && (rec.tool === 'bash' || rec.tool === 'zsh') ? <span className="lc-cmd-tool">{t('cmds.tool.nested')}</span> : null}
                 <CmdText text={view.preview} runs={runsOf(rec.tool, view.preview)} />
               </span>
               <span className="lc-cmd-badges">

@@ -254,6 +254,7 @@ export interface Snapshot extends SurfaceNodeWindow {
   commands?: CommandRecord[]
   commandsFloor?: number
   commandStats?: CommandStats
+  jobs?: JobRecord[]
   spans?: TimingSpan[]
 }
 
@@ -268,6 +269,7 @@ export interface ContextTimelineDetail extends SurfaceNodeWindow {
   commands?: CommandRecord[]
   commandsFloor?: number
   commandStats?: CommandStats
+  jobs?: JobRecord[]
   spans?: TimingSpan[]
 }
 
@@ -317,6 +319,26 @@ export interface CommandStats {
   failed: number
   ms: number
   bg: number
+}
+
+export type JobStatus = CommandStatus
+
+export interface JobRecord {
+  id: string
+  seq: number
+  kind: string
+  label?: string
+  start: number
+  end?: number
+  status: JobStatus
+  detail?: string
+  cause?: string
+  background?: true
+  returned?: true
+  turn?: number
+  step?: number
+  /** Host state only: the tool call that registered this job. Stripped from the wire. */
+  call?: string
 }
 
 export interface FileOpRecord {

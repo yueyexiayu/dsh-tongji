@@ -20,12 +20,19 @@ import type { DecodeSpan } from './logShapes'
 import { opBearingTool, opsOfCall, parseCallArgs, rawArgsNeeded } from '../shared/fileOps'
 import { commandArgsOf, commandArgsRecordOf, commandProgramsOf, commandTool, markersOfText, outcomeOfMarkers } from '../shared/commands'
 import {
+  bufferedCommandOf,
   bumpBg,
   commandRecordOf,
   findCommandIndex,
   jobCallIdOf,
+  jobKindOf,
+  jobLabelOf,
   jobOutcomePatch,
+  markJobBackground,
+  markJobFromCommand,
   patchBufferedCommand,
+  registerJob,
+  settleJob,
   resultPatchOf,
   resultTextsOf,
   setCommand,
@@ -290,9 +297,9 @@ function applySurface(
 
 const ASK_USER_TOOL = 'ask_user_question'
 
-type CloneKey = 'surface' | 'sums' | 'requests' | 'events' | 'archived' | 'callNames' | 'fileOps' | 'timing' | 'commands'
+type CloneKey = 'surface' | 'sums' | 'requests' | 'events' | 'archived' | 'callNames' | 'fileOps' | 'timing' | 'commands' | 'jobs'
 
-const CLONE_ALL: readonly CloneKey[] = ['surface', 'sums', 'requests', 'events', 'archived', 'callNames', 'fileOps', 'timing', 'commands']
+const CLONE_ALL: readonly CloneKey[] = ['surface', 'sums', 'requests', 'events', 'archived', 'callNames', 'fileOps', 'timing', 'commands', 'jobs']
 
 const STEP_BEATS_MAX = 1024
 
@@ -359,6 +366,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
       else if (key === 'callNames') st.callNames = { ...state.callNames }
       else if (key === 'fileOps') st.fileOps = [...state.fileOps]
       else if (key === 'commands') st.commands = [...state.commands]
+      else if (key === 'jobs') st.jobs = [...(state.jobs ?? [])]
       else if (state.timing !== undefined) st.timing = { ...state.timing, tools: { ...state.timing.tools } }
     }
     return st
@@ -436,7 +444,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
       case 'tool/call': {
         if (data && typeof data.callId === 'string' && typeof data.name === 'string') {
           const cmdTool = commandTool(data.name)
-          const s = ensure(cmdTool === null ? ['callNames'] : ['callNames', 'commands'])
+          const s = ensure(cmdTool === null ? ['callNames'] : ['callNames', 'commands', 'jobs'])
           const argsRaw = bounds.headOnly === true || !rawArgsNeeded(data.name) ? undefined : argsRawOf(data.arguments)
           if (data.callId !== '__proto__') {
             s.callNames[data.callId] = {
@@ -451,7 +459,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
               s.commands.push(commandRecordOf({
                 seq: event.seq,
                 time: event.time,
-                tool: cmdTool,
+                tool: data.name,
                 parsed,
                 turn: data.turn,
                 step: data.step,
@@ -459,7 +467,10 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
               }, bounds.headOnly === true))
               tallyPrograms(s, cmdTool, parsed.cmd)
               if (bounds.headOnly === true) noteCommandCall(s, data.callId)
-              if (parsed.background === true) bumpBg(s)
+              if (parsed.background === true) {
+                bumpBg(s)
+                if (s.jobs !== undefined) markJobBackground(s.jobs, data.callId)
+              }
               bumpDetailRev(s)
             }
           }
@@ -467,42 +478,64 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
         break
       }
       case 'job/registered': {
-        const callId = jobCallIdOf(data)
+        const jobId = typeof data?.jobId === 'string' && data.jobId !== '' ? data.jobId : undefined
         const startedAt = data?.startedAt
-        if (callId === undefined || typeof startedAt !== 'number' || !Number.isFinite(startedAt)) return state
-        const index = findCommandIndex(state.commands, callId)
+        if (jobId === undefined || typeof startedAt !== 'number' || !Number.isFinite(startedAt)) return state
+        const callId = jobCallIdOf(data)
+        const s = ensure(['jobs', 'commands'])
+        const jobs = s.jobs
+        if (jobs === undefined) return state
+        const index = callId === undefined ? -1 : findCommandIndex(s.commands, callId)
+        const command = index >= 0 ? s.commands[index] : undefined
+        const buffered = callId !== undefined && s.pendingCodeCmds !== undefined
+          ? bufferedCommandOf(s.pendingCodeCmds, callId)
+          : undefined
+        const known = command ?? buffered
+        let changed = registerJob(jobs, {
+          id: jobId,
+          seq: event.seq,
+          start: startedAt,
+          kind: jobKindOf(data),
+          label: jobLabelOf(data),
+          ...(callId !== undefined ? { call: callId } : {}),
+          ...(known?.background === true ? { background: true as const } : {}),
+          ...(known?.turn !== undefined ? { turn: known.turn } : {}),
+          ...(known?.step !== undefined ? { step: known.step } : {}),
+        })
         if (index >= 0) {
-          const s = ensure(['commands'])
-          s.commands[index] = { ...s.commands[index], start: startedAt }
-          bumpDetailRev(s)
-          break
+          if (s.commands[index].start !== startedAt) {
+            s.commands[index] = { ...s.commands[index], start: startedAt }
+            changed = true
+          }
+        } else if (callId !== undefined && s.pendingCodeCmds !== undefined) {
+          if (patchBufferedCommand(s, s.pendingCodeCmds, callId, rec => ({ ...rec, start: startedAt }))) changed = true
         }
-        if (state.pendingCodeCmds === undefined) return bumpTrimmedCommand(callId) ?? state
-        const s = ensure([])
-        if (!patchBufferedCommand(s, state.pendingCodeCmds, callId, rec => ({ ...rec, start: startedAt }))) {
-          return bumpTrimmedCommand(callId) ?? state
-        }
+        if (!changed) return (callId !== undefined ? bumpTrimmedCommand(callId) : undefined) ?? state
+        bumpDetailRev(s)
         break
       }
       case 'job/settled': {
-        const callId = jobCallIdOf(data)
+        const jobId = typeof data?.jobId === 'string' && data.jobId !== '' ? data.jobId : undefined
         const finishedAt = data?.finishedAt
         const status = data?.status
-        if (callId === undefined || typeof finishedAt !== 'number' || !Number.isFinite(finishedAt)) return state
+        if (jobId === undefined || typeof finishedAt !== 'number' || !Number.isFinite(finishedAt)) return state
         if (status !== 'completed' && status !== 'killed' && status !== 'failed') return state
-        const index = findCommandIndex(state.commands, callId)
-        if (index >= 0) {
-          const s = ensure(['commands'])
-          setCommand(s, index, jobOutcomePatch(s.commands[index], status, finishedAt, data?.detail))
-          bumpDetailRev(s)
-          break
+        const callId = jobCallIdOf(data)
+        const s = ensure(['jobs', 'commands'])
+        const jobs = s.jobs
+        if (jobs === undefined) return state
+        let changed = settleJob(jobs, jobId, status, finishedAt, data?.detail, data?.cause)
+        if (callId !== undefined) {
+          const index = findCommandIndex(s.commands, callId)
+          if (index >= 0) {
+            setCommand(s, index, jobOutcomePatch(s.commands[index], status, finishedAt, data?.detail))
+            changed = true
+          } else if (s.pendingCodeCmds !== undefined) {
+            if (patchBufferedCommand(s, s.pendingCodeCmds, callId, rec => jobOutcomePatch(rec, status, finishedAt, data?.detail))) changed = true
+          }
         }
-        const pendingCmds = state.pendingCodeCmds
-        if (pendingCmds === undefined) return bumpTrimmedCommand(callId) ?? state
-        const s = ensure([])
-        if (!patchBufferedCommand(s, pendingCmds, callId, rec => jobOutcomePatch(rec, status, finishedAt, data?.detail))) {
-          return bumpTrimmedCommand(callId) ?? state
-        }
+        if (!changed) return (callId !== undefined ? bumpTrimmedCommand(callId) : undefined) ?? state
+        bumpDetailRev(s)
         break
       }
       case 'tool/ptc-dispatch-start': {
@@ -529,7 +562,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
           ? parentCallId
           : undefined
         if (!buffered && transportParent === undefined && bounded === starts) return state
-        const s = ensure([])
+        const s = ensure(['jobs'])
         if (bounded !== starts) s.pendingCodeStarts = bounded
         if (transportParent !== undefined) {
           s.callNames = { ...state.callNames, [transportParent]: { ...state.callNames[transportParent], transport: true } }
@@ -538,12 +571,15 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
         const rec: CommandStateRecord = commandRecordOf({
           seq: event.seq,
           time: event.time,
-          tool: cmdTool,
+          tool: name ?? cmdTool,
           parsed,
           codeMode: true,
           call: subCallId,
         }, bounds.headOnly === true)
-        if (parsed.background === true) bumpBg(s)
+        if (parsed.background === true) {
+          bumpBg(s)
+          if (s.jobs !== undefined) markJobBackground(s.jobs, subCallId)
+        }
         tallyPrograms(s, cmdTool, parsed.cmd)
         if (bounds.headOnly === true) noteCommandCall(s, subCallId)
         s.pendingCodeCmds = { ...pending, [rootCallId]: [...(pending[rootCallId] ?? []), rec] }
@@ -773,8 +809,11 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
         const buffered = bounds.headOnly === true || typeof srcId !== 'string' ? undefined : state.pendingCodeOps?.[srcId]
         const bufferedCmds = typeof srcId === 'string' ? state.pendingCodeCmds?.[srcId] : undefined
         const commandCall = pendingEntry !== undefined && commandTool(pendingEntry.name) !== null
+        const commandRelated = (bufferedCmds?.length ?? 0) > 0 || commandCall
+        const cmdTexts = commandCall && toolMsg !== null ? resultTextsOf(toolMsg.content) : []
+        const cmdMarkers = cmdTexts.length > 0 ? markersOfText(cmdTexts.at(-1) ?? '') : undefined
         const s = ensure(['surface', 'sums', 'archived', 'events', 'fileOps', 'timing',
-          ...((bufferedCmds?.length ?? 0) > 0 || commandCall ? ['commands' as const] : [])])
+          ...(commandRelated ? ['commands' as const, 'jobs' as const] : [])])
         bumpDetailRev(s)
         const node = applySurface(s, event, event.type, toolMsg, bounds)
         if (node.tool === ASK_USER_TOOL) s.humanInputs = (s.humanInputs ?? 0) + 1
@@ -797,8 +836,8 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
             const index = findCommandIndex(s.commands, srcId)
             if (index >= 0) {
               const prev = s.commands[index]
-              const texts = resultTextsOf(toolMsg?.content)
-              const markers = markersOfText(texts.at(-1) ?? '')
+              const texts = cmdTexts
+              const markers = cmdMarkers ?? markersOfText('')
               const isError = toolMsg?.isError === true
               const next: CommandStateRecord = {
                 ...prev,
@@ -823,6 +862,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
                 next.derived = true
               }
               setCommand(s, index, next)
+              if (s.jobs !== undefined) markJobFromCommand(s.jobs, srcId, next)
             }
           }
         }
@@ -843,6 +883,13 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
         if (bufferedCmds !== undefined && bufferedCmds.length > 0) {
           for (const rec of bufferedCmds) {
             const next: CommandStateRecord = { ...rec, parent: event.seq }
+            if (typeof srcId === 'string' && next.call === srcId) {
+              if (cmdMarkers?.backgroundAck === true && next.background !== true) {
+                next.background = true
+                bumpBg(s)
+              }
+              if (next.background === true && s.jobs !== undefined) markJobBackground(s.jobs, srcId)
+            }
             s.commands.push(next)
             if (next.status !== 'running') tallyRun(s, next)
           }

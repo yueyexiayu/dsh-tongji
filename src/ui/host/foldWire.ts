@@ -1,9 +1,20 @@
-import type { CommandRecord, ContextTimelineDetail, RequestRecord, Snapshot, ToolTimingTotals } from '../shared/types'
+import type { CommandRecord, ContextTimelineDetail, JobRecord, RequestRecord, Snapshot, ToolTimingTotals } from '../shared/types'
 import { attachTurnSpans } from '../shared/turnSpans'
 import { copyCostUsage } from './foldMetering'
 import type { FoldBounds } from './config'
-import type { CommandStateRecord, TimelineState } from './foldState'
+import type { CommandStateRecord, JobStateRecord, TimelineState } from './foldState'
 import { surfaceWindowOf } from './foldState'
+
+export function serveJob(rec: JobStateRecord): JobRecord {
+  const copy: JobStateRecord = { ...rec }
+  delete copy.call
+  return copy
+}
+
+function jobsOf(state: TimelineState): JobRecord[] | undefined {
+  if (state.jobs === undefined || state.jobs.length === 0) return undefined
+  return state.jobs.map(serveJob)
+}
 
 export function serveCommand(rec: CommandStateRecord): CommandRecord {
   const copy: CommandStateRecord = { ...rec }
@@ -56,6 +67,8 @@ function headFieldsOf(state: TimelineState): Snapshot {
     droppedNodes: 0,
     archive: [],
   }
+  const jobs = jobsOf(state)
+  if (jobs !== undefined) result.jobs = jobs
   if (state.cost !== undefined) {
     result.cost = copyCostUsage(state.cost)
   }
@@ -97,6 +110,7 @@ function detailCollectionsOf(state: TimelineState, bounds: FoldBounds): Omit<Con
     commands: state.commands.map(serveCommand),
     ...(state.commandsFloor !== undefined ? { commandsFloor: state.commandsFloor } : {}),
     ...(state.commandStats !== undefined ? { commandStats: { ...state.commandStats } } : {}),
+    ...(state.jobs === undefined || state.jobs.length === 0 ? {} : { jobs: state.jobs.map(serveJob) }),
     spans: state.spans.map(s => ({ ...s })),
   }
   if (window.surfaceFloor !== undefined) result.surfaceFloor = window.surfaceFloor

@@ -1,10 +1,134 @@
 import { exitOfJobDetail, markersOfText, signalOfJobDetail } from '../shared/commands'
 import type { CommandArgs } from '../shared/commands'
-import type { CommandStateRecord, TimelineState } from './foldState'
+import { JOB_DETAIL_MAX, JOB_LABEL_MAX } from './foldState'
+import type { CommandStateRecord, JobStateRecord, TimelineState } from './foldState'
 
 export function findCommandIndex(commands: readonly CommandStateRecord[], callId: string): number {
   for (let i = commands.length - 1; i >= 0; i--) if (commands[i].call === callId) return i
   return -1
+}
+
+export function findJobIndex(jobs: readonly JobStateRecord[], id: string): number {
+  for (let i = jobs.length - 1; i >= 0; i--) if (jobs[i].id === id) return i
+  return -1
+}
+
+export function jobKindOf(data: Record<string, unknown> | undefined): string {
+  const kind = data?.kind
+  return typeof kind === 'string' && kind !== '' ? kind.slice(0, 40) : 'job'
+}
+
+export function jobLabelOf(data: Record<string, unknown> | undefined): string | undefined {
+  const label = data?.label
+  if (typeof label !== 'string' || label.trim() === '') return undefined
+  const text = label.trim()
+  return text.length > JOB_LABEL_MAX ? text.slice(0, JOB_LABEL_MAX) : text
+}
+
+function jobDetailOf(detail: unknown): string | undefined {
+  if (typeof detail !== 'string' || detail.trim() === '') return undefined
+  const text = detail.trim()
+  return text.length > JOB_DETAIL_MAX ? text.slice(0, JOB_DETAIL_MAX) : text
+}
+
+function jobCauseOf(cause: unknown): string | undefined {
+  return typeof cause === 'string' && cause !== '' ? cause.slice(0, 40) : undefined
+}
+
+function sameJob(a: JobStateRecord, b: JobStateRecord): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+export interface JobRegisterInput {
+  id: string
+  seq: number
+  start: number
+  kind: string
+  label?: string
+  call?: string
+  background?: true
+  turn?: number
+  step?: number
+}
+
+export function registerJob(jobs: JobStateRecord[], input: JobRegisterInput): boolean {
+  const index = findJobIndex(jobs, input.id)
+  const fields: Partial<JobStateRecord> = {
+    start: input.start,
+    kind: input.kind,
+    ...(input.label !== undefined ? { label: input.label } : {}),
+    ...(input.call !== undefined ? { call: input.call } : {}),
+    ...(input.background === true ? { background: true as const } : {}),
+    ...(input.turn !== undefined ? { turn: input.turn } : {}),
+    ...(input.step !== undefined ? { step: input.step } : {}),
+  }
+  if (index >= 0) {
+    const next: JobStateRecord = { ...jobs[index], ...fields }
+    if (sameJob(jobs[index], next)) return false
+    jobs[index] = next
+    return true
+  }
+  jobs.push({ id: input.id, seq: input.seq, status: 'running', ...fields } as JobStateRecord)
+  return true
+}
+
+export function settleJob(
+  jobs: JobStateRecord[],
+  id: string,
+  status: 'completed' | 'killed' | 'failed',
+  end: number,
+  detail: unknown,
+  cause: unknown,
+): boolean {
+  const index = findJobIndex(jobs, id)
+  if (index < 0) return false
+  const prev = jobs[index]
+  const detailText = jobDetailOf(detail)
+  const causeText = jobCauseOf(cause)
+  const next: JobStateRecord = {
+    ...prev,
+    status,
+    end,
+    ...(detailText !== undefined ? { detail: detailText } : {}),
+    ...(causeText !== undefined ? { cause: causeText } : {}),
+  }
+  if (sameJob(prev, next)) return false
+  jobs[index] = next
+  return true
+}
+
+/** A tool result came back: a job still running afterwards detached into the background. */
+export function markJobFromCommand(jobs: JobStateRecord[], callId: string, rec: CommandStateRecord): boolean {
+  let changed = false
+  for (let i = 0; i < jobs.length; i++) {
+    const job = jobs[i]
+    if (job.call !== callId || job.status !== 'running') continue
+    if (job.returned === true && (rec.background !== true || job.background === true)) continue
+    jobs[i] = { ...job, returned: true, ...(rec.background === true ? { background: true as const } : {}) }
+    changed = true
+  }
+  return changed
+}
+
+export function markJobBackground(jobs: JobStateRecord[], callId: string): boolean {
+  let changed = false
+  for (let i = 0; i < jobs.length; i++) {
+    const job = jobs[i]
+    if (job.call !== callId || job.background === true) continue
+    jobs[i] = { ...job, background: true }
+    changed = true
+  }
+  return changed
+}
+
+export function bufferedCommandOf(
+  pending: Record<string, CommandStateRecord[]>,
+  callId: string,
+): CommandStateRecord | undefined {
+  for (const root in pending) {
+    for (const rec of pending[root]) if (rec.call === callId) return rec
+  }
+  return undefined
 }
 
 export function resultTextsOf(blocks: unknown): string[] {

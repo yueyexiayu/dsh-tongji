@@ -34,6 +34,7 @@ import { makeFileCard } from './fileCard'
 import type { FileFilter } from './fileCard'
 import { makeCardSkeletons } from './cardSkeletons'
 import { makeCommandPanel } from './commandPanel'
+import { makeJobPanel } from './jobPanel'
 import { makeTurnUsageCard } from './turnUsage'
 import { makeCommandPager } from '../commandPages'
 import { useCommandLog } from './useCommandLog'
@@ -115,6 +116,7 @@ export function makeContextView(
   const EventList = makeEventList(kit)
   const FileCard = makeFileCard(kit, settings)
   const CommandPanel = makeCommandPanel(kit)
+  const JobPanel = makeJobPanel(kit)
   const StatsContext = makeStatsContext(kit, makeSubagentCost(ctx, heads))
   const StatsTiming = makeStatsTiming(kit, Donut)
   const StatsTokens = makeStatsTokens(kit, Donut)
@@ -296,6 +298,9 @@ export function makeContextView(
     useEffect(() => {
       if (cmdsMounted) ensurePart('commands')
     }, [cmdsMounted, ensurePart])
+    useEffect(() => {
+      ensurePart('jobs')
+    }, [ensurePart])
     useEffect(() => {
       if (dna || trendMode === 'delta') ensurePart('requests')
     }, [dna, trendMode, ensurePart])
@@ -907,6 +912,10 @@ export function makeContextView(
             <Skeletons.Events />
             <Skeletons.Files />
           </>)}
+        </div>
+
+        <div className="lc-cols">
+          <JobPanel jobs={data.jobs ?? []} />
         </div>
 
         <div className="lc-cols" ref={cmdsRef}>

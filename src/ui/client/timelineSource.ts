@@ -10,7 +10,7 @@ import { postRoute, postRouteQuietly, RouteError } from './route'
 import type { SessionStandardProps } from './services'
 import { asRecord, collectionsOf, projectionOf, timelineOf } from './services'
 
-export type FactPart = 'requests' | 'nodes' | 'events' | 'files' | 'commands' | 'spans'
+export type FactPart = 'requests' | 'nodes' | 'events' | 'files' | 'commands' | 'spans' | 'jobs'
 
 export interface FactWindow {
   requestsTail?: number
@@ -29,6 +29,7 @@ interface FactParts {
   events?: ContextTimeline['events']
   files?: { fileOps: NonNullable<ContextTimeline['fileOps']>; fileOpsFloor?: number }
   commands?: { commands: NonNullable<ContextTimeline['commands']>; commandsFloor?: number; commandStats?: ContextTimeline['commandStats'] }
+  jobs?: NonNullable<ContextTimeline['jobs']>
   spans?: NonNullable<ContextTimeline['spans']>
 }
 
@@ -81,6 +82,7 @@ export function factsOf(value: unknown): FactsRead | null {
   const fileOps = files === null ? undefined : rowsOf(files.fileOps) as NonNullable<ContextTimeline['fileOps']> | undefined
   const commands = asRecord(parts.commands)
   const commandRows = commands === null ? undefined : rowsOf(commands.commands) as NonNullable<ContextTimeline['commands']> | undefined
+  const jobRows = rowsOf(parts.jobs) as NonNullable<ContextTimeline['jobs']> | undefined
   const stats = asRecord(commands?.commandStats)
   const nodes = nodesPartOf(parts.nodes)
   const fileOpsFloor = files === null ? undefined : numOf(files.fileOpsFloor)
@@ -124,6 +126,7 @@ export function factsOf(value: unknown): FactsRead | null {
               }),
           },
         }),
+      ...(jobRows === undefined ? {} : { jobs: jobRows }),
       ...(spans === undefined ? {} : { spans }),
     },
     ...(missing === undefined || missing.length === 0 ? {} : { missing }),
@@ -311,6 +314,7 @@ function mergeFactsInto(detail: ContextTimelineDetail, facts: FactsRead): Contex
         ...(parts.commands.commandsFloor === undefined ? {} : { commandsFloor: parts.commands.commandsFloor }),
         ...(parts.commands.commandStats === undefined ? {} : { commandStats: parts.commands.commandStats }),
       }),
+    ...(parts.jobs === undefined ? {} : { jobs: parts.jobs }),
     ...(parts.spans === undefined ? {} : { spans: parts.spans }),
   }
   return next
@@ -714,6 +718,7 @@ export function detailBytesOf(detail: ContextTimelineDetail): number {
     + detail.archive.length * 160
     + (detail.fileOps?.length ?? 0) * 220
     + (detail.commands?.length ?? 0) * 420
+    + (detail.jobs?.length ?? 0) * 260
     + (detail.spans?.length ?? 0) * 60
 }
 
@@ -804,6 +809,7 @@ export function useTimelineSource(props: SessionStandardProps): TimelineSource {
       ...(detail.commands !== undefined ? { commands: detail.commands } : {}),
       ...(detail.commandsFloor !== undefined ? { commandsFloor: detail.commandsFloor } : {}),
       ...(detail.commandStats !== undefined ? { commandStats: detail.commandStats } : {}),
+      ...(detail.jobs !== undefined ? { jobs: detail.jobs } : {}),
       ...(detail.spans !== undefined ? { spans: detail.spans } : {}),
     }
     return { data, detailState: 'ready', retryDetail: retry, ensurePart }
