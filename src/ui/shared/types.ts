@@ -206,6 +206,7 @@ export interface SurfaceNodeWindow {
 
 export interface Snapshot extends SurfaceNodeWindow {
   ok: boolean
+  cwd?: string
   unsupported?: {
     current: string
     minimum: string
@@ -252,39 +253,6 @@ export interface Snapshot extends SurfaceNodeWindow {
   commandsFloor?: number
   commandStats?: CommandStats
   spans?: TimingSpan[]
-  costRead?: SessionCostRead
-}
-
-export interface CostPriceRate {
-  hit: number
-  miss: number
-  write: number
-  out: number
-}
-
-export type CostConfidence = 'high' | 'medium' | 'low'
-
-export interface CostPriceFace {
-  provider: string
-  model: string
-  rate: CostPriceRate
-  via: string
-  confidence: CostConfidence
-  canonical?: string
-}
-
-export interface CostPriceMiss {
-  provider: string
-  model: string
-  reason: string
-  candidates?: number
-}
-
-export interface SessionCostRead {
-  usd: number | null
-  ready: boolean
-  faces?: CostPriceFace[]
-  misses?: CostPriceMiss[]
 }
 
 export interface ContextTimelineDetail extends SurfaceNodeWindow {
@@ -394,6 +362,8 @@ export interface TimingSpan {
   end: number
 }
 
+// Billed token buckets, not money: the plugin keeps provider/model/priced-period
+// counters so every panel can sum the tokens a session actually consumed.
 export interface CostBucketTotals {
   uncached: number
   cacheRead: number
@@ -527,18 +497,6 @@ export interface HeaderEpochContent {
   }>
 }
 
-export interface PlatformBalanceEntry {
-  currency: string
-  total: number
-  granted: number
-  toppedUp: number
-}
-
-export interface PlatformBalance {
-  isAvailable: boolean
-  balances: PlatformBalanceEntry[]
-}
-
 export interface BackfillCoverage {
   complete: boolean
   remaining: number
@@ -601,8 +559,6 @@ export interface OverviewSummary {
   archivedScoped: number
   tokens: number
   turns: number
-  costUsd: number | null
-  costSessions: number
   usageSessions: number
   cacheHit: string | null
   tokenParts: OverviewPartTotal[] | null
@@ -615,7 +571,6 @@ export interface OverviewDay {
   key: string
   tokens: number
   sessions: number
-  costUsd: number | null
 }
 
 export interface OverviewPageRow {
@@ -635,7 +590,6 @@ export interface OverviewPageRow {
   maxOutputTokens?: number
   model?: string
   lastUser?: string
-  costUsd: number | null
   createdDay?: string
 }
 
@@ -672,25 +626,21 @@ export interface OverviewUnchanged {
 
 export interface OverviewSummaryValue {
   revision: string
-  pricingReady: boolean
   summary: OverviewSummary
 }
 
 export interface OverviewDaysValue {
   revision: string
-  pricingReady: boolean
   days: OverviewDay[]
 }
 
 export interface OverviewPageValue {
   revision: string
-  pricingReady: boolean
   page: OverviewPage
 }
 
 export interface OverviewTallyValue {
   revision: string
-  pricingReady: boolean
   tally: OverviewTally
 }
 

@@ -59,11 +59,6 @@ function compactTimelineOf(value: unknown): Record<string, unknown> | undefined 
     const figure = view[field]
     if (typeof figure === 'number' && Number.isFinite(figure)) compact[field] = figure
   }
-  const costRead = asRecord(view.costRead)
-  if (costRead !== null) {
-    const usd = typeof costRead.usd === 'number' && Number.isFinite(costRead.usd) ? costRead.usd : null
-    compact.costRead = { usd, ready: costRead.ready === true }
-  }
   return compact
 }
 

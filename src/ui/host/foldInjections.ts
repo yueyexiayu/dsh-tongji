@@ -1,5 +1,5 @@
 import { TALLY_NAME_CHARS_MAX, type AgentAlias, type TimelineState } from './foldState'
-import type { ContentBlock, MessageSource } from './pricing'
+import type { ContentBlock, MessageSource } from './contentBlocks'
 
 export interface MessageLike {
   content?: ContentBlock[]

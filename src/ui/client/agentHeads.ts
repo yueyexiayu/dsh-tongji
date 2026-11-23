@@ -5,7 +5,6 @@ import { DETAIL_ROUTE, HEADS_ROUTE } from './apiRoutes'
 import { byteSizeOf } from './boundedCache'
 import { subscribeInvalidations } from './invalidation'
 import { registerRetentionCleanup, makeRetentionCache } from './retention'
-import { noteCostPending } from './costRefresh'
 import { postRoute } from './route'
 import { asRecord, timelineOf } from './services'
 
@@ -72,12 +71,6 @@ export function makeAgentHeads(): AgentHeads {
   const inflight = new Map<string, HeadEntry>()
   let generation = 0
   const offInvalidation = subscribeInvalidations((event) => {
-    if (event.kind === 'pricing') {
-      generation++
-      heads.clear()
-      inflight.clear()
-      return
-    }
     if (event.kind !== 'heads') return
     generation++
     if (event.sessionId === undefined) {
@@ -108,7 +101,6 @@ export function makeAgentHeads(): AgentHeads {
           entry.bytes = head === null ? 0 : byteSizeOf(head)
           heads.set(id, entry)
         }
-        noteCostPending(head?.costRead)
         return head
       }, (error: unknown) => {
         if (inflight.get(id) === entry) inflight.delete(id)
@@ -152,7 +144,6 @@ export function makeAgentHeads(): AgentHeads {
               entry.bytes = head === null ? 0 : byteSizeOf(head)
               heads.set(id, entry)
             }
-            noteCostPending(head?.costRead)
             return head
           }, (error: unknown) => {
             if (inflight.get(id) === entry) inflight.delete(id)

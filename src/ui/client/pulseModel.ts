@@ -139,7 +139,6 @@ export interface PulseLaneStats {
   model?: string
   effort?: string
   tokens: number
-  cost: number | null
 }
 
 export interface PulseLaneInput {

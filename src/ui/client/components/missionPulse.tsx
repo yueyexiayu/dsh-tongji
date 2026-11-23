@@ -13,11 +13,11 @@ import {
   type CommsAgent,
   type CommsKindFilter,
 } from '../commsModel'
-import { billedTokensOf, toCurrency, type CostCurrency } from '../cost'
 import { agentResolverOf } from '../fleetAgents'
 import type { CommsRow, FleetDelegationRow } from '../fleetDetail'
 import { agentPromptOf, agentReplyOf, type FleetDetailState } from '../fleetModel'
 import type { FleetTeam } from '../fleetTeam'
+import { billedTokensOf } from '../../shared/usage'
 import { fmtTime } from '../format'
 import { SkeletonRows } from './skeleton'
 import { IconChevronDown, IconChevronUp } from '../primitives'
@@ -541,7 +541,6 @@ export interface MissionPulseProps {
   titles: ReadonlyMap<string, string>
   attested: ReadonlyMap<string, string>
   focusMember: string | null
-  currency: CostCurrency
   onOpen: (id: string) => void
   onEnter: (id: string) => void
   rich: RichKit
@@ -609,9 +608,6 @@ export function MissionPulse(props: MissionPulseProps): ReactElement {
         model: node.model,
         effort: node.reasoningEffort,
         tokens: billed > 0 ? billed : billedTokensOf(node.costUsage),
-        cost: node.costRead != null && node.costRead.ready && node.costRead.usd !== null
-          ? toCurrency(node.costRead.usd, props.currency)
-          : null,
       }
     }
     const communicating = new Set<string>()
@@ -643,7 +639,7 @@ export function MissionPulse(props: MissionPulseProps): ReactElement {
       }),
       links,
     }
-  }, [agentOf, props.agents, props.comms, props.currency, props.delegations, props.forest])
+  }, [agentOf, props.agents, props.comms, props.delegations, props.forest])
   const visibleWork = useMemo(() => {
     const scoped = selectedAgent === null ? workItems : workItems.filter(item => item.ownerId === selectedAgent)
     const needle = workQuery.trim().toLowerCase()
@@ -756,7 +752,6 @@ export function MissionPulse(props: MissionPulseProps): ReactElement {
             selectedEventKey={selectedEventKey}
             selectedDelegationKey={selectedDelegationKey}
             query={laneQuery}
-            currency={props.currency}
             pending={props.details.pending.size > 0 || props.details.historyPending.size > 0 || family.pending > 0}
             totalRecords={kind === 'all' && query === '' && selectedAgent === null ? familyRecords : null}
             agentOf={agentOf}

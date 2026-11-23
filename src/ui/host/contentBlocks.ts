@@ -17,9 +17,9 @@ export interface ContentBlock {
   attachment?: { width?: unknown; height?: unknown } | null
 }
 
-const textBlockPrice = (block: ContentBlock): number => estimateTextTokens(block.text || '')
+const textBlockTokens = (block: ContentBlock): number => estimateTextTokens(block.text || '')
 
-const callBlockPrice = (block: ContentBlock): number =>
+const callBlockTokens = (block: ContentBlock): number =>
   Math.ceil((block.name || '').length / CHARS_PER_TOKEN)
   + Math.ceil((block.arguments || '').length / CHARS_PER_TOKEN) + BLOCK_OVERHEAD
 
@@ -46,18 +46,18 @@ function estimateBlocks(blocks: unknown): number {
     switch (block.type) {
       case 'text':
       case 'reasoning':
-        tokens += textBlockPrice(block)
+        tokens += textBlockTokens(block)
         break
       case 'tool-call':
-        tokens += callBlockPrice(block)
+        tokens += callBlockTokens(block)
         break
       case 'image': {
         const ref = block.attachment
-        const priced = ref !== null && typeof ref === 'object'
+        const imageTokens = ref !== null && typeof ref === 'object'
           && typeof ref.width === 'number' && typeof ref.height === 'number'
           ? estimateImageTokens(ref.width, ref.height)
           : null
-        tokens += (priced ?? Math.ceil(JSON.stringify(block).length / CHARS_PER_TOKEN)) + BLOCK_OVERHEAD
+        tokens += (imageTokens ?? Math.ceil(JSON.stringify(block).length / CHARS_PER_TOKEN)) + BLOCK_OVERHEAD
         break
       }
       default:
@@ -68,15 +68,15 @@ function estimateBlocks(blocks: unknown): number {
 }
 
 export function estimateReasoningTokens(blocks: unknown): number {
-  return sumBlocks(blocks, 'reasoning', textBlockPrice)
+  return sumBlocks(blocks, 'reasoning', textBlockTokens)
 }
 
 export function estimateCallTokens(blocks: unknown): number {
-  return sumBlocks(blocks, 'tool-call', callBlockPrice)
+  return sumBlocks(blocks, 'tool-call', callBlockTokens)
 }
 
 export function estimateAnswerTokens(blocks: unknown): number {
-  return sumBlocks(blocks, 'text', textBlockPrice)
+  return sumBlocks(blocks, 'text', textBlockTokens)
 }
 
 export function estimateMessage(message: { content?: ContentBlock[] } | undefined | null, emptyIsZero = false): number {

@@ -5,7 +5,6 @@ import type { ContextDelta } from '../shared/delta'
 import type { IncrementCat } from '../shared/increment'
 import { DELTA_ROUTE, DETAIL_ROUTE, FACTS_ROUTE } from './apiRoutes'
 import { subscribeInvalidations } from './invalidation'
-import { noteCostPending } from './costRefresh'
 import { makeRetentionCache } from './retention'
 import { postRoute, postRouteQuietly, RouteError } from './route'
 import type { SessionStandardProps } from './services'
@@ -725,11 +724,6 @@ const stores = makeRetentionCache<string, DetailStore>('detailStores', {
   onEvict: (store) => { store.release() },
 })
 
-subscribeInvalidations((event) => {
-  if (event.kind !== 'pricing') return
-  stores.forEach((store) => { store.refresh() })
-})
-
 export function detailStoreOf(sessionId: string): DetailStore {
   const known = stores.get(sessionId)
   if (known !== undefined) {
@@ -786,7 +780,6 @@ export function useTimelineSource(props: SessionStandardProps): TimelineSource {
     const retry = store !== null ? store.retry : noopRetry
     const ensurePart = store !== null ? store.ensurePart : noopEnsurePart
     if (head !== null && !slim) {
-      noteCostPending(head.costRead)
       return { data: head, detailState: 'legacy', retryDetail: noopRetry, ensurePart: noopEnsurePart }
     }
     const base = head !== null ? head : detail !== null ? detail.head ?? null : null
@@ -795,13 +788,10 @@ export function useTimelineSource(props: SessionStandardProps): TimelineSource {
       return { data: null, detailState: failed ? 'failed' : 'loading', retryDetail: retry, ensurePart }
     }
     if (detail === null) {
-      noteCostPending(base.costRead)
       return { data: base, detailState: snap.failed ? 'failed' : 'loading', retryDetail: retry, ensurePart }
     }
-    noteCostPending(detail.head?.costRead ?? base.costRead)
     const data: ContextTimeline = {
       ...base,
-      ...(detail.head?.costRead === undefined ? {} : { costRead: detail.head.costRead }),
       requests: detail.requests,
       events: detail.events,
       nodes: detail.nodes,

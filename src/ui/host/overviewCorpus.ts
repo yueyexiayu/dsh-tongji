@@ -1,6 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { workspaceTitleOf } from '@deepseek-ai/dsh-util-workspace-path'
-import { billedTokensOf, mergeCostUsage } from '../shared/pricing'
+import { billedTokensOf, mergeCostUsage } from '../shared/usage'
 import type {
   ActivityDay,
   ActivityTally,

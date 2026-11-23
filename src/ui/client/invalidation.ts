@@ -1,4 +1,4 @@
-export type InvalidationKind = 'sessions' | 'overview' | 'fleet' | 'heads' | 'pricing'
+export type InvalidationKind = 'sessions' | 'overview' | 'fleet' | 'heads'
 
 export interface InvalidationEvent {
   kind: InvalidationKind

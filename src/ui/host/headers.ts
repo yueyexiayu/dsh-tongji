@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { WiredProjection } from './projection'
 import type { ContextHeaders, HeaderRecord, HeaderTool } from '../shared/types'
-import { estimateToolSchema } from './pricing'
+import { estimateToolSchema } from './contentBlocks'
 import { estimateSystemTokens } from '../shared/estimate'
 
 const HEADERS_MAX = 50

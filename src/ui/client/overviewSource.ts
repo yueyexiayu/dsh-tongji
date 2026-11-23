@@ -7,7 +7,6 @@ import { BACKFILL_ROUTE, OVERVIEW_ROUTE } from './apiRoutes'
 import { postRoute } from './route'
 import { asRecord } from './services'
 import { subscribeInvalidations } from './invalidation'
-import { notePricingPending } from './costRefresh'
 
 const POLL_MS = 30_000
 
@@ -89,14 +88,11 @@ function summaryOf(value: unknown): OverviewSummary | null {
   const sessionsTotal = nonNegativeOf(data.sessionsTotal)
   const tokens = nonNegativeOf(data.tokens)
   const turns = nonNegativeOf(data.turns)
-  const costUsd = data.costUsd === null ? null : numOf(data.costUsd)
-  const costSessions = nonNegativeOf(data.costSessions)
   const usageSessions = nonNegativeOf(data.usageSessions)
   const coverage = coverageOf(data.coverage)
   const windowTiming = windowTimingOf(data.windowTiming)
   if (sessions === null || sessionsTotal === null || tokens === null || turns === null
-    || costSessions === null || usageSessions === null || coverage === null || windowTiming === null) return null
-  if (costUsd === null && data.costUsd !== null) return null
+    || usageSessions === null || coverage === null || windowTiming === null) return null
   const cacheHit = data.cacheHit === null ? null : stringOf(data.cacheHit) ?? null
   return {
     sessions,
@@ -105,8 +101,6 @@ function summaryOf(value: unknown): OverviewSummary | null {
     archivedScoped: nonNegativeOf(data.archivedScoped) ?? 0,
     tokens,
     turns,
-    costUsd,
-    costSessions,
     usageSessions,
     cacheHit,
     tokenParts: data.tokenParts === null ? null : partsOf(data.tokenParts),
@@ -125,8 +119,7 @@ function daysOf(value: unknown): OverviewDay[] | null {
     const tokens = data === null ? null : nonNegativeOf(data.tokens)
     const sessions = data === null ? null : nonNegativeOf(data.sessions)
     if (key === undefined || tokens === null || sessions === null) continue
-    const costUsd = data === null || data.costUsd === null ? null : numOf(data.costUsd)
-    days.push({ key, tokens, sessions, costUsd })
+    days.push({ key, tokens, sessions })
   }
   return days
 }
@@ -165,7 +158,6 @@ function pageOf(value: unknown): OverviewPage | null {
       ...(numOf(row.maxOutputTokens) === null ? {} : { maxOutputTokens: row.maxOutputTokens as number }),
       ...(stringOf(row.model) === undefined ? {} : { model: row.model as string }),
       ...(stringOf(row.lastUser) === undefined ? {} : { lastUser: row.lastUser as string }),
-      costUsd: row.costUsd === null ? null : numOf(row.costUsd),
       ...(stringOf(row.createdDay) === undefined ? {} : { createdDay: row.createdDay as string }),
     })
   }
@@ -207,23 +199,21 @@ export function overviewValueOf(value: unknown): OverviewValue | null {
   const revision = stringOf(data.revision)
   if (revision === undefined) return null
   if (data.unchanged === true) return { revision, unchanged: true }
-  if (typeof data.pricingReady !== 'boolean') return null
-  const pricingReady = data.pricingReady
   if (data.summary !== undefined) {
     const summary = summaryOf(data.summary)
-    return summary === null ? null : { revision, pricingReady, summary }
+    return summary === null ? null : { revision, summary }
   }
   if (data.days !== undefined) {
     const days = daysOf(data.days)
-    return days === null ? null : { revision, pricingReady, days }
+    return days === null ? null : { revision, days }
   }
   if (data.page !== undefined) {
     const page = pageOf(data.page)
-    return page === null ? null : { revision, pricingReady, page }
+    return page === null ? null : { revision, page }
   }
   if (data.tally !== undefined) {
     const tally = tallyOf(data.tally)
-    return tally === null ? null : { revision, pricingReady, tally }
+    return tally === null ? null : { revision, tally }
   }
   return null
 }
@@ -277,7 +267,6 @@ function useOverviewPart<T>(options: PartOptions<T>): PartState<T> {
     const busy = (): boolean => live.inFlight
     const queued = (): boolean => live.queued
     const timers = { refresh: null as ReturnType<typeof setTimeout> | null }
-    const pricingReady = { current: undefined as boolean | undefined }
     const clearTimer = (): void => {
       if (timers.refresh !== null) {
         clearTimeout(timers.refresh)
@@ -303,12 +292,9 @@ function useOverviewPart<T>(options: PartOptions<T>): PartState<T> {
         }
         setError(false)
         if ('unchanged' in read) {
-          notePricingPending(pricingReady.current)
           setStale(false)
           return
         }
-        pricingReady.current = read.pricingReady
-        notePricingPending(read.pricingReady)
         const picked = pickRef.current(read)
         if (picked === null) return
         hold({ key, revision: read.revision, value: picked })
@@ -333,7 +319,7 @@ function useOverviewPart<T>(options: PartOptions<T>): PartState<T> {
     }
     const off = subscribeInvalidations((event) => {
       if (stopped()) return
-      if (event.kind === 'overview' || event.kind === 'sessions' || event.kind === 'pricing') schedule(REFRESH_COALESCE_MS)
+      if (event.kind === 'overview' || event.kind === 'sessions') schedule(REFRESH_COALESCE_MS)
     })
     schedule(0)
     const pollTimer = setInterval(() => {
@@ -357,19 +343,19 @@ function useOverviewPart<T>(options: PartOptions<T>): PartState<T> {
   }
 }
 
-const pickSummary = (value: OverviewValue): { summary: OverviewSummary; pricingReady: boolean } | null =>
-  'summary' in value ? { summary: value.summary, pricingReady: value.pricingReady } : null
+const pickSummary = (value: OverviewValue): OverviewSummary | null =>
+  'summary' in value ? value.summary : null
 
-const pickDays = (value: OverviewValue): { days: OverviewDay[]; pricingReady: boolean } | null =>
-  'days' in value ? { days: value.days, pricingReady: value.pricingReady } : null
+const pickDays = (value: OverviewValue): OverviewDay[] | null =>
+  'days' in value ? value.days : null
 
-const pickPage = (value: OverviewValue): { page: OverviewPage; pricingReady: boolean } | null =>
-  'page' in value ? { page: value.page, pricingReady: value.pricingReady } : null
+const pickPage = (value: OverviewValue): OverviewPage | null =>
+  'page' in value ? value.page : null
 
-const pickTally = (value: OverviewValue): { tally: OverviewTally; pricingReady: boolean } | null =>
-  'tally' in value ? { tally: value.tally, pricingReady: value.pricingReady } : null
+const pickTally = (value: OverviewValue): OverviewTally | null =>
+  'tally' in value ? value.tally : null
 
-export interface OverviewSummaryState extends PartState<{ summary: OverviewSummary; pricingReady: boolean }> {
+export interface OverviewSummaryState extends PartState<OverviewSummary> {
   coverage: BackfillCoverage | null
 }
 
@@ -389,7 +375,7 @@ export function useOverviewSummary(scope: OverviewScope | null, enabled: boolean
     enabled,
     pick: pickSummary,
   })
-  const coverage = state.data?.summary.coverage ?? null
+  const coverage = state.data?.coverage ?? null
   const fold = foldStateOf(coverage)
   const attempts = useRef(0)
   const coverageKey = coverage === null ? '' : [coverage.complete, coverage.running, coverage.remaining, coverage.covered, coverage.total].join(',')
@@ -410,7 +396,7 @@ export function useOverviewSummary(scope: OverviewScope | null, enabled: boolean
   return { ...state, coverage }
 }
 
-export function useOverviewDays(scope: OverviewScope | null, enabled: boolean): PartState<{ days: OverviewDay[]; pricingReady: boolean }> {
+export function useOverviewDays(scope: OverviewScope | null, enabled: boolean): PartState<OverviewDay[]> {
   return useOverviewPart({
     request: enabled && scope !== null ? { part: 'days', scope } : null,
     enabled,
@@ -418,10 +404,10 @@ export function useOverviewDays(scope: OverviewScope | null, enabled: boolean): 
   })
 }
 
-export function useOverviewPage(request: Omit<OverviewRequest, 'revision'> | null, enabled: boolean): PartState<{ page: OverviewPage; pricingReady: boolean }> {
+export function useOverviewPage(request: Omit<OverviewRequest, 'revision'> | null, enabled: boolean): PartState<OverviewPage> {
   return useOverviewPart({ request: enabled ? request : null, enabled, pick: pickPage })
 }
 
-export function useOverviewTally(request: Omit<OverviewRequest, 'revision'> | null, enabled: boolean): PartState<{ tally: OverviewTally; pricingReady: boolean }> {
+export function useOverviewTally(request: Omit<OverviewRequest, 'revision'> | null, enabled: boolean): PartState<OverviewTally> {
   return useOverviewPart({ request: enabled ? request : null, enabled, pick: pickTally })
 }

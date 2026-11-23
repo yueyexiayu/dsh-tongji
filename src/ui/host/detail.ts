@@ -4,7 +4,6 @@ import { asRecord } from './record'
 import { serviceIdentityOf } from './serviceIdentity'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
 import { buildTimelineDetail, buildTimelineHead } from './foldWire'
-import { withCost, withDetailCost, type CostSource } from './cost'
 import { DetailShadow, foldLog } from './detailShadow'
 import { makeFoldCache } from './foldCache'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply, revisionOf } from './postRoute'
@@ -21,8 +20,8 @@ interface ColdPayload {
   value: ContextTimelineDetail
 }
 
-function headPayloadOf(state: TimelineState, cost?: CostSource): { rev: number; head: Snapshot } {
-  return { rev: state.detailRev ?? 0, head: withCost(cost, buildTimelineHead(state)) }
+function headPayloadOf(state: TimelineState): { rev: number; head: Snapshot } {
+  return { rev: state.detailRev ?? 0, head: buildTimelineHead(state) }
 }
 
 export interface DetailChannelGate {
@@ -76,7 +75,6 @@ export function watchDetailChannel(
   coldReads: ColdReadGate = makeColdReadGate(),
   gate: DetailChannelGate = createDetailGate(ctx),
   shadow: DetailShadow = new DetailShadow(ctx, bounds, coldReads, () => observeOf(ctx)),
-  cost?: CostSource,
   options: { idleSweepMs?: number } = {},
 ): DetailChannelGate {
   const payloads = makeFoldCache<ColdPayload>(ctx, { maxEntries: PAYLOAD_CACHE_MAX, idleMs: options.idleSweepMs })
@@ -108,10 +106,10 @@ export function watchDetailChannel(
           if (session !== undefined && session !== null) {
             const state = gate.stateOf(session, 'contextTimeline') as TimelineState | undefined
             if (state === undefined) return reply({ ok: true, value: null })
-            if (headOnly) return reply({ ok: true, value: headPayloadOf(state, cost) })
+            if (headOnly) return reply({ ok: true, value: headPayloadOf(state) })
             const detailState = await shadow.stateOf(sessionId)
             if (detailState === null) return reply({ ok: true, value: null })
-            return reply({ ok: true, value: withDetailCost(cost, buildTimelineDetail(detailState, bounds)) })
+            return reply({ ok: true, value: buildTimelineDetail(detailState, bounds) })
           }
           const observe = observeOf(ctx)
           if (observe === undefined) return reply({ ok: true, value: null })
@@ -128,19 +126,19 @@ export function watchDetailChannel(
                     /* v8 ignore next 1 */
                     return hit.value.head === undefined
                       ? { rev: hit.value.rev }
-                      : { rev: hit.value.rev, head: withCost(cost, hit.value.head) }
+                      : { rev: hit.value.rev, head: hit.value.head }
                   }
-                  return withDetailCost(cost, hit.value)
+                  return hit.value
                 }
               }
               const events = asRecord(observation)?.events
               if (!Array.isArray(events)) return null
               const state = (await foldLog(events, bounds)).state
-              if (headOnly) return headPayloadOf(state, cost)
+              if (headOnly) return headPayloadOf(state)
               const detail = buildTimelineDetail(state, bounds)
-              if (revision === undefined) return withDetailCost(cost, detail)
+              if (revision === undefined) return detail
               payloads.set(sessionId, { persistence, revision, value: detail })
-              return withDetailCost(cost, detail)
+              return detail
             } finally {
               release()
             }

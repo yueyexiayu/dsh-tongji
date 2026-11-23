@@ -7,7 +7,6 @@ import type { CachedSnapshotFace, SessionsFace, StateProjectionsFace } from './f
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
 import { makeFoldCache } from './foldCache'
 import { buildTimelineHead, eventsOf, requestRowsOf, serveCommand } from './foldWire'
-import { withCost, type CostSource } from './cost'
 import { TIMING_SPANS_MAX, surfaceWindowOf, type TimelineState } from './foldState'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply, revisionOf } from './postRoute'
 import { asRecord } from './record'
@@ -204,7 +203,6 @@ function valueOf(
   kernel: KernelFacts,
   detailState: TimelineState | null,
   archiveTail: number,
-  cost?: CostSource,
 ): Record<string, unknown> {
   const { parts, window } = request
   const rev = state.detailRev ?? 0
@@ -215,7 +213,7 @@ function valueOf(
     ...(aligned === null && parts.has('series') ? ['series'] : []),
   ]
   const partsValue: Record<string, unknown> = {
-    ...(parts.has('head') ? { head: withCost(cost, buildTimelineHead(state)) } : {}),
+    ...(parts.has('head') ? { head: buildTimelineHead(state) } : {}),
     ...(parts.has('series') ? { series: requestRowsOf(aligned ?? state) } : {}),
     ...(parts.has('stats') && kernel.values !== undefined ? { stats: kernel.values } : {}),
     ...(aligned === null ? {} : detailPartsOf(aligned, parts, window, archiveTail)),
@@ -235,7 +233,6 @@ export interface FactsChannelDeps {
   detailState?: (id: string) => Promise<TimelineState | null>
   stateCacheMax?: number
   idleSweepMs?: number
-  cost?: CostSource
 }
 
 export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsChannelDeps = {}): void {
@@ -293,7 +290,7 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
             const cwd = cwdOfLive(projections, session)
             const needsDetail = wantedDetail.length > 0 || wanted.parts.has('series')
             const detailState = needsDetail ? await liveDetailState(wanted.sessionId) : null
-            const value = valueOf(state as TimelineState, true, wanted, kernel, detailState, bounds.maxArchiveNodes, deps.cost)
+            const value = valueOf(state as TimelineState, true, wanted, kernel, detailState, bounds.maxArchiveNodes)
             return reply({
               ok: true,
               value: cwd === undefined ? value : { ...value, cwd },
@@ -312,12 +309,12 @@ export function watchFactsChannel(ctx: Context, bounds: FoldBounds, deps: FactsC
               const cached = stateCache.get(wanted.sessionId, entry => entry.revision === revision && entry.persistence === persistence)
               if (cached !== undefined) {
                 const kernel = kernelOfCold(c.get('sessionProjectionCache') as CachedSnapshotFace | undefined, header)
-                return valueOf(cached.state, false, wanted, kernel, cached.state, bounds.maxArchiveNodes, deps.cost)
+                return valueOf(cached.state, false, wanted, kernel, cached.state, bounds.maxArchiveNodes)
               }
               const state = (await foldLog(events as SessionEvent[], bounds)).state
               stateCache.set(wanted.sessionId, { persistence, revision, state })
               const kernel = kernelOfCold(c.get('sessionProjectionCache') as CachedSnapshotFace | undefined, header)
-              return valueOf(state, false, wanted, kernel, state, bounds.maxArchiveNodes, deps.cost)
+              return valueOf(state, false, wanted, kernel, state, bounds.maxArchiveNodes)
             } finally {
               release()
             }

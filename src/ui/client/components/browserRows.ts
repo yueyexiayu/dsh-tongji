@@ -169,9 +169,9 @@ export function catToolsModelOf(
       : sort === 'size'
         ? b.tokens - a.tokens
         : (a.name < b.name ? -1 : 1))
-  const allPrices = tools.reduce((sum, tool) => sum + tool.tokens, 0)
-  const shownPrices = shown.reduce((sum, tool) => sum + tool.tokens, 0)
+  const allTokens = tools.reduce((sum, tool) => sum + tool.tokens, 0)
+  const shownWeight = shown.reduce((sum, tool) => sum + tool.tokens, 0)
   /* v8 ignore next 1 */
-  const shownTokens = allPrices > 0 ? Math.round(fullTokens * shownPrices / allPrices) : 0
+  const shownTokens = allTokens > 0 ? Math.round(fullTokens * shownWeight / allTokens) : 0
   return { shown, contentByName, shownTokens }
 }

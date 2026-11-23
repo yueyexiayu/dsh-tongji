@@ -1,6 +1,6 @@
 import { CATS, RING_ORDER, billedParts } from '../shared/categories'
+import { mergeCostUsage } from '../shared/usage'
 import { dayKeyOf, endOfDayKey, startOfDayKey } from '../shared/days'
-import { mergeCostUsage } from '../shared/pricing'
 import type {
   ActivityDay,
   BackfillCoverage,
@@ -18,7 +18,6 @@ import type {
   SessionCostUsage,
   TimingTotals,
 } from '../shared/types'
-import type { CostSource } from './cost'
 import { TIMING_OPTIONAL, optionalNumOf } from './overviewDecode'
 import { activityTotalsOf, type HostRow, type HostTimeline, type WorkspaceState } from './overviewCorpus'
 
@@ -244,7 +243,6 @@ export function summaryOf(
   allRows: readonly HostRow[],
   rows: readonly HostRow[],
   filters: Filters,
-  cost: CostSource,
   coverage: BackfillCoverage,
 ): OverviewSummary {
   const admit = dayPredicate(filters)
@@ -252,7 +250,6 @@ export function summaryOf(
   let usage: SessionCostUsage | null = null
   let turns = 0
   const windowTiming = { calls: 0, toolCalls: 0, toolsMs: 0, wallMs: 0 }
-  let costSessions = 0
   let usageSessions = 0
   let sessionsArchived = 0
   for (const row of rows) {
@@ -263,7 +260,6 @@ export function summaryOf(
     windowTiming.toolCalls += totals.toolCalls
     windowTiming.toolsMs += totals.toolsMs
     windowTiming.wallMs += totals.wallMs
-    if (cost.complete(totals.usage)) costSessions++
     if (totals.usage !== null) usageSessions++
     if (row.archived) sessionsArchived++
   }
@@ -275,8 +271,6 @@ export function summaryOf(
     archivedScoped: sessionsArchived,
     tokens: usageTotals?.total ?? 0,
     turns,
-    costUsd: cost.usd(usage),
-    costSessions,
     usageSessions,
     cacheHit: cacheHitOf(usageTotals),
     tokenParts,
@@ -286,8 +280,8 @@ export function summaryOf(
   }
 }
 
-export function daysOf(allRows: readonly HostRow[], coverage: OverviewCoverage, cost: CostSource): OverviewDay[] {
-  const totals = new Map<string, { tokens: number; sessions: number; requests: number; cost: SessionCostUsage | null }>()
+export function daysOf(allRows: readonly HostRow[], coverage: OverviewCoverage): OverviewDay[] {
+  const totals = new Map<string, { tokens: number; sessions: number; requests: number }>()
   for (const row of allRows) {
     if (coverage !== 'all' && row.archived !== (coverage === 'archived')) continue
     const days = row.activity?.days
@@ -295,17 +289,16 @@ export function daysOf(allRows: readonly HostRow[], coverage: OverviewCoverage, 
     for (const key of Object.keys(days)) {
       const entry = days[key]
       if (entry.tokens <= 0 && entry.requests <= 0) continue
-      const day = totals.get(key) ?? { tokens: 0, sessions: 0, requests: 0, cost: null }
+      const day = totals.get(key) ?? { tokens: 0, sessions: 0, requests: 0 }
       day.tokens += entry.tokens
       day.requests += entry.requests
       day.sessions += 1
-      day.cost = mergeCostUsage(day.cost, entry.cost)
       totals.set(key, day)
     }
   }
   return [...totals]
     .sort(([left], [right]) => (left < right ? -1 : 1))
-    .map(([key, day]) => ({ key, tokens: day.tokens, sessions: day.sessions, costUsd: cost.usd(day.cost) }))
+    .map(([key, day]) => ({ key, tokens: day.tokens, sessions: day.sessions }))
 }
 
 export function sortOf(rows: readonly HostRow[], sort: OverviewSort): HostRow[] {
@@ -336,7 +329,7 @@ function compositionPartsOf(timeline: HostTimeline | null): OverviewPartTotal[] 
   return parts
 }
 
-export function pageRowOf(row: HostRow, cost: CostSource): OverviewPageRow {
+export function pageRowOf(row: HostRow): OverviewPageRow {
   const session = row.session
   const timeline = session.timeline
   const pageRow: OverviewPageRow = {
@@ -349,7 +342,6 @@ export function pageRowOf(row: HostRow, cost: CostSource): OverviewPageRow {
     turns: timeline?.turns ?? 0,
     parts: compositionPartsOf(timeline),
     total: timeline?.total ?? 0,
-    costUsd: cost.usd(row.totals.usage),
   }
   if (session.cwd !== undefined) pageRow.cwd = session.cwd
   if (row.group !== undefined) pageRow.group = row.group

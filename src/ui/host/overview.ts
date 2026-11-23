@@ -14,7 +14,6 @@ import type {
 } from '../shared/types'
 import type { BackfillHandle } from './backfill'
 import { optionalNumOf } from './overviewDecode'
-import type { CostSource } from './cost'
 import type { CachedSnapshotFace, SessionQueryFace, SnapshotProjectionsFace } from './faces'
 import { createOverviewCache, identityKey, type CachedSession, type DurableIdentity, type OverviewCache } from './overviewCache'
 import {
@@ -174,32 +173,30 @@ interface FeedView {
   filters: Filters
 }
 
-function valueOf(parsed: ParsedRequest, revision: string, cost: CostSource, data: FeedView): OverviewValue {
-  const pricingReady = cost.ready()
+function valueOf(parsed: ParsedRequest, revision: string, data: FeedView): OverviewValue {
   if (parsed.part === 'summary') {
     return {
       revision,
-      pricingReady,
-      summary: summaryOf(data.allRows, data.rows, data.filters, cost, data.coverage),
+      summary: summaryOf(data.allRows, data.rows, data.filters, data.coverage),
     }
   }
   if (parsed.part === 'days') {
-    return { revision, pricingReady, days: daysOf(data.allRows, data.filters.coverage, cost) }
+    return { revision, days: daysOf(data.allRows, data.filters.coverage) }
   }
   if (parsed.part === 'tally') {
-    return { revision, pricingReady, tally: { field: parsed.tally, stats: tallyStatsOf(data.rows, data.filters, parsed.tally) } }
+    return { revision, tally: { field: parsed.tally, stats: tallyStatsOf(data.rows, data.filters, parsed.tally) } }
   }
   const sorted = sortOf(data.rows, parsed.sort)
   const paged = pageOf(sorted, parsed.page)
   const page: OverviewPage = {
-    items: paged.items.map(row => pageRowOf(row, cost)),
+    items: paged.items.map(row => pageRowOf(row)),
     index: paged.index,
     count: paged.count,
     total: sorted.length,
     scopeTotal: data.scoped.length,
     groups: groupCountsOf(data.scoped, data.workspace),
   }
-  return { revision, pricingReady, page }
+  return { revision, page }
 }
 
 export interface OverviewRouteOptions {
@@ -216,7 +213,6 @@ export interface OverviewRouteOptions {
 
 export function watchOverviewRoute(
   ctx: Context,
-  cost: CostSource,
   backfill: BackfillHandle,
   options: OverviewRouteOptions = {},
 ): () => void {
@@ -440,8 +436,7 @@ export function watchOverviewRoute(
           : `C${backfillVersion}`))
         const coverage = backfill.coverage()
         const coverageKey = `${coverage.complete ? 'c' : 'i'}:${coverage.remaining}:${coverage.failed}:${coverage.unsupported}:${coverage.total}:${coverage.covered}`
-        const pricingKey = cost.ready() ? `ready${cost.version?.() ?? 0}` : 'cold'
-        const revision = revisionOf([corpusRevision, workspace.signature, coverageKey, pricingKey, `f${foldEpoch}`])
+        const revision = revisionOf([corpusRevision, workspace.signature, coverageKey, `f${foldEpoch}`])
         if (feed.revision !== revision) feed.served.clear()
         const now = Date.now()
         const filters = filtersOf(parsed, now)
@@ -484,7 +479,7 @@ export function watchOverviewRoute(
           feed.rowsRevision = built.incomplete > 0 ? '' : revision
           if (identityMode && (dirty.size > 0 || built.rebuilt > 0)) saveCache(coldIds)
         }
-        const value = valueOf(parsed, revision, cost, {
+        const value = valueOf(parsed, revision, {
           allRows: rows,
           rows: rows.filter(row => matches(row, filters)),
           scoped: rows.filter(row => matches(row, { ...filters, group: null, pick: null })),

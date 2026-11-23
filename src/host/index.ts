@@ -17,20 +17,6 @@ export const inject = [...new Set([...upstreamInject, 'connection', 'sessionQuer
 
 export const Config = UpstreamConfig
 
-// Pricing and cost are pure functions; the Host entry re-exports them so
-// tests/pricing.test.js can pin fixed inputs to fixed amounts.
-export {
-  billedTokensOf,
-  calculateSessionCost,
-  estimateSessionCost,
-  mergeCostUsage,
-  priceFaceOf,
-  priceLookupsOf,
-  priceOf,
-  pricesBookOf,
-  toCurrency,
-} from '../ui/shared/pricing'
-export { createCostSource } from '../ui/host/cost'
 export { detectHarnessVersion, detectedHarnessVersion } from '../ui/host/version'
 export { startFoldWorkerChannel } from '../ui/host/foldWorker'
 

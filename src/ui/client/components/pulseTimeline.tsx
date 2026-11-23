@@ -13,7 +13,6 @@ import {
 import { settledVariantOf, type CommsRow, type FleetDelegationRow } from '../fleetDetail'
 import type { FleetTeam, FleetTeamTask } from '../fleetTeam'
 import { fmt, fmtTime } from '../format'
-import { formatCost, type CostCurrency } from '../cost'
 import { modelLabelOf } from '../agentTree'
 import { IconChevronDown } from '../primitives'
 import {
@@ -56,7 +55,6 @@ interface PulseTimelineProps {
   selectedEventKey: string | null
   selectedDelegationKey: string | null
   query: string
-  currency: CostCurrency
   pending: boolean
   totalRecords?: number | null
   agentOf: (party: string) => CommsAgent
@@ -356,10 +354,9 @@ export const PulseTimeline = memo(function PulseTimeline(props: PulseTimelinePro
                 const navigable = !agent.self && agent.role !== 'other'
                 const stats = statsAt.get(lane.id)
                 const model = stats?.model !== undefined ? modelLabelOf(stats.model, stats.effort) : undefined
-                const usage = [
-                  stats !== undefined && stats.tokens > 0 ? t('fleet.pulse.laneTokens', { n: fmt(stats.tokens) }) : null,
-                  stats !== undefined && stats.cost !== null ? formatCost(stats.cost, props.currency) : null,
-                ].filter((part): part is string => part !== null).join(' · ')
+                const usage = stats !== undefined && stats.tokens > 0
+                  ? t('fleet.pulse.laneTokens', { n: fmt(stats.tokens) })
+                  : ''
                 const tasks = tasksByAgent.get(lane.id)?.length ?? 0
                 const counts = t('fleet.pulse.laneTasks', { n: tasks }) + ' · ' + t('fleet.pulse.traffic', { n: count })
                 return (

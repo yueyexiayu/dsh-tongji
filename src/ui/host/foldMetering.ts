@@ -1,5 +1,4 @@
 import type { CostBucketTotals, CostModelUsage, SessionCostUsage, TimingSpan, TimingTotals, ToolTimingTotals } from '../shared/types'
-import { isDeepSeekProvider } from '../shared/providers'
 import type { DecodeKind } from './logShapes'
 import type { TimelineState } from './foldState'
 
@@ -24,29 +23,17 @@ export function tokenCountOf(value: unknown): number | null {
   return null
 }
 
-const BEIJING_OFFSET_MS = 8 * 3_600_000
-
-export function isBeijingPeak(time: number): boolean {
-  const at = new Date(time + BEIJING_OFFSET_MS)
-  const day = at.getUTCDay()
-  if (day === 0 || day === 6) return false
-  const h = at.getUTCHours()
-  return (h >= 9 && h < 12) || (h >= 14 && h < 18)
-}
-
 export function addBilledUsage(
   prev: SessionCostUsage | undefined,
   provider: string,
   model: string,
-  time: number,
   usage: BilledUsage,
 ): SessionCostUsage {
-  const period = isDeepSeekProvider(provider) && !isBeijingPeak(time) ? 'off' : 'peak'
   const models = prev?.[provider] ?? {}
   const periods = models[model] ?? {}
-  const b = periods[period] ?? { uncached: 0, cacheRead: 0, cacheWrite: 0, output: 0 }
+  const b = periods.peak ?? { uncached: 0, cacheRead: 0, cacheWrite: 0, output: 0 }
   const nextPeriods: CostModelUsage = { ...periods }
-  nextPeriods[period] = {
+  nextPeriods.peak = {
     uncached: b.uncached + usage.uncached,
     cacheRead: b.cacheRead + usage.cacheRead,
     cacheWrite: b.cacheWrite + usage.cacheWrite,
@@ -72,10 +59,10 @@ export function copyCostUsage(cost: SessionCostUsage): SessionCostUsage {
   return copy
 }
 
-export function accumulateCost(st: TimelineState, time: number, usage: BilledUsage): void {
+export function accumulateCost(st: TimelineState, usage: BilledUsage): void {
   const model = st.model
   if (model === undefined) return
-  st.cost = addBilledUsage(st.cost, st.provider ?? '', model, time, usage)
+  st.cost = addBilledUsage(st.cost, st.provider ?? '', model, usage)
 }
 
 const TOOL_TIMING_CAP = 16

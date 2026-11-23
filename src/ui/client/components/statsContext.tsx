@@ -1,65 +1,19 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactElement, type ReactNode } from 'react'
-import type {
-  ContextTimeline, CostPriceFace, CostPriceMiss, SessionCostRead,
-  SessionCostUsage, TimelineCounts,
-} from '../../shared/types'
-import { billedTokensOf, formatCost, formatPriceRate, mergeCostUsage, toCurrency, type CostCurrency } from '../cost'
+import type { ContextTimeline, SessionCostUsage, TimelineCounts } from '../../shared/types'
+import { billedTokensOf, mergeCostUsage } from '../../shared/usage'
 import { sessionsFaceOf, subagentCostFoldOf } from '../agentTree'
 import { readHeads, useSessionsSnapshot } from '../agentHeads'
-import { subscribeInvalidations } from '../invalidation'
 import type { AgentHeads } from '../agentHeads'
 import type { Translate } from '../i18n'
 import { nameColorOf } from '../nameColor'
 import { type ClientCtx } from '../services'
-import { isDeepSeekProvider } from '../../shared/providers'
 import type { ViewKit } from '../viewkit'
 import { IconData } from '../primitives'
 import { useElementSize } from './useElementMetrics'
 
-interface PriceRow { key: string; face: CostPriceFace }
-interface PriceMissRow { key: string; provider: string; model: string; miss: CostPriceMiss }
-
-const BANDS: readonly (readonly [keyof CostPriceFace['rate'], string])[] = [
-  ['hit', 'stats.costHit'],
-  ['miss', 'stats.costMiss'],
-  ['write', 'stats.costWrite'],
-  ['out', 'stats.costOut'],
-]
-
-function facesStateOf(reads: readonly (SessionCostRead | null | undefined)[]): { rows: PriceRow[]; misses: PriceMissRow[] } {
-  const rows = new Map<string, PriceRow>()
-  const misses = new Map<string, PriceMissRow>()
-  for (const read of reads) {
-    if (read === null || read === undefined) continue
-    for (const face of read.faces ?? []) {
-      const key = face.provider + '/' + face.model
-      if (!rows.has(key)) rows.set(key, { key, face })
-    }
-    for (const miss of read.misses ?? []) {
-      const key = miss.provider + '/' + miss.model
-      if (!misses.has(key)) misses.set(key, { key, provider: miss.provider, model: miss.model, miss })
-    }
-  }
-  return { rows: [...rows.values()], misses: [...misses.values()] }
-}
-
-function costUsdOf(reads: readonly (SessionCostRead | null | undefined)[]): number | null {
-  let total = 0
-  let any = false
-  for (const read of reads) {
-    if (read === null || read === undefined) continue
-    if (!read.ready) return null
-    if (read.usd === null) continue
-    total += read.usd
-    any = true
-  }
-  return any ? total : null
-}
-
 export interface SubagentStats {
   usage: SessionCostUsage | null
   count: number
-  costRead: SessionCostRead | null
 }
 
 export function makeSubagentCost(
@@ -74,15 +28,6 @@ export function makeSubagentCost(
       () => subagentCostFoldOf(snapshot, sessionId, landed),
       [snapshot, sessionId, landed],
     )
-    useEffect(() => subscribeInvalidations((event) => {
-      if (event.kind !== 'pricing') return
-      setLanded((prev) => {
-        for (const head of prev.values()) {
-          if (head.costRead?.ready !== true) return new Map()
-        }
-        return prev
-      })
-    }), [])
     useEffect(() => {
       const cold = fold.cold
       if (cold.length === 0) return
@@ -99,7 +44,7 @@ export function makeSubagentCost(
       const [only] = cold
       void heads.headOf(only).then((head) => { land(head, only) }).catch(() => {})
     }, [fold, heads])
-    return { usage: fold.usage, count: fold.count, costRead: fold.costRead }
+    return { usage: fold.usage, count: fold.count }
   }
 }
 
@@ -172,8 +117,6 @@ interface StatsContextProps {
   tools: readonly (readonly [string, number])[]
   commands?: { runs: number; top: readonly (readonly [string, number])[] }
   cost?: SessionCostUsage
-  costRead?: SessionCostRead
-  locale: string
   sessionId?: string
 }
 
@@ -322,77 +265,12 @@ export function makeStatsContext(
 ): (props: StatsContextProps) => ReactElement {
   const { t, fmt } = kit
   return function StatsContext(props: StatsContextProps): ReactElement {
-    const currency: CostCurrency = props.locale === 'zh' ? 'cny' : 'usd'
     const sub = useSubagentCost(props.sessionId)
-    const subUsage = sub.usage
-    const usage = mergeCostUsage(props.cost, subUsage) ?? undefined
-    const ownRead = props.costRead
-    const subRead = sub.costRead
-    const familyUsd = costUsdOf([ownRead, subRead])
-    const subUsd = costUsdOf([subRead])
-    const ownUsd = costUsdOf([ownRead])
-    const cost = familyUsd === null ? null : toCurrency(familyUsd, currency)
-    const subCost = subUsd === null ? null : toCurrency(subUsd, currency)
-    const fmtRate = (usd: number): string => formatPriceRate(toCurrency(usd, currency), currency)
-    const failed = ownRead !== undefined && !ownRead.ready || subRead !== null && !subRead.ready
-    const priceState = facesStateOf([ownRead, subRead])
-    const subPriceState = facesStateOf([subRead])
-    const rows = priceState.rows
-    const deepseek = usage !== undefined && Object.keys(usage).some(p => isDeepSeekProvider(p))
-    const subDeepseek = subUsage !== null && Object.keys(subUsage).some(p => isDeepSeekProvider(p))
-    const pricesBlock = (blocks: PriceRow[]): ReactNode =>
-      blocks.length > 0 ? (
-        <span key="prices" className="lc-stat-tip-prices">
-          <span className="lc-stat-tip-head">{t('stats.costPriceHead')}</span>
-          {blocks.map(r => (
-            <span key={r.key} className="lc-stat-tip-row">
-              {BANDS.filter(([bucket]) => r.face.rate[bucket] > 0).map(([bucket, label]) => (
-                <span key={bucket} className="lc-stat-tip-band">
-                  <i>{t(label)}</i>
-                  {' '}
-                  <b>{fmtRate(r.face.rate[bucket])}</b>
-                </span>
-              ))}
-              <span className="lc-stat-tip-by">{t('stats.costPriceBy', { p: r.face.provider, m: r.face.model })}</span>
-            </span>
-          ))}
-        </span>
-      ) : null
-    const missesBlock = (misses: PriceMissRow[]): ReactNode =>
-      misses.length > 0 ? (
-        <span key="misses" className="lc-stat-tip-prices">
-          {misses.map(m => (
-            <span key={m.key} className="lc-stat-tip-row">
-              {m.miss.reason === 'ambiguous'
-                ? t('stats.costAmbiguous', { p: m.provider, m: m.model, n: String(m.miss.candidates) })
-                : t('stats.costNotListed', { p: m.provider, m: m.model })}
-            </span>
-          ))}
-        </span>
-      ) : null
-    const inferredNote = (blocks: PriceRow[]): ReactNode =>
-      blocks.some(r => r.face.via === 'canonical-maker' || r.face.via === 'family' || r.face.via === 'index')
-        ? <span key="inferred">{t('stats.costInferredNote')}</span>
-        : null
-    const notes = (deep: boolean): ReactElement[] =>
-      [
-        currency === 'cny' ? <span key="cny">{t('stats.costTipCny')}</span> : null,
-        deep ? <span key="peak">{t('stats.costTipDeepseek')}</span> : null,
-      ].filter((el): el is ReactElement => el !== null)
-    const tipFor = (state: { rows: PriceRow[]; misses: PriceMissRow[] }, scope: string, deep: boolean): ReactNode => [
-      scope,
-      <span key="billed" className="lc-stat-tip-row">{t('stats.billedTip')}</span>,
-      pricesBlock(state.rows),
-      missesBlock(state.misses),
-      inferredNote(state.rows),
-      ...notes(deep),
-      failed ? <span key="unavailable">{t('stats.costUnavailable')}</span> : null,
-    ]
-    const costTip: ReactNode = tipFor(priceState, t('stats.costTip'), deepseek)
-    const subTip: ReactNode = tipFor(subPriceState, t('stats.subCostTip'), subDeepseek)
-    const ownPriceState = facesStateOf([ownRead])
-    const ownDeepseek = props.cost !== undefined && Object.keys(props.cost).some(p => isDeepSeekProvider(p))
-    const ownTip: ReactNode = tipFor(ownPriceState, t('stats.ownCostTip'), ownDeepseek)
+    const usage = mergeCostUsage(props.cost, sub.usage) ?? undefined
+    const familyTokens = billedTokensOf(usage)
+    const ownTokens = billedTokensOf(props.cost)
+    const subTokens = billedTokensOf(sub.usage)
+    const billedTip: ReactNode = <span key="billed" className="lc-stat-tip-row">{t('stats.billedTip')}</span>
     const onJump = props.onJump
     const jumpWire = (key: StatsJump, hint = true): JumpWire | undefined => {
       const relay = onJump
@@ -439,28 +317,8 @@ export function makeStatsContext(
         </span>
       )
     }
-    const costPids = new Set(rows.map(r => r.face.provider).filter(p => p !== ''))
-    const costHref = costPids.size === 1 ? 'https://models.dev/providers/' + [...costPids][0] + '/' : undefined
-    const ownCost = ownUsd === null ? null : toCurrency(ownUsd, currency)
-    const familyTokens = billedTokensOf(usage)
-    const ownTokens = billedTokensOf(props.cost)
-    const subTokens = billedTokensOf(subUsage)
-    const pair = (tokens: number | null, costText: string): ReactElement => (
-      tokens === null
-        ? <span className="lc-strip-pair">{fmt(tokens)}<i>/</i>{costText}</span>
-        : <span className="lc-strip-pair"><b>{fmt(tokens)}</b><i>/</i><b>{costText}</b></span>
-    )
-    const costText = cost === null ? '—' : formatCost(cost, currency)
-    const ownText = ownCost === null ? '—' : formatCost(ownCost, currency)
-    const subText = subCost === null ? '—' : formatCost(subCost, currency)
-    const teamPair = pair(familyTokens, costText)
     const openTeam = props.onTeamClick
     const onTeamClick = openTeam === undefined ? undefined : rowJump(openTeam)
-    const costRow = (key: string, content: ReactNode): ReactElement => (
-      openTeam === undefined
-        ? <span key={key} className="lc-strip-cell lc-ledger-cost-row lc-stat-tipped group/tip">{content}</span>
-        : <button key={key} type="button" className="lc-strip-cell lc-ledger-cost-row lc-ledger-cost-row-btn lc-stat-tipped group/tip" onClick={openTeam}>{content}</button>
-    )
     const openEvents = props.onEventsClick
     const eventsJump = openEvents === undefined ? undefined : (): void => { openEvents(null) }
     const onEventsTile = eventsJump === undefined ? undefined : rowJump(eventsJump)
@@ -541,7 +399,7 @@ export function makeStatsContext(
             </div>
             <div className="lc-ledger-team">
               <div
-                className={'lc-ledger-head lc-ledger-out-head2 lc-ledger-team-head lc-ledger-cost-row' + (onTeamClick === undefined ? '' : ' lc-ledger-cost-row-btn')}
+                className={'lc-ledger-head lc-ledger-out-head2 lc-ledger-team-head lc-ledger-team-row' + (onTeamClick === undefined ? '' : ' lc-ledger-team-row-btn')}
                 onClick={onTeamClick}
               >
                 <span className="lc-strip-cell lc-ledger-team-pair lc-stat-tipped group/tip">
@@ -551,33 +409,25 @@ export function makeStatsContext(
                       : <button type="button" className="lc-ledger-label lc-ledger-team-open" onClick={openTeam}>{t('stats.fleet')}</button>}
                     <i className="lc-stat-q group-hover/tip:text-(--dsw-alias-label-primary) group-hover/tip:border-(--dsw-alias-label-primary)" aria-hidden="true">?</i>
                   </i>
-                  <span className="lc-ledger-total">
-                    {costHref === undefined ? teamPair : <a className="lc-strip-link" href={costHref} target="_blank" rel="noreferrer noopener">{teamPair}</a>}
-                  </span>
+                  <span className="lc-ledger-total">{fmt(familyTokens)}</span>
                 </span>
-                <span className="lc-tip lc-stat-tip group-hover/tip:opacity-100" role="tooltip" aria-hidden="true">{costTip}</span>
+                <span className="lc-tip lc-stat-tip group-hover/tip:opacity-100" role="tooltip" aria-hidden="true">{billedTip}</span>
               </div>
               <div className="lc-ledger-out-body2">
-                {costRow('own', <>
-                  <i>
-                    {t('stats.currentAgent')}
-                    <i className="lc-stat-q group-hover/tip:text-(--dsw-alias-label-primary) group-hover/tip:border-(--dsw-alias-label-primary)" aria-hidden="true">?</i>
-                  </i>
-                  {pair(ownTokens, ownText)}
-                  <span className="lc-tip lc-stat-tip group-hover/tip:opacity-100" role="tooltip" aria-hidden="true">{ownTip}</span>
-                </>)}
-                {costRow('subs', <>
+                <span className="lc-strip-cell lc-ledger-team-row">
+                  <i>{t('stats.currentAgent')}</i>
+                  <b className="lc-ledger-team-value">{fmt(ownTokens)}</b>
+                </span>
+                <span className="lc-strip-cell lc-ledger-team-row">
                   <i>
                     {t('stats.teamSubs')}
                     {' '}
                     {sub.count > 0
                       ? <b className="lc-ledger-team-count">{t('stats.teamSubsCount', { n: sub.count })}</b>
                       : t('stats.teamSubsCount', { n: sub.count })}
-                    <i className="lc-stat-q group-hover/tip:text-(--dsw-alias-label-primary) group-hover/tip:border-(--dsw-alias-label-primary)" aria-hidden="true">?</i>
                   </i>
-                  {pair(sub.count === 0 ? null : subTokens, subText)}
-                  <span className="lc-tip lc-stat-tip group-hover/tip:opacity-100" role="tooltip" aria-hidden="true">{subTip}</span>
-                </>)}
+                  <b className="lc-ledger-team-value">{sub.count === 0 ? '—' : fmt(subTokens)}</b>
+                </span>
               </div>
             </div>
             <ChipLane

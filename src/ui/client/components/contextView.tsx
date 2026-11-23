@@ -828,7 +828,7 @@ export function makeContextView(
           <div className="lc-cols lc-head">
             <StatsContext counts={counts} humanInputs={data.humanInputs} answers={data.answers} toolCalls={data.toolCalls}
               files={ioTotals} tools={toolTally} commands={commandBoard}
-              cost={data.cost} costRead={data.costRead} locale={activeLocale} sessionId={typeof sessionId === 'string' ? sessionId : undefined}
+              cost={data.cost} sessionId={typeof sessionId === 'string' ? sessionId : undefined}
               onJump={onJump} onTeamClick={hasFamilyView ? onTeamClick : undefined}
               onToolPick={onToolPick}
               onToolMore={onToolMore}

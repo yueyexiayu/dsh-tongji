@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactElement } from 'react'
-import { formatCost, toCurrency, type CostCurrency } from '../cost'
 import { RING_COLOR } from '../categories'
 import { fmt } from '../format'
 import {
@@ -16,7 +15,6 @@ import type { ContextSettings } from '../settings'
 import type { SkillInfo } from '../../shared/types'
 import { dayKeyOf } from '../../shared/days'
 import type { ViewKit } from '../viewkit'
-import { makeBalanceCapsule } from './balanceCapsule'
 import { ClearableInput } from './clearableInput'
 import { makeDateRange } from './dateRange'
 import { makeErrorBoundary } from './errorBoundary'
@@ -64,7 +62,6 @@ export function makeOverviewPanel(
   const subscribeSettings = settings.store.subscribe.bind(settings.store)
   const Heatmap = makeHeatmap(kit)
   const OverviewCard = makeOverviewCard(kit)
-  const BalanceCapsule = makeBalanceCapsule(ctx, kit)
   const DateRange = makeDateRange(kit)
   const OverviewTokens = makeOverviewTokens(kit, Donut)
   const StatsTiming = makeStatsTiming(kit, Donut)
@@ -77,10 +74,6 @@ export function makeOverviewPanel(
   function activeLocale(): string {
     const locale = ctx.locale
     return typeof locale.getLocale === 'function' ? locale.getLocale().active : 'en'
-  }
-
-  function activeCurrency(): CostCurrency {
-    return activeLocale() === 'zh' ? 'cny' : 'usd'
   }
 
   function OverviewBody(props: OverviewPanelProps): ReactElement | null {
@@ -112,7 +105,6 @@ export function makeOverviewPanel(
 
     useEffect(() => { setPage(0) }, [preset, custom, coverage, day, query, group, pick, sort])
 
-    const currency = activeCurrency()
     const nowMinute = Math.floor(Date.now() / 60_000) * 60_000
     const nowForCards = Date.now()
     const hostRange = useMemo<HostRange>(() => {
@@ -152,10 +144,10 @@ export function makeOverviewPanel(
     const skillsState = useOverviewTally({ part: 'tally', scope: tallyScope, tally: 'skills' }, bodyMounted)
     const toolsState = useOverviewTally({ part: 'tally', scope: tallyScope, tally: 'tools' }, bodyMounted)
     const cmdsState = useOverviewTally({ part: 'tally', scope: tallyScope, tally: 'cmds' }, bodyMounted)
-    const summary: OverviewSummary | null = summaryState.data?.summary ?? null
+    const summary: OverviewSummary | null = summaryState.data
     const backfill = summaryState.coverage
     const fold = foldStateOf(backfill)
-    const pageValue = pageState.data?.page ?? null
+    const pageValue = pageState.data
     const pageIndex = pageValue?.index ?? 0
     const pageCount = pageValue?.count ?? 1
     const listTotal = pageValue?.total ?? 0
@@ -171,15 +163,11 @@ export function makeOverviewPanel(
     const teamTiming = summary?.timing ?? null
     const days = useMemo<Record<string, DayTotals>>(() => {
       const out: Record<string, DayTotals> = {}
-      for (const entry of daysState.data?.days ?? []) {
-        out[entry.key] = {
-          tokens: entry.tokens,
-          sessions: entry.sessions,
-          cost: entry.costUsd === null ? null : toCurrency(entry.costUsd, currency),
-        }
+      for (const entry of daysState.data ?? []) {
+        out[entry.key] = { tokens: entry.tokens, sessions: entry.sessions }
       }
       return out
-    }, [daysState.data, currency])
+    }, [daysState.data])
     const tokenParts = useMemo(() => {
       const parts = summary?.tokenParts ?? null
       if (parts === null) return null
@@ -192,9 +180,9 @@ export function makeOverviewPanel(
       }
       return { parts: shown, total }
     }, [summary])
-    const skillStats = useMemo(() => [...(skillsState.data?.tally.stats ?? [])], [skillsState.data])
-    const toolStats = useMemo(() => [...(toolsState.data?.tally.stats ?? [])], [toolsState.data])
-    const commandStats = useMemo(() => [...(cmdsState.data?.tally.stats ?? [])], [cmdsState.data])
+    const skillStats = useMemo(() => [...(skillsState.data?.stats ?? [])], [skillsState.data])
+    const toolStats = useMemo(() => [...(toolsState.data?.stats ?? [])], [toolsState.data])
+    const commandStats = useMemo(() => [...(cmdsState.data?.stats ?? [])], [cmdsState.data])
     const tallyCards: readonly { kind: TallyCardKind; field: TallyField; stats: TallyStat[] }[] = [
       { kind: 'tool', field: 'tools', stats: toolStats },
       { kind: 'command', field: 'cmds', stats: commandStats },
@@ -234,7 +222,6 @@ export function makeOverviewPanel(
               <button type="button" className="lc-ov-settings" title={t('plugin.settingsOpen')} onClick={() => { openPluginSettings(ctx) }}>
                 <IconSettings size={14} />{t('plugin.settings')}
               </button>
-              <BalanceCapsule />
               <UpdatePill />
               {backfill !== null && fold !== 'idle' && (
                 <span className="lc-ov-folding" title={t('ov.fold.tip')}>
@@ -283,11 +270,6 @@ export function makeOverviewPanel(
                       <span className="lc-stat-sub">{t('stats.turns')} {summary === null ? '—' : fmt(summary.turns)}</span>
                     </div>
                     <div className="lc-stat lc-ov-kpi">
-                      <span className="lc-stat-label">{t('stats.cost')}</span>
-                      <span className="lc-stat-value">{summary === null || summary.costUsd === null ? '—' : formatCost(toCurrency(summary.costUsd, currency), currency)}</span>
-                      <span className="lc-stat-sub">{summary === null ? '—' : t('ov.kpi.pricedSub', { n: summary.costSessions, total: summary.usageSessions })}</span>
-                    </div>
-                    <div className="lc-stat lc-ov-kpi">
                       <span className="lc-stat-label">{t('stats.cacheHit')}</span>
                       <span className="lc-stat-value">{summary === null || summary.cacheHit === null ? '—' : summary.cacheHit + '%'}</span>
                       <span className="lc-stat-sub">{summary === null ? '—' : t('ov.kpi.sessionsSub', { n: summary.usageSessions })}</span>
@@ -303,7 +285,7 @@ export function makeOverviewPanel(
                       <span className="lc-stat-sub">{summary === null ? '—' : t('ov.kpi.wallSub', { n: fmt(summary.windowTiming.calls) })}</span>
                     </div>
                   </div>
-                  <OverviewUsage days={days} currency={currency} today={todayKey()} pending={daysLoading} />
+                  <OverviewUsage days={days} today={todayKey()} pending={daysLoading} />
                 </div>
                 <div className="lc-ov-stats">
                   <OverviewTokens tokens={tokenParts} pending={summaryLoading} />
@@ -431,7 +413,6 @@ export function makeOverviewPanel(
                                 key={row.id}
                                 row={row}
                                 {...(row.group === undefined ? {} : { group: row.group })}
-                                costLabel={cardCostOf(row, currency)}
                                 now={nowForCards}
                                 onOpen={openOne}
                               />
@@ -484,6 +465,3 @@ export function makeOverviewPanel(
   }
 }
 
-function cardCostOf(row: OverviewCardRow, currency: CostCurrency): string {
-  return row.costUsd === null ? '—' : formatCost(toCurrency(row.costUsd, currency), currency)
-}

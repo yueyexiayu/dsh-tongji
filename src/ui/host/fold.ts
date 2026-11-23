@@ -12,8 +12,8 @@ import {
   injectionSourceName,
   isInjection,
   toolCallNames,
-} from './pricing'
-import type { MessageSource } from './pricing'
+} from './contentBlocks'
+import type { MessageSource } from './contentBlocks'
 import { deriveEventMessage } from '@deepseek-ai/dsh-session'
 import { firstTokenTimeOfStream, replaceRangeOf, streamTimingOf } from './logShapes'
 import type { DecodeSpan } from './logShapes'
@@ -869,7 +869,7 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
               if (cacheRead !== null) full.cacheRead = cacheRead
               if (output !== null) full.output = output
             }
-            accumulateCost(s, event.time, {
+            accumulateCost(s, {
               uncached: input ?? 0,
               cacheRead: cacheRead ?? 0,
               cacheWrite: cacheWrite ?? 0,
@@ -986,6 +986,6 @@ function applyTimelineEvent(state: TimelineState, event: TimelineEvent, bounds: 
 export { skillNameOf }
 export { createTimelineState, trimToLastTurns } from './foldState'
 export type { TimelineEvent, TimelineState } from './foldState'
-export { addBilledUsage, isBeijingPeak, tokenCountOf } from './foldMetering'
+export { addBilledUsage, tokenCountOf } from './foldMetering'
 export type { BilledUsage, UsageLike } from './foldMetering'
 export { buildTimelineDetail, buildTimelineHead, buildTimelineView } from './foldWire'

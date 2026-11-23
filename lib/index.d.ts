@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.20
+ * tongji v0.1.21
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-23T13:54:02+08:00
- * @commit c388fc8d8637 (dirty working tree) on main
- * @commit-date 2026-11-23T13:26:09+08:00
+ * @built 2026-11-23T14:18:12+08:00
+ * @commit 0bb658bbafeb (dirty working tree) on main
+ * @commit-date 2026-11-23T13:54:44+08:00
  */
 
 /**
@@ -4281,6 +4281,7 @@ interface SurfaceNodeWindow {
 }
 interface Snapshot extends SurfaceNodeWindow {
   ok: boolean;
+  cwd?: string;
   unsupported?: {
     current: string;
     minimum: string;
@@ -4327,34 +4328,6 @@ interface Snapshot extends SurfaceNodeWindow {
   commandsFloor?: number;
   commandStats?: CommandStats;
   spans?: TimingSpan[];
-  costRead?: SessionCostRead;
-}
-interface CostPriceRate {
-  hit: number;
-  miss: number;
-  write: number;
-  out: number;
-}
-type CostConfidence = 'high' | 'medium' | 'low';
-interface CostPriceFace {
-  provider: string;
-  model: string;
-  rate: CostPriceRate;
-  via: string;
-  confidence: CostConfidence;
-  canonical?: string;
-}
-interface CostPriceMiss {
-  provider: string;
-  model: string;
-  reason: string;
-  candidates?: number;
-}
-interface SessionCostRead {
-  usd: number | null;
-  ready: boolean;
-  faces?: CostPriceFace[];
-  misses?: CostPriceMiss[];
 }
 type CommandStatus = 'running' | 'completed' | 'failed' | 'killed';
 interface CommandRecord {
@@ -4597,98 +4570,6 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
 }>>, "plain">;
 type FoldPort = Pick<MessagePort, 'on' | 'postMessage'>;
 export declare function startFoldWorkerChannel(port?: FoldPort | null): void;
-type CostCurrency = 'usd' | 'cny';
-interface PriceTriple {
-  hit: number;
-  miss: number;
-  write: number;
-  out: number;
-}
-type ModelPrices = Record<string, Record<string, PriceTriple>>;
-type PriceVia = 'direct' | 'branch-suffix' | 'branch-normalized' | 'provider-alias' | 'org-branch' | 'canonical-maker' | 'family' | 'index';
-type PriceConfidence = 'high' | 'medium' | 'low';
-interface PriceCandidate {
-  pid: string;
-  mid: string;
-  rate: PriceTriple;
-  canonical?: string;
-  lab?: string;
-}
-type PriceMiss = {
-  reason: 'ambiguous';
-  candidates: number;
-} | {
-  reason: 'book-unavailable' | 'model-unknown' | 'no-entry';
-};
-interface PriceFace {
-  pid: string;
-  mid: string;
-  rate: PriceTriple;
-  via: PriceVia;
-  confidence: PriceConfidence;
-  canonical?: string;
-}
-interface PriceBranch {
-  pid: string;
-  byExact: Map<string, PriceCandidate[]>;
-  bySuffix: Map<string, PriceCandidate[]>;
-  byNormalized: Map<string, PriceCandidate[]>;
-  byNormalizedSuffix: Map<string, PriceCandidate[]>;
-  labs: Set<string>;
-  multiVendor: boolean;
-}
-interface PriceIndex {
-  byModel: Map<string, PriceCandidate[]>;
-  byNormalized: Map<string, PriceCandidate[]>;
-  branches: Map<string, PriceBranch>;
-}
-interface ModelBook {
-  prices: ModelPrices;
-  index: PriceIndex;
-}
-type PriceLookup = {
-  provider: string;
-  model: string;
-  face: PriceFace;
-  miss?: undefined;
-} | {
-  provider: string;
-  model: string;
-  face: null;
-  miss: PriceMiss;
-};
-export declare function toCurrency(usd: number, currency: CostCurrency): number;
-export declare function priceFaceOf(book: ModelBook | null | undefined, provider: string, model: string): PriceFace | null;
-export declare function priceOf(book: ModelBook | null | undefined, provider: string, model: string): PriceTriple | null;
-export declare function priceLookupsOf(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined): PriceLookup[];
-export declare function estimateSessionCost(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined, currency: CostCurrency): number | null;
-export declare function billedTokensOf(usage: SessionCostUsage | null | undefined): number;
-export declare function mergeCostUsage(...usages: (SessionCostUsage | null | undefined)[]): SessionCostUsage | null;
-export declare function pricesBookOf(value: unknown): ModelBook | null;
-export declare function calculateSessionCost(usage: SessionCostUsage | null | undefined, book: ModelBook | null | undefined): number | null;
-interface CatalogEntry<T> {
-  value: T | null;
-  ready: boolean;
-  failed: boolean;
-  checkedAt: number;
-}
-interface CatalogService {
-  ensure(): void;
-  book(): ModelBook | null;
-  pricesVersion(): number;
-  version(): Promise<CatalogEntry<string>>;
-  prices(): Promise<CatalogEntry<void>>;
-  currentVersion(): string | undefined;
-  dispose(): void;
-}
-interface CostSource {
-  read(usage: SessionCostUsage | null | undefined): SessionCostRead | undefined;
-  usd(usage: SessionCostUsage | null | undefined): number | null;
-  complete(usage: SessionCostUsage | null | undefined): boolean;
-  ready(): boolean;
-  version?(): number;
-}
-export declare function createCostSource(catalog: CatalogService): CostSource;
 type ResolveUrl = (specifier: string) => string;
 /**
  * The version the last {@link detectHarnessVersion} call settled on, so routes

@@ -1,19 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { pricesBookOf, type ModelBook } from '../shared/pricing'
 import { asRecord } from './record'
 
 export const CATALOG_TTL_MS = 60 * 60 * 1000
-
-const PRICES_FAILURE_BACKOFF_MS = 30_000
 
 // The panel is not published to a package registry, so its newest version is
 // whatever the repository's latest release says.
 const VERSION_URLS = [
   'https://api.github.com/repos/yueyexiayu/dsh-tongji/releases/latest',
 ]
-
-const PRICES_URL = 'https://models.dev/api.json'
 
 const FETCH_TIMEOUT_MS = 8_000
 
@@ -41,11 +36,7 @@ interface Slot<T> {
 }
 
 export interface CatalogService {
-  ensure(): void
-  book(): ModelBook | null
-  pricesVersion(): number
   version(): Promise<CatalogEntry<string>>
-  prices(): Promise<CatalogEntry<void>>
   currentVersion(): string | undefined
   dispose(): void
 }
@@ -67,8 +58,6 @@ export function createCatalogService(options: CatalogOptions = {}): CatalogServi
   const ttlMs = options.ttlMs ?? CATALOG_TTL_MS
   const current = options.currentVersion ?? currentVersionOf()
   const version = slotOf<string>()
-  const prices = slotOf<void>()
-  const books = { book: null as ModelBook | null, failed: false, version: 0 }
   let disposed = false
 
   const fresh = (at: number): boolean => at !== 0 && now() - at < ttlMs
@@ -105,56 +94,17 @@ export function createCatalogService(options: CatalogOptions = {}): CatalogServi
     })()
   }
 
-  const ensurePrices = (): void => {
-    if (disposed || prices.inflight !== null || books.book !== null && fresh(prices.at)) return
-    if (books.book === null && books.failed && prices.at !== 0 && now() - prices.at < PRICES_FAILURE_BACKOFF_MS) return
-    prices.inflight = (async () => {
-      try {
-        const book = pricesBookOf(await readJson(PRICES_URL))
-        if (book === null) {
-          books.failed = true
-          prices.at = now()
-          return
-        }
-        books.book = book
-        books.failed = false
-        prices.at = now()
-        books.version++
-      } catch {
-        books.failed = true
-        prices.at = now()
-      } finally {
-        prices.inflight = null
-      }
-    })()
-  }
-
   return {
-    ensure(): void {
-      ensurePrices()
-    },
-    book(): ModelBook | null {
-      return books.book
-    },
-    pricesVersion(): number {
-      return books.version
-    },
     async version(): Promise<CatalogEntry<string>> {
       ensureVersion()
       if (version.inflight !== null) await version.inflight
       return { value: version.value, ready: version.value !== null, failed: version.failed, checkedAt: version.at }
-    },
-    async prices(): Promise<CatalogEntry<void>> {
-      ensurePrices()
-      if (prices.inflight !== null) await prices.inflight
-      return { value: null, ready: books.book !== null, failed: books.failed, checkedAt: prices.at }
     },
     currentVersion(): string | undefined {
       return current
     },
     dispose(): void {
       disposed = true
-      books.book = null
     },
   }
 }

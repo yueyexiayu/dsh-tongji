@@ -58,10 +58,6 @@ export function teamOfSnapshot(snapshot: unknown, forest: AgentForest | null): F
   return null
 }
 
-function headNeedsRefresh(head: ContextTimeline): boolean {
-  return head.costRead === undefined || !head.costRead.ready
-}
-
 export function useFleetModel(
   ctx: ClientCtx,
   heads: AgentHeads,
@@ -85,14 +81,13 @@ export function useFleetModel(
   const [invalidationVersion, setInvalidationVersion] = useState(0)
 
   useEffect(() => subscribeInvalidations((event) => {
-    if (event.kind !== 'pricing' && event.kind !== 'heads') return
-    for (const [id, head] of landed) {
-      if (event.kind === 'pricing' && !headNeedsRefresh(head)) continue
-      if (event.kind === 'heads' && event.sessionId !== undefined && event.sessionId !== id) continue
+    if (event.kind !== 'heads') return
+    for (const id of landed.keys()) {
+      if (event.sessionId !== undefined && event.sessionId !== id) continue
       forced.current.add(id)
       requested.current.delete(id)
     }
-    if (event.kind === 'heads' && event.sessionId === undefined) requested.current.clear()
+    if (event.sessionId === undefined) requested.current.clear()
     setInvalidationVersion(value => value + 1)
   }), [landed])
 

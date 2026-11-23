@@ -5,7 +5,6 @@ import { resolveBounds } from './config'
 import { type ColdReadGate, makeColdReadGate } from './coldRead'
 import { foldLog } from './detailShadow'
 import { buildTimelineHead } from './foldWire'
-import { withCost, type CostSource } from './cost'
 import { failure, leaseOf, mountPostRoute, observeOf, readBody, reply } from './postRoute'
 import { asRecord } from './record'
 
@@ -55,14 +54,12 @@ async function storedHeaderOf(stat: NonNullable<PersistenceStatFace['stat']>, id
 export interface HeadsRouteOptions {
   bounds?: FoldBounds
   coldReads?: ColdReadGate
-  cost?: CostSource
 }
 
 async function coldHeadOf(
   observe: ((id: string, options: unknown) => Promise<unknown>) | undefined,
   coldReads: ColdReadGate,
   bounds: FoldBounds,
-  cost: CostSource | undefined,
   id: string,
 ): Promise<{ head: unknown; asOfSeq?: number } | null> {
   const read = observe
@@ -74,7 +71,7 @@ async function coldHeadOf(
       const events = asRecord(observation)?.events
       if (!Array.isArray(events)) return null
       const folded = await foldLog(events, bounds)
-      const head = withCost(cost, buildTimelineHead(folded.state))
+      const head = buildTimelineHead(folded.state)
       return { head, ...(folded.lastSeq >= 0 ? { asOfSeq: folded.lastSeq } : {}) }
     } finally {
       release()
@@ -85,7 +82,6 @@ async function coldHeadOf(
 export function watchHeadsChannel(ctx: Context, options: HeadsRouteOptions = {}): void {
   const bounds = options.bounds ?? resolveBounds(undefined)
   const coldReads = options.coldReads ?? makeColdReadGate()
-  const cost = options.cost
   mountPostRoute({
     ctx,
     deps: ['connection', 'sessionQuery', 'sessions', 'sessionProjectionCache', 'sessionProjections'],
@@ -153,7 +149,7 @@ export function watchHeadsChannel(ctx: Context, options: HeadsRouteOptions = {})
             }
             if (picked === null) {
               try {
-                picked = await coldHeadOf(observe, coldReads, bounds, cost, id)
+                picked = await coldHeadOf(observe, coldReads, bounds, id)
               } catch {
                 picked = null
               }

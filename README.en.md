@@ -1,10 +1,10 @@
 <div align="center">
   <img src="docs/assets/hero.svg" width="100%" alt="Illustrative tongji banner for the DSH session observability panel" />
   <h1>tongji</h1>
-  <p><strong>Session observability for DSH: usage, cost, context, fleet and insights</strong></p>
-  <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage and cost, context composition, tool and command activity, sub-agent fleets and cross-session overviews.</p>
+  <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
+  <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.20 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.21 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -16,7 +16,7 @@
 
 | Surface | Where | What it shows |
 | --- | --- | --- |
-| Statistics | Right sidebar tab of a conversation (opens automatically over the default guide) | Session totals, per-turn usage, cost, platform balance |
+| Statistics | Right sidebar tab of a conversation (opens automatically over the default guide) | Session totals, per-turn usage, cache hit rate, context composition |
 | Context | Conversation view tab | Context timeline, request detail, tool definitions, file activity, command log, context events |
 | Fleet | Conversation view tab (can be hidden) | Sub-agent tree, agent network, tasks and exchanged messages |
 | Context insights | Main page plus a sidebar panel entry (can be hidden) | Cross-session overview, trends, skill catalog, recommendations |
@@ -26,17 +26,16 @@
 
 ## Languages
 
-The interface is **Chinese only**: one dictionary (774 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (132 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
+The interface is **Chinese only**: one dictionary (750 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (132 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
 
 ## Features
 
-### Usage and cost
+### Usage
 
 - Session totals, per-turn summary and per-step detail; turns stay collapsed until expanded.
 - Uncached input, cached input with hit rate, cumulative input (including cache writes), cumulative output, cumulative total tokens, and main-agent output speed.
 - Child-agent usage is assigned to the main-session turn that created it, including retries and descendants; inherited child history is never double counted. Usage without an identifiable creation turn is listed separately, and external agents or missing usage are marked unknown.
-- Cost comes from the models.dev price catalog: one-hour TTL, eight-second timeout, thirty-second backoff on failure. DeepSeek providers bill peak periods at twice the rate, and USD/CNY converts at a fixed 0.15 USD per CNY.
-- Every model reports how its price was resolved (direct hit, branch suffix, normalized, provider alias, maker branch, canonical maker, family, index) with a confidence level, or why it could not be (catalog unavailable, unknown model, ambiguous, no entry).
+- Tokens and turns only: the panel shows no balance, spend or price, and it never fetches a price catalog.
 
 ### Context
 
@@ -50,7 +49,7 @@ The interface is **Chinese only**: one dictionary (774 entries), no second copy 
 ### Fleet and insights
 
 - Fleet: sub-agent hierarchy, roles and task badges, an agent network graph, and the messages exchanged between agents.
-- Insights: cross-session overview (today, 7 days, 30 days), daily heat and trends, skill catalog, recommendations and platform balance.
+- Insights: cross-session overview (today, 7 days, 30 days), daily heat and trends, skill catalog and recommendations.
 
 ### System prompt
 
@@ -60,8 +59,8 @@ The prefix and suffix from the settings card are spliced at the very start and e
 
 - Data comes from DSH statistics snapshots, `sessionProjections` projections and session logs. The Host keeps a per-session incremental fold cache, folds steps on a worker pool, and evicts cached sessions in least-recently-used order.
 - While the pane is open, the per-turn usage card polls every five seconds and the overview refreshes on its own cadence; closing the pane stops the polling.
-- Only two network calls exist: the price catalog at `models.dev/api.json`, and the update check against this repository's GitHub releases. A failure in either affects only its own section.
-- The Host exposes fifteen routes under `/api/tongji/`: `version`, `balance`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`.
+- Only one network call exists: the update check against this repository's GitHub releases. A failure there affects only the version hint.
+- The Host exposes fourteen routes under `/api/tongji/`: `version`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`.
 
 ## Installation
 
@@ -123,7 +122,7 @@ npm run verify  # node --check on all three artifacts plus the whole test suite
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.20`, `npm run build` and `npm run verify` both pass with 35 tests green: ten pricing and cost cases that pin fixed inputs to fixed amounts, three version-probe cases, plus the 22 existing cases.
+On `v0.1.21`, `npm run build` and `npm run verify` both pass with 25 tests green: three version-probe cases plus the 22 existing cases; the ten pricing and cost cases were removed with the feature.
 
 ## Limitations
 

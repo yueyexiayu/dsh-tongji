@@ -19,7 +19,6 @@ export interface OverviewCardRow {
   turns: number
   steps?: number
   tokens: number
-  costUsd: number | null
   lastUser?: string
   createdDay?: string
   group?: string
@@ -28,7 +27,6 @@ export interface OverviewCardRow {
 export interface OverviewCardProps {
   row: OverviewCardRow
   group?: string
-  costLabel: string
   now: number
   onOpen(id: string): void
 }
@@ -91,10 +89,6 @@ export function makeOverviewCard(kit: ViewKit): (props: OverviewCardProps) => Re
               <span className="lc-ov-mini-stat">
                 <span className="lc-ov-mini-label">{t('ov.card.teamUsage')}</span>
                 <span className="lc-ov-mini-value">{fmt(row.tokens)}</span>
-              </span>
-              <span className="lc-ov-mini-stat">
-                <span className="lc-ov-mini-label">{t('ov.card.teamCost')}</span>
-                <span className="lc-ov-mini-value">{props.costLabel}</span>
               </span>
             </span>
           </span>

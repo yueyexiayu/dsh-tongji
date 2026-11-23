@@ -5,13 +5,8 @@
 .lc-stat-tipped { position: relative; }
 .lc-stat-q { display: inline-block; margin-left: 2px; width: 11px; height: 11px; line-height: 11px; border-radius: 50%; text-align: center; font-size: 9px; font-weight: 700; font-style: normal; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-1); border: var(--lc-line-fine, 1px solid var(--dsw-alias-border-l2)); cursor: help; transition: color var(--ds-transition-duration, 0.2s) var(--ds-ease-in-out, ease-in-out), border-color var(--ds-transition-duration, 0.2s) var(--ds-ease-in-out, ease-in-out); }
 .lc-stat-tip { top: calc(100% + 6px); left: 0; max-width: 280px; line-height: 1.5; font-weight: 400; }
-.lc-stat-tip-prices { display: block; margin-top: 5px; border-top: 1px dashed var(--dsw-alias-border-l1); padding-top: 5px; }
-.lc-stat-tip-head { display: block; font-weight: 600; }
 .lc-card-rate { flex: none; margin-left: auto; font-weight: 400; font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums; cursor: default; }
 .lc-stat-tip-row { display: block; margin-top: 2px; }
-.lc-stat-tip-band { display: flex; justify-content: space-between; gap: 2rem; }
-.lc-stat-tip-band i { font-style: normal; }
-.lc-stat-tip-by { display: block; margin-top: 3px; color: var(--dsw-alias-label-secondary); }
 .lc-card-sub { font-weight: 400; color: var(--dsw-alias-label-secondary); font-size: 12px; margin-left: auto; }
 .lc-overview-num { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .lc-overview-num > b { font-size: 20px; }
@@ -60,11 +55,10 @@
 .lc-ledger-team-open { appearance: none; border: 0; padding: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
 .lc-ledger-team-open:hover { text-decoration: underline; text-underline-offset: 2px; }
 .lc-ledger-team-open:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; border-radius: 3px; }
-.lc-ledger-cost-row { width: 100%; }
-button.lc-ledger-cost-row { appearance: none; border: 0; padding: 0; background: none; font-family: inherit; font-weight: inherit; font-style: inherit; color: inherit; text-align: left; }
-.lc-ledger-cost-row-btn { cursor: pointer; }
-.lc-ledger-cost-row-btn:hover, .lc-ledger-cost-row-btn:hover * { text-decoration: underline; text-underline-offset: 2px; }
-.lc-ledger-cost-row-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; border-radius: 4px; }
+.lc-ledger-team-row { width: 100%; }
+.lc-ledger-team-row-btn { cursor: pointer; }
+.lc-ledger-team-row-btn:hover, .lc-ledger-team-row-btn:hover * { text-decoration: underline; text-underline-offset: 2px; }
+.lc-ledger-team-row-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; border-radius: 4px; }
 .lc-ledger-team-pair { flex: 1; justify-content: space-between; }
 .lc-ledger-out-body2 { display: grid; gap: 4px; min-width: 0; }
 .lc-ledger-out-body2 > .lc-strip-cell { display: flex; justify-content: space-between; gap: 8px; }
@@ -116,11 +110,7 @@ button.lc-ledger-cost-row { appearance: none; border: 0; padding: 0; background:
 .lc-core-kv-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
 .lc-strip-cell { display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; font-size: 12px; }
 .lc-strip-cell > i { flex: none; font-style: normal; font-size: 11px; color: var(--dsw-alias-label-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lc-ledger-team-count, .lc-strip-pair b { font-weight: 700; color: var(--dsw-alias-label-primary); font-variant-numeric: tabular-nums; }
-.lc-strip-pair { flex: none; display: inline-flex; align-items: baseline; gap: 5px; font-variant-numeric: tabular-nums; }
-.lc-strip-pair i { font-style: normal; opacity: 0.55; }
-a.lc-strip-link { color: inherit; text-decoration: none; }
-a.lc-strip-link:hover .lc-strip-pair b { text-decoration: underline; }
+.lc-ledger-team-count, .lc-ledger-team-value { font-weight: 700; color: var(--dsw-alias-label-primary); font-variant-numeric: tabular-nums; }
 @container lc-card (max-width: 559px) {
   .lc-ledger { grid-template-columns: minmax(0, 1fr); }
   .lc-ledger > * { grid-area: auto; }

@@ -330,7 +330,7 @@ export function applyActivity(state: ActivityState, event: SessionEvent): Activi
   const prev = byKey[key]
   let cost = prev?.cost
   if (buckets !== null && state.model !== undefined) {
-    cost = addBilledUsage(cost, state.provider ?? '', state.model, initiated, buckets)
+    cost = addBilledUsage(cost, state.provider ?? '', state.model, buckets)
   }
   const turn = typeof data?.turn === 'number' && Number.isFinite(data.turn) ? data.turn : undefined
   const newTurn = turn !== undefined && turn !== state.lastTurn

@@ -8,8 +8,6 @@ export const HEADS_ROUTE = 'api/tongji/heads'
 
 export const COMMANDS_ROUTE = 'api/tongji/commands'
 
-export const BALANCE_ROUTE = 'api/tongji/balance'
-
 export const RECOM_ROUTE = 'api/tongji/recom'
 
 export const FLEET_ROUTE = 'api/tongji/fleet'

@@ -37,6 +37,16 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   `cwd`；文件地址按 0.2.3 的口径自行拼出绝对路径，不再依赖随包固定的 `fileAddressFor`
 - 0.1.20：`src/host/index.ts` 补出 `startFoldWorkerChannel` 与版本探测导出；删除已失效的
   `ui/host/sweep.ts`（状态版本 36→37 的行迁移）及只被它使用的 `deriveHeadState` 等死函数
+- 0.1.21：余额与成本功能整体下线。删除 `ui/host/balance.ts`、`ui/host/cost.ts`、`ui/shared/pricing.ts`、
+  `ui/client/balance.ts`、`ui/client/cost.ts`、`ui/client/costRefresh.ts`、
+  `ui/client/components/balanceCapsule.tsx` 与 `/api/tongji/balance` 路由；面板不再显示余额、花费或
+  价格，也不再请求 `models.dev` 价目表
+- 0.1.21：目录服务只保留版本检查（本仓库 GitHub Releases），价目槽位与 `ModelBook` 一并移除；
+  只服务于价格解析的 `ui/shared/priceIdentity.ts` 删除
+- 0.1.21：token 记账独立为 `ui/shared/usage.ts`（`mergeCostUsage`、`billedTokensOf`），内部
+  `SessionCostUsage`/`CostBucketTotals` 只是 token 桶的名字，不含金额；峰谷计价分桶（`isBeijingPeak`）
+  删除，历史数据里的 `off` 桶仍会被读取求和；`TIMELINE_STATE_VERSION` 42→43，丢弃带价格的旧投影行
+- 0.1.21：`src/host/index.ts` 不再导出随模块删除的 9 个价格/成本函数
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
