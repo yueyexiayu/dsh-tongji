@@ -1,15 +1,13 @@
-import { DICT_DE } from './i18nDe'
 import { DICT_EN } from './i18nEn'
-import { DICT_ES } from './i18nEs'
-import { DICT_FR } from './i18nFr'
-import { DICT_JA } from './i18nJa'
-import { DICT_PT } from './i18nPt'
-import { DICT_RU } from './i18nRu'
 import { DICT_ZH } from './i18nZh'
 
 export type Translate = (key: string, params?: Record<string, string | number>) => string
 
-export const DICTS = { de: DICT_DE, en: DICT_EN, es: DICT_ES, fr: DICT_FR, ja: DICT_JA, pt: DICT_PT, ru: DICT_RU, zh: DICT_ZH }
+/**
+ * 界面只维护中文与英文。DSH 的语言服务以 zh/en 为基线（LOCALE_IDS），其余界面语言由它
+ * 回退到 en（FALLBACK_LOCALE），所以这里只注册这两份词典，避免保留没人维护的翻译。
+ */
+export const DICTS = { en: DICT_EN, zh: DICT_ZH }
 
-export { DICT_DE, DICT_EN, DICT_ES, DICT_FR, DICT_JA, DICT_PT, DICT_RU, DICT_ZH }
+export { DICT_EN, DICT_ZH }
 export type { DictKey } from './i18nZh'

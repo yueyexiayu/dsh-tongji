@@ -24,6 +24,10 @@
 | Context modal | Composer overlay | Quick context glance while writing |
 | Settings card | Plugin page, "Configuration" | Placement, view defaults, system-prompt prefix and suffix |
 
+## Languages
+
+The interface ships **Chinese and English only** (774 entries each, identical key sets); no unmaintained translations are kept. When DSH is set to any other language the plugin falls back to English, which is the language service's own behaviour (`FALLBACK_LOCALE = 'en'`). The plugin-list card likewise only provides `zh.json` and `en.json`.
+
 ## Features
 
 ### Usage and cost

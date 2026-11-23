@@ -27,6 +27,8 @@ Apache License 2.0，原文见同目录 `LICENSE`。
 - 0.1.17：版本检查由 npm registry 的 `dsh-context` 改为本仓库 GitHub Releases；
   `currentVersionOf()` 与 `host/version.ts` 的 `PLUGIN_ROOT` 改为按 `lib/index.js` 的相对路径取包根
 - 0.1.17：仓库根新增 `LICENSE`（Apache-2.0），`package.json` 补 `author` / `license` / `homepage` / `repository`
+- 0.1.18：删除未维护的 6 份词典（de / es / fr / ja / pt / ru），界面只保留中文与英文，
+  其他界面语言由 DSH 语言服务回退到英文；`lib/client.js` 由 962 KB 降到 709 KB
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
