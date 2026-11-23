@@ -848,6 +848,14 @@ export function makeContextView(
           <StatsTiming timing={data.timing ?? null} spans={data.spans} locale={activeLocale} reserve={spansReserved} />
         </div>
 
+        {inSidebar ? (
+          <AgentGraph
+            sessionId={typeof sessionId === 'string' ? sessionId : undefined}
+            self={agentSelfOf(data, pressure, breakdown, usage)}
+            focusId={focusMember}
+          />
+        ) : null}
+
         <div className="lc-cols lc-cols-main">
           <div className="lc-col flex-1 min-w-[min(360px,100%)]" ref={leftColRef}>{compositionCard}{trendCard}</div>
           <div
@@ -909,14 +917,6 @@ export function makeContextView(
               state={source.detailState} onRetry={source.retryDetail} />
           ) : <Skeletons.Commands />}
         </div>
-
-        {inSidebar ? (
-          <AgentGraph
-            sessionId={typeof sessionId === 'string' ? sessionId : undefined}
-            self={agentSelfOf(data, pressure, breakdown, usage)}
-            focusId={focusMember}
-          />
-        ) : null}
 
         <TurnUsageCard sessionId={typeof sessionId === 'string' ? sessionId : undefined} />
 

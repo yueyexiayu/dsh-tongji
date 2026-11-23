@@ -4,7 +4,7 @@
   <p><strong>DSH 会话可观测性面板：用量、上下文、编队与洞察</strong></p>
   <p>本地 Desktop 插件。读取 DSH 会话统计快照、会话投影与会话日志，展示 token 用量、上下文构成、工具与命令活动、子代理编队和跨会话总览；不展示任何账户余额或费用。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.26 · Apache-2.0</p>
+  <p>Desktop 插件 · v0.1.27 · Apache-2.0</p>
   <p><a href="#功能面">功能面</a> · <a href="#数据来源与刷新">数据来源与刷新</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#构建与验证">构建与验证</a> · <a href="#限制">限制</a> · <a href="#许可">许可</a></p>
 </div>
 
@@ -124,7 +124,7 @@ npm run verify  # node --check 三个产物 + tsc --noEmit + 全部测试
 
 产物自包含：`lib/index.js` 只依赖 `node:` 内置与 `./usage.js`，`lib/client.js` 没有外部 `require`，运行时不需要 `node_modules`。
 
-当前 `v0.1.26` 的实测结果：`npm run build` 与 `npm run verify` 通过（`verify` = 产物语法检查 + `tsc --noEmit` + 测试），测试 34 例全绿：3 例版本探测、4 例缓存合并与上限、2 例生命周期边界、3 例继承前缀（`seedCut`）、22 例既有用例；原先的 10 例价格与成本用例随功能下线一并删除。
+当前 `v0.1.27` 的实测结果：`npm run build` 与 `npm run verify` 通过（`verify` = 产物语法检查 + `tsc --noEmit` + 测试），测试 34 例全绿：3 例版本探测、4 例缓存合并与上限、2 例生命周期边界、3 例继承前缀（`seedCut`）、22 例既有用例；原先的 10 例价格与成本用例随功能下线一并删除。
 
 ## 限制
 

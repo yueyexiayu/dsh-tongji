@@ -72,6 +72,8 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   fork 会话（标记在 seq 9663，其前 9662 条全部复制自父会话）：轮次 54→0、步骤 1387→0、请求 1387→0、
   surface 230 不变、日桶 token 233.2M→0。该会话 fork 后只起了一轮、且那轮没有助手回复，所以自己的轮次
   为 0；父的 54 轮仍记在父会话上。
+- 0.1.27：右侧面板把「Agent 网络」从命令面板之后提到「Token 统计 / 耗时统计」之下、
+  「当前上下文」之上，成为第三块。该块只在侧栏渲染，整页 tab 的顺序不变。
 
 `client/meta.ts` 的 `PLUGIN_NAME`、`PLUGIN_REPO`，`host/catalog.ts` 的版本检查，以及推荐位的数据源
 都指向本仓库（`yueyexiayu/dsh-tongji`）与它的 latest release；上游仓库只作为来源记录留在本文件。
