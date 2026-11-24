@@ -28,14 +28,14 @@
 [data-conversation-content],
 [data-session-panel],
 [data-session-panel-probe] {
-  --tongji-panel-width: min(720px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.3));
+  --tongji-panel-width: min(720px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.375));
   --panel-min-width: var(--tongji-panel-width) !important;
 }
 
 [data-conversation-content] {
   --dsh-chat-content-width-resolved: min(
     880px,
-    calc(var(--dsh-conversation-viewport-width) * 0.7 - 48px)
+    calc(var(--dsh-conversation-viewport-width) * 0.625 - 48px)
   ) !important;
   --dsh-chat-end-inset: calc(var(--tongji-panel-width) + 48px) !important;
 }
