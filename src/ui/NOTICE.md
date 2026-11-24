@@ -79,6 +79,9 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.43：右侧统计分栏从官方 360px 扩到 540px，并同步正文让位与停靠探测宽度；容器跨过 470px 后，
+  统计卡片两两一排。
+
 - 0.1.42：统计右侧分栏复用了主视图的 conversation surface 标记，触发 `data-lc-surface` 后宿主的
   composer seat 被 CSS 隐藏，造成「统计出现、输入框消失」。分栏实例现在不再写该标记，统计与输入框可同时显示。
 

@@ -20,6 +20,16 @@
   color: var(--dsw-alias-label-primary);
 }
 
+/*
+ * 官方停靠宽度上限是 360px。把面板、探测器和正文让位所用的最小宽度统一设为 540px，
+ * 让宿主的官方 reserve 链路整体按新宽度计算，统计卡片随容器进入两列布局。
+ */
+[data-conversation-content],
+[data-session-panel],
+[data-session-panel-probe] {
+  --panel-min-width: 540px !important;
+}
+
 /* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */
 [data-session-panel] .lc-root {
   container-type: inline-size;
