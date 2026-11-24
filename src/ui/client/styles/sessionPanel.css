@@ -29,6 +29,10 @@
 [data-session-panel],
 [data-session-panel-probe] {
   --tongji-panel-width: min(720px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.375));
+}
+
+[data-conversation-content],
+[data-session-panel-probe] {
   --panel-min-width: var(--tongji-panel-width) !important;
 }
 
@@ -38,6 +42,12 @@
     calc(var(--dsh-conversation-viewport-width) * 0.625 - 48px)
   ) !important;
   --dsh-chat-end-inset: calc(var(--tongji-panel-width) + 48px) !important;
+}
+
+[data-session-panel] {
+  --panel-min-width: var(--tongji-panel-width) !important;
+  width: var(--tongji-panel-width) !important;
+  max-width: var(--tongji-panel-width) !important;
 }
 
 /* 双区布局不再使用可拖动正文宽度；旧偏好仍可能留在 localStorage，禁止把手避免再次制造冲突。 */
