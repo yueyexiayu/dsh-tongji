@@ -21,13 +21,28 @@
 }
 
 /*
- * 官方停靠宽度上限是 360px。把面板、探测器和正文让位所用的最小宽度统一设为 540px，
- * 让宿主的官方 reserve 链路整体按新宽度计算，统计卡片随容器进入两列布局。
+ * 固定双区布局：统计右栏占 440–540px，正文占用左侧剩余空间并贴左显示。
+ * 官方把面板宽度与正文让位绑定到同一组变量；这里同步计算内容宽度和 end inset，
+ * 让右侧全局边栏变化时仍能停靠统计栏，而不是把正文居中后挤掉统计。
  */
 [data-conversation-content],
 [data-session-panel],
 [data-session-panel-probe] {
-  --panel-min-width: 540px !important;
+  --tongji-panel-width: clamp(440px, 28vw, 540px);
+  --panel-min-width: var(--tongji-panel-width) !important;
+}
+
+[data-conversation-content] {
+  --dsh-chat-content-width-resolved: max(
+    300px,
+    calc(var(--dsh-conversation-viewport-width) - var(--tongji-panel-width) - 96px)
+  ) !important;
+  --dsh-chat-end-inset: calc(var(--tongji-panel-width) + 48px) !important;
+}
+
+/* 双区布局不再使用可拖动正文宽度；旧偏好仍可能留在 localStorage，禁止把手避免再次制造冲突。 */
+[data-conversation-content] [data-width-handle] {
+  display: none !important;
 }
 
 /* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */
@@ -35,7 +50,7 @@
   container-type: inline-size;
 }
 
-@container (min-width: 470px) {
+@container (min-width: 390px) {
   .lc-root .lc-cols {
     gap: 8px;
   }
