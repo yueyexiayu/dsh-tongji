@@ -178,6 +178,8 @@ export type DefaultOverviewRange = 'today' | '7d' | '30d'
 
 export type FleetTab = 'show' | 'hide'
 
+export type StatsSection = 'show' | 'hide'
+
 export interface PluginSettings {
   defaultPlacement: DefaultPlacement
   defaultGranularity: DefaultGranularity
@@ -190,6 +192,7 @@ export interface PluginSettings {
   overviewAutoSteps: OverviewAutoSteps
   defaultOverviewRange: DefaultOverviewRange
   fleetTab: FleetTab
+  statsSection: StatsSection
   promptPrefix: string
   promptSuffix: string
 }

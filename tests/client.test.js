@@ -256,6 +256,7 @@ test('module declares its host contract and registers every slot once', () => {
     'conversation.view',
     'conversation.chat.assistant-actions',
     'conversation.input.overlay',
+    'conversation.session.panel.section',
     'main',
     'sidebar.panellist',
   ]) {
@@ -265,6 +266,7 @@ test('module declares its host contract and registers every slot once', () => {
   assert.deepEqual([...new Set(injected)].sort(), [
     'conversation.chat.assistant-actions',
     'conversation.input.overlay',
+    'conversation.session.panel.section',
     'conversation.view',
     'main',
     'sidebar.panellist',

@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.31 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.32 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -16,7 +16,8 @@
 
 | Surface | Where | What it shows |
 | --- | --- | --- |
-| Statistics panel | Conversation view tab, beside Chat and Trajectory — never the right sidebar | Session totals, per-turn usage, cache hit rate, context composition, agent network, background jobs, SSH connections, context timeline, request detail, tool definitions, file activity, command log, context events |
+| Statistics | Section of the Session panel beside the Chat transcript (hide it with the session-panel toggle in the header) | Session totals, per-turn usage, cache hit rate, context composition, agent network, background jobs, SSH connections |
+| Statistics panel | Conversation view tab (can be hidden) | The same, plus context timeline, request detail, tool definitions, file activity, command log, context events |
 | Fleet | Conversation view tab (can be hidden) | Sub-agent tree, agent network, tasks and exchanged messages |
 | Context insights | Main page plus a sidebar panel entry (can be hidden) | Cross-session overview, trends, skill catalog, recommendations |
 | Context jump | Assistant message actions | Jump from a turn to its place in the context view |
@@ -93,7 +94,7 @@ cd ~/.dsh/profiles/desktop
 pnpm install
 ```
 
-Quit DSH completely (⌘Q) and reopen it. The statistics panel is the "统计面板" tab inside the conversation view; the right sidebar is no longer used.
+Quit DSH completely (⌘Q) and reopen it. "统计" is a section of the Session panel beside the Chat transcript (toggle it from the header); the right sidebar is no longer used, and the "统计面板" view tab holds the wide layout when you need it.
 
 ## Configuration
 
@@ -111,6 +112,7 @@ The plugin ID, package name and bundle name are all `tongji`; install it at `~/.
 | `overviewAutoSteps` | `100` / `200` / `300` / `off` | Auto-overview step count |
 | `defaultOverviewRange` | `today` / `7d` / `30d` | Default insights range |
 | `fleetTab` | `show` / `hide` | Fleet tab |
+| `statsSection` | `show` / `hide` | The "统计" section inside the Session panel beside Chat |
 | `promptPrefix` / `promptSuffix` | text | Injected at the head and tail of the system prompt; empty by default |
 
 Eight further bounds (`maxRequestSteps`, `maxKeptTurns`, `maxEvents`, `maxNodes`, `maxArchiveNodes`, `maxFileOps`, `maxCommands`, `maxCommandChars`) cap how much a single fold keeps.

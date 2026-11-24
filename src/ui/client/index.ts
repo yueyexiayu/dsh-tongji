@@ -20,6 +20,7 @@ import { makeAgentHeads } from './agentHeads'
 import { watchHistoryFaces } from './historyPage'
 import { resetVersionSource } from './versionSource'
 import { watchPlacement } from './placement'
+import { watchPanelSection } from './sessionPanel'
 import { makeViewKit } from './viewkit'
 
 import './styles/tailwind.css'
@@ -72,6 +73,14 @@ function apply(ctx: ClientCtx): void {
   const heads = makeAgentHeads()
   const ContextView = makeContextView(ctx, kit, settings, heads)
   const FleetView = makeFleetView(ctx, kit, heads)
+
+  ctx.effect(() => watchPanelSection(
+    ctx,
+    settings,
+    props => h(ContextView, props),
+    t,
+    NS,
+  ), 'tongji: session panel section')
 
   ctx.effect(() => watchPlacement(settings, () => ctx.slots.inject('conversation.view', () => ctx.slots.register(
     { name: 'conversation.view', id: CONTEXT_VIEW_ID, order: 20, locale: NS, label: () => t('tab.panel') },

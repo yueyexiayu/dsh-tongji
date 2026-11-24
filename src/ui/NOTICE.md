@@ -79,6 +79,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.32：统计再往前一步——注册 DSH 官方的 `conversation.session.panel.section`（会话面板分栏，
+  id `tongji`、order 50），于是对话右侧的会话面板里多一个「统计」分栏，与右侧边栏无关；
+  分栏模式隐藏只有宽屏才放得下的首行（用户消息 / 工具定义那块），其余卡片照旧。新增
+  `statsSection` 设置（默认 show）控制这个分栏。「统计面板」视图标签页保留作宽屏细节视图。
 - 0.1.31：统计面板从右侧栏标签页搬到会话主区标签页「统计面板」，右侧栏不再注册任何 tongji 入口
   （`sidebar.right.pane.tab` / `sidebar.right.pane.tab.title` 与 `sidebarRightTabs.register` 一并删除）。
   主区这一份补上原先只在侧栏出现的「Agent 网络」，并去掉只服务侧栏的 IntersectionObserver 懒加载、

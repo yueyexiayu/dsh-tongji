@@ -50,7 +50,10 @@ export interface SessionStandardProps {
   useChat?: UseChatLike
 }
 
-export type ContextViewProps = SessionStandardProps
+export interface ContextViewProps extends SessionStandardProps {
+  /** Panel sections render narrower than a view tab, so the panel drops its widest row. */
+  host?: 'panel'
+}
 
 const NO_PROJECTION = ((): null => null) as (key: string) => unknown
 

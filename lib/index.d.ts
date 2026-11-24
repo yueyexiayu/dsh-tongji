@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.31
+ * tongji v0.1.32
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-24T14:22:35+08:00
- * @commit e402c25ceec0 (dirty working tree) on main
- * @commit-date 2026-11-24T08:44:56+08:00
+ * @built 2026-11-24T14:48:15+08:00
+ * @commit f40095def048 (dirty working tree) on main
+ * @commit-date 2026-11-24T14:23:23+08:00
  */
 
 /**
@@ -4275,6 +4275,7 @@ type DefaultDurationCurve = 'show' | 'hide';
 type OverviewAutoSteps = 'off' | '100' | '200' | '300';
 type DefaultOverviewRange = 'today' | '7d' | '30d';
 type FleetTab = 'show' | 'hide';
+type StatsSection = 'show' | 'hide';
 interface PluginSettings {
   defaultPlacement: DefaultPlacement;
   defaultGranularity: DefaultGranularity;
@@ -4287,6 +4288,7 @@ interface PluginSettings {
   overviewAutoSteps: OverviewAutoSteps;
   defaultOverviewRange: DefaultOverviewRange;
   fleetTab: FleetTab;
+  statsSection: StatsSection;
   promptPrefix: string;
   promptSuffix: string;
 }
@@ -4582,6 +4584,7 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
   fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
+  statsSection: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
@@ -4604,6 +4607,7 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
   fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
+  statsSection: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
@@ -4775,6 +4779,7 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
   fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
+  statsSection: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
@@ -4797,6 +4802,7 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
   fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
+  statsSection: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;

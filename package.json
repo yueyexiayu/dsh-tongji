@@ -1,6 +1,6 @@
 {
   "name": "tongji",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "private": true,
   "type": "module",
   "description": "DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。",

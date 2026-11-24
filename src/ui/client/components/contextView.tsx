@@ -130,6 +130,7 @@ export function makeContextView(
 
   function ContextViewBody(props: ContextViewProps): ReactElement {
     const sessionId = props.sessionId
+    const inPanel = props.host === 'panel'
     const { source, data: sessionData, pressure, breakdown, usage } = useContextSession(props)
     const data = sessionData ?? COLD_TIMELINE
     const ensurePart = source.ensurePart
@@ -809,7 +810,8 @@ export function makeContextView(
     return (
       <div className="lc-root" ref={rootRef}>
 
-        <div className="lc-cols lc-head">
+        {inPanel ? null : (
+          <div className="lc-cols lc-head">
             <StatsContext counts={counts} humanInputs={data.humanInputs} answers={data.answers} toolCalls={data.toolCalls}
               files={ioTotals} tools={toolTally} commands={commandBoard}
               cost={data.cost} sessionId={typeof sessionId === 'string' ? sessionId : undefined}
@@ -819,11 +821,12 @@ export function makeContextView(
               onCommandPick={hasCommands ? setCommandFocus : undefined}
               onCommandMore={hasCommands ? onCommandMore : undefined}
               onEventsClick={onEventsClick} />
-          <div className="lc-col">
-            <PluginInfo />
-            <RecomCard key={typeof sessionId === 'string' ? sessionId : undefined} />
+            <div className="lc-col">
+              <PluginInfo />
+              <RecomCard key={typeof sessionId === 'string' ? sessionId : undefined} />
+            </div>
           </div>
-        </div>
+        )}
         <div className="lc-cols lc-head">
           <StatsTokens usage={usage} current={data.current} breakdown={breakdown}
             generatedReasoning={data.generatedReasoning} generatedAnswerTokens={data.generatedAnswerTokens}
