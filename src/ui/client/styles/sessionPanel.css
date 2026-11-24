@@ -21,21 +21,21 @@
 }
 
 /*
- * 固定双区布局：统计右栏占 440–540px，正文占用左侧剩余空间并贴左显示。
- * 官方把面板宽度与正文让位绑定到同一组变量；这里同步计算内容宽度和 end inset，
- * 让右侧全局边栏变化时仍能停靠统计栏，而不是把正文居中后挤掉统计。
+ * Proportional split: the stats panel keeps the same share of the conversation
+ * column at every window size. Both sides are capped only at the high end, so
+ * shrinking the window never leaves a fixed-width panel crowding the chat.
  */
 [data-conversation-content],
 [data-session-panel],
 [data-session-panel-probe] {
-  --tongji-panel-width: clamp(440px, 28vw, 540px);
+  --tongji-panel-width: min(540px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.3));
   --panel-min-width: var(--tongji-panel-width) !important;
 }
 
 [data-conversation-content] {
-  --dsh-chat-content-width-resolved: max(
-    300px,
-    calc(var(--dsh-conversation-viewport-width) - var(--tongji-panel-width) - 96px)
+  --dsh-chat-content-width-resolved: min(
+    880px,
+    calc(var(--dsh-conversation-viewport-width) * 0.7 - 48px)
   ) !important;
   --dsh-chat-end-inset: calc(var(--tongji-panel-width) + 48px) !important;
 }
@@ -66,7 +66,7 @@
   container-type: inline-size;
 }
 
-@container (min-width: 390px) {
+@container (min-width: 330px) {
   .lc-root .lc-cols {
     gap: 8px;
   }
