@@ -16,8 +16,7 @@
 
 | Surface | Where | What it shows |
 | --- | --- | --- |
-| Statistics panel | Conversation view tab, beside Chat and Trajectory — never the right sidebar | Session totals, per-turn usage, cache hit rate, context composition, agent network, background jobs, SSH connections |
-| Context | Conversation view tab (the modal and jump actions keep the old name) | Context timeline, request detail, tool definitions, file activity, command log, context events |
+| Statistics panel | Conversation view tab, beside Chat and Trajectory — never the right sidebar | Session totals, per-turn usage, cache hit rate, context composition, agent network, background jobs, SSH connections, context timeline, request detail, tool definitions, file activity, command log, context events |
 | Fleet | Conversation view tab (can be hidden) | Sub-agent tree, agent network, tasks and exchanged messages |
 | Context insights | Main page plus a sidebar panel entry (can be hidden) | Cross-session overview, trends, skill catalog, recommendations |
 | Context jump | Assistant message actions | Jump from a turn to its place in the context view |
