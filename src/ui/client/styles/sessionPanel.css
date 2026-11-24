@@ -3,6 +3,26 @@
  * 宽度跟随对话列，不参与会话面板的让位计算，因此不会挤压正文或 composer。
  */
 
+/* 输入框上方工具条里的「统计」按钮，点开全屏统计面板。 */
+.lc-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.lc-bar-btn:hover {
+  background: var(--dsw-alias-bg-layer-2);
+  color: var(--dsw-alias-label-primary);
+}
+
 .lc-dock {
   width: min(100%, 912px);
   margin: 0 auto 6px;

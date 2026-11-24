@@ -22,7 +22,7 @@ export function watchPanelSection(
 ): () => void {
   return watchGate(
     settings.store,
-    () => settings.statsSection() === 'show' && settings.statsDock() !== 'show',
+    () => settings.statsSection() === 'show',
     () => [ctx.slots.inject('conversation.session.panel.section', () => ctx.slots.register(
       { name: 'conversation.session.panel.section', id: PANEL_SECTION_ID, order: PANEL_SECTION_ORDER, locale: ns, label: () => t('panel.section') },
       props => view({ ...props as ContextViewProps, host: 'panel' }),

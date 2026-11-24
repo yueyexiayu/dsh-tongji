@@ -79,6 +79,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.40：0.1.39 的 dock 挂载点在本机实测里拿不到——页面渲染出的 slot 只有 `conversation.composer` 与
+  `conversation.composer.bar`，`.lc-dock` 数量为 0，统计直接不显示。改挂 `conversation.composer.bar`
+  （输入框上方工具条），放一个「统计」按钮，点击设 `modalStoreOf(sessionId).set(true)` 打开插件已有的
+  全屏统计面板（宽、多列）。同时恢复 `conversation.session.panel.section` 右侧分栏，两个入口并存：
+  分栏常驻、按钮给大视图。
 - 0.1.39：统计换挂载点——从「会话面板分栏」改成 composer dock（输入框上方）里的一张折叠卡片，
   注册槽位 `conversation.composer.dock`。宽度跟随对话列（≤912px），展开后卡片两两并排，折叠状态
   记在 localStorage，与宿主的让位/宽度模型完全无关，不再挤压正文与 composer。来源是实测：把宿主
