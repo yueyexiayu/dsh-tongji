@@ -28,7 +28,7 @@
 [data-conversation-content],
 [data-session-panel],
 [data-session-panel-probe] {
-  --tongji-panel-width: min(540px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.3));
+  --tongji-panel-width: min(720px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.3));
   --panel-min-width: var(--tongji-panel-width) !important;
 }
 
