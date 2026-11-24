@@ -79,6 +79,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.34：修 0.1.33 的输入框消失：只抬了 `--panel-min-width` 却没压正文，面板要的让位（48px+最小宽度）
+  超过 Chat 外框可给的空间，`--dsh-chat-end-inset` 把正文和 composer 推出可视区。现在把正文列
+  一起收窄成 `clamp(320px, 视口宽−680px, 880px)`，使「起点 = 视口 − 让位 − 正文宽」恒为 32px；
+  同时抬高 dockProbe 的 `--panel-min-width`（600px）让停靠判定与面板宽度一致，窗口窄于 1100px 保持
+  官方行为。另加容器查询：面板内容 ≥470px 时卡片两两并排。
 - 0.1.33：把 DSH 会话面板加宽到约 1.67 倍（360px → 最宽 600px，最窄 500px），并让正文列在
   面板停靠时收窄让位（列宽 −660px，最低 320px）。实现只在 `styles/sessionPanel.css` 里覆盖官方
   发布在 `[data-conversation-content]` 上的 `--panel-min-width`、`--dsh-chat-content-width-resolved`

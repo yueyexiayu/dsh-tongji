@@ -1,34 +1,57 @@
 /*
- * DSH 的会话面板（对话右侧那块）官方宽度写死成 clamp(300px, 留白-48px, 360px)。
- * 这里把它加宽约 1.67 倍（360 → 600），并让正文列按剩余宽度让位，
- * 做法只是覆盖官方发布在 [data-conversation-content] 上的布局变量，不改 DSH 源码。
+ * 会话面板（对话右侧那块）宽度与排版覆盖。
+ *
+ * 官方规则：面板宽度 = clamp(300px, 留白-48px, 360px)，它向正文要的让位 = 48px + 最小宽度。
+ * 所以面板实际宽度就等于最小宽度 —— 想加宽必须同时收窄正文列，否则正文和输入框会被
+ * padding-inline-end 推出可视区（上一版只抬最小宽度、没压正文，正是输入框消失的原因）。
+ *
+ * 这里的取值让「起点 = 视口宽 − 让位 − 正文宽」恒为 32px，正文永远留在可视区内：
+ *   最小/让位：600px / 648px；正文 = clamp(320px, 视口宽−680px, 880px)；面板上限 720px。
+ * 同时把 dockProbe 的最小宽度一起抬高，停靠判定与面板宽度保持一致。
  */
 
-/* 面板的最小宽度同时决定它向正文要多少让位（48px + 这个值）。 */
-[data-conversation-content] {
-  --panel-min-width: 500px !important;
+[data-conversation-content],
+[data-session-panel-probe] {
+  --panel-min-width: 600px !important;
 }
 
-/*
- * 面板想要停靠（dockProbe 带 data-session-panel-reserve）时，正文列收窄成
- * 「列宽 - 660px」，最低 320px，好把 600px 的面板位置让出来。
- * 只在足够宽的窗口启用，免得窄窗口把正文压窄了面板却仍然放不下。
- */
-@media (min-width: 1080px) {
+/* 面板想要停靠时，正文列收窄，给面板腾出位置。窗口窄于 1100px 时保持官方行为，
+   否则「正文宽 + 让位」会超过 Chat 外框，正文会被推出可视区。 */
+@media (min-width: 1100px) {
   [data-conversation-content]:has([data-session-panel-reserve]) {
     --dsh-chat-content-width-resolved: clamp(
       320px,
-      calc(var(--dsh-conversation-column-width, 100%) - 660px),
+      calc(var(--dsh-conversation-viewport-width, 100%) - 680px),
       880px
     ) !important;
   }
 }
 
-/* 官方面板宽度上限 360px，这里放到 600px；浮层态（overlay）保持官方 280px。 */
+/* 面板宽度：官方上限 360 → 720；浮层态保持官方 280px。 */
 [data-session-panel]:not([data-session-panel='overlay']) {
   width: clamp(
-    500px,
+    600px,
     calc(var(--dsh-chat-aside-gutter, 0px) - 48px),
-    600px
+    720px
   ) !important;
+}
+
+/*
+ * 面板内容排版：面板够宽时卡片两两并排（原来宽度不够，一行只放得下一张）。
+ * 按 .lc-root 自身宽度判断，不看窗口宽度。
+ */
+[data-session-panel] .lc-root {
+  container-type: inline-size;
+}
+
+@container (min-width: 470px) {
+  .lc-root .lc-cols {
+    gap: 8px;
+  }
+
+  .lc-root .lc-cols > .lc-card {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+    max-width: calc(50% - 4px);
+  }
 }
