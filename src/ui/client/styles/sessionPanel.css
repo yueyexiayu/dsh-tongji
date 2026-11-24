@@ -45,6 +45,22 @@
   display: none !important;
 }
 
+/*
+ * The host panel normally paints an opaque bg-layer-1 surface. Keep its text
+ * and controls readable while letting the conversation wallpaper show through:
+ * 67% tint means one third of the surface is transparent.
+ */
+[data-session-panel] {
+  --lc-canvas: transparent;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 67%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+[data-session-panel] .lc-root .lc-card {
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent) !important;
+}
+
 /* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */
 [data-session-panel] .lc-root {
   container-type: inline-size;
