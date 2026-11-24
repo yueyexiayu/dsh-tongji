@@ -79,6 +79,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.50：比例宽度只在 `[data-conversation-content]` 上计算一次，让正文让位、分栏和
+  停靠探测器共享同一个值。修复它们分别回退到 `100vw`、导致分栏判定放不下后默认隐藏的问题。
+  宿主给探针自己的 300px 回退值，也必须显式接到这个共享值。
+
 - 0.1.49：直接覆盖宿主停靠分栏的 `width` / `max-width`，修复只改最小宽度时仍被官方 360px
   上限截断的问题。统计栏现在实际按会话宽度的 37.5% 增长，最大 720px。
 

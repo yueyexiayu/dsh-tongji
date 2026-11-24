@@ -25,18 +25,12 @@
  * column at every window size. Both sides are capped only at the high end, so
  * shrinking the window never leaves a fixed-width panel crowding the chat.
  */
-[data-conversation-content],
-[data-session-panel],
-[data-session-panel-probe] {
+[data-conversation-content] {
   --tongji-panel-width: min(720px, calc(var(--dsh-conversation-viewport-width, 100vw) * 0.375));
 }
 
-[data-conversation-content],
-[data-session-panel-probe] {
-  --panel-min-width: var(--tongji-panel-width) !important;
-}
-
 [data-conversation-content] {
+  --panel-min-width: var(--tongji-panel-width) !important;
   --dsh-chat-content-width-resolved: min(
     880px,
     calc(var(--dsh-conversation-viewport-width) * 0.625 - 48px)
@@ -44,8 +38,13 @@
   --dsh-chat-end-inset: calc(var(--tongji-panel-width) + 48px) !important;
 }
 
-[data-session-panel] {
+/* The host gives the probe its own 300px fallback, so it must use the shared
+ * inherited width explicitly rather than relying on the body's declaration. */
+[data-session-panel-probe] {
   --panel-min-width: var(--tongji-panel-width) !important;
+}
+
+[data-session-panel] {
   width: var(--tongji-panel-width) !important;
   max-width: var(--tongji-panel-width) !important;
 }
