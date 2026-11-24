@@ -1,33 +1,39 @@
 /*
  * 会话面板（对话右侧那块）宽度与排版覆盖。
  *
- * 官方把面板宽度绑在它向正文要的让位上（让位 = 48px + 最小宽度），而让位又通过
- * --dsh-chat-end-inset 转成 scrollBody 的 padding-inline-end。上一版沿用这条链路：
- * 让位一大，inset 就按官方公式被放大，正文列和贴在它底部的 composer 一起被推走。
+ * DSH 里面板宽度绑定在「它向正文要的让位」上，让位又通过 --dsh-chat-end-inset
+ * 变成 scrollBody 的 padding-inline-end —— 这让位一旦过大，正文列连同贴底的
+ * composer 会被推出可视区（就是「统计出现、输入框消失」）。
  *
- * 这一版改法：让位保持官方 348px（最小宽度 300px），不再动它；改为直接接管
- * --dsh-chat-end-inset，把正文列压到左侧，右侧整块留给面板。这样 composer 始终留在
- * 可视区内（起点 24px），面板也能拿到 600–720px。
+ * 这里的做法：让位保持官方 348px，不碰 DSH 的让位公式；直接接管 inset，
+ * 用「视口宽 − 正文宽 − 48px」把正文与 composer 一起推到左侧，右侧整块留给面板。
+ * 正文宽度写死成变量（不用 --dsh-conversation-viewport-width，它未测量时是 0，
+ * 计算出的负 inset 会被浏览器丢弃，正文因此不会被移动）。
  */
 
 [data-conversation-content] {
   --panel-min-width: 300px !important;
+  --tongji-chat-width: 320px;
+}
+
+@media (min-width: 1500px) {
+  [data-conversation-content] {
+    --tongji-chat-width: 400px;
+  }
+}
+
+@media (min-width: 1900px) {
+  [data-conversation-content] {
+    --tongji-chat-width: 520px;
+  }
 }
 
 @media (min-width: 1100px) {
   [data-conversation-content]:has([data-session-panel-reserve]) {
-    /* 正文列：视口宽 − 680px，夹在 320–880 之间。 */
-    --dsh-chat-content-width-resolved: clamp(
-      320px,
-      calc(var(--dsh-conversation-viewport-width, 100%) - 680px),
-      880px
-    ) !important;
-
-    /* 末端缩进 = 视口宽 − 正文宽 − 48px，于是正文贴在左侧、起点约 24px，
-       右侧留白正好放得下面板。 */
-    --dsh-chat-end-inset: calc(
-      var(--dsh-conversation-viewport-width, 100%) -
-      var(--dsh-chat-content-width-resolved) - 48px
+    --dsh-chat-content-width-resolved: var(--tongji-chat-width) !important;
+    --dsh-chat-end-inset: max(
+      0px,
+      calc(100% - var(--tongji-chat-width) - 48px)
     ) !important;
   }
 }
