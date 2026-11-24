@@ -4,9 +4,9 @@
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-24T06:52:45+08:00
- * @commit 4b3560cd6779 (dirty working tree) on main
- * @commit-date 2026-11-24T05:18:06+08:00
+ * @built 2026-11-24T08:43:11+08:00
+ * @commit f3153ab68a51 (dirty working tree) on main
+ * @commit-date 2026-11-24T06:52:56+08:00
  */
 
 /** Reusable fold cache for one Host owner. */

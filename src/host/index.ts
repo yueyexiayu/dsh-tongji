@@ -10,6 +10,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { apply as applyUpstream, inject as upstreamInject, Config as UpstreamConfig } from '../ui/host/index'
 import { registerUsageRoute } from './usageRoute'
+import { registerSshRoute } from '../ui/host/sshRoute'
 
 export const name = 'tongji'
 
@@ -25,11 +26,15 @@ export { createOverviewCache, type CacheSaveMode } from '../ui/host/overviewCach
 export { applyTimeline, createTimelineState } from '../ui/host/fold'
 export { applyActivity, createActivityState } from '../ui/host/activity'
 export { DEFAULT_BOUNDS } from '../ui/host/config'
+// Exported for the SSH route tests: the parsers the route and the card share.
+export { parseSshConfig, sshCheckCommand, sshConnectDetails, sshDestinations, sshEndpoint } from '../ui/shared/sshTargets'
+export { registerSshRoute, type SshPayload } from '../ui/host/sshRoute'
 
 export function apply(ctx: Context, config: UpstreamConfig): void {
   // Register tongji's own route first: it survives a version baseline
   // short-circuit, and a later upstream throw must not strand the panel's
   // per-turn section without its data source.
   registerUsageRoute(ctx)
+  registerSshRoute(ctx)
   applyUpstream(ctx, config)
 }

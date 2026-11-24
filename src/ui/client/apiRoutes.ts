@@ -23,3 +23,5 @@ export const SNAPSHOT_ROUTE = 'api/tongji/snapshot'
 export const OVERVIEW_ROUTE = 'api/tongji/overview'
 
 export const VERSION_ROUTE = 'api/tongji/version'
+
+export const SSH_ROUTE = 'api/tongji/ssh'

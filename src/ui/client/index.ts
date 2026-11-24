@@ -46,6 +46,7 @@ import './styles/overview.css'
 import './styles/dateRange.css'
 import './styles/recom.css'
 import './styles/turnUsage.css'
+import './styles/ssh.css'
 
 const NS = 'tongji'
 

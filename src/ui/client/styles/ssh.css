@@ -1,0 +1,89 @@
+/* SSH card: one host per row, a state dot, and two copy buttons. */
+
+[data-lc-ssh] {
+  flex: 1 1 min(360px, 100%);
+}
+
+.lc-ssh-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lc-ssh-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.lc-ssh-row:hover {
+  background: var(--lc-hover, rgba(127, 127, 127, 0.08));
+}
+
+.lc-ssh-host {
+  overflow: hidden;
+  color: var(--lc-fg, inherit);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lc-ssh-row[data-state='ok'] .lc-ssh-host::before,
+.lc-ssh-row[data-state='failed'] .lc-ssh-host::before,
+.lc-ssh-row[data-state='idle'] .lc-ssh-host::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  content: '';
+  vertical-align: middle;
+}
+
+.lc-ssh-row[data-state='ok'] .lc-ssh-host::before { background: var(--lc-ok, #2e9e6b); }
+
+.lc-ssh-row[data-state='failed'] .lc-ssh-host::before { background: var(--lc-bad, #d0512f); }
+
+.lc-ssh-row[data-state='idle'] .lc-ssh-host::before { background: var(--lc-muted, #8a8a8a); }
+
+.lc-ssh-meta {
+  grid-column: 1;
+  overflow: hidden;
+  color: var(--lc-fg-muted, #8a8a8a);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lc-ssh-actions {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  display: flex;
+  gap: 6px;
+}
+
+.lc-ssh-copy {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.lc-ssh-copy:hover {
+  color: var(--dsw-alias-brand-primary, var(--dsw-alias-label-primary));
+  text-decoration: underline;
+}
+
+.lc-ssh-note {
+  padding: 2px 6px 0;
+  color: var(--lc-fg-muted, #8a8a8a);
+  font-size: 11px;
+}

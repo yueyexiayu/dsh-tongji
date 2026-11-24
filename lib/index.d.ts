@@ -4,9 +4,9 @@
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-24T06:52:45+08:00
- * @commit 4b3560cd6779 (dirty working tree) on main
- * @commit-date 2026-11-24T05:18:06+08:00
+ * @built 2026-11-24T08:43:11+08:00
+ * @commit f3153ab68a51 (dirty working tree) on main
+ * @commit-date 2026-11-24T06:52:56+08:00
  */
 
 /**
@@ -4697,6 +4697,62 @@ interface OverviewCache {
 }
 export declare function createOverviewCache(options?: OverviewCacheOptions): OverviewCache;
 export declare function applyTimeline(state: TimelineState, event: TimelineEvent, bounds: FoldBounds): TimelineState;
+/**
+ * SSH facts shared by the host route and the client card.
+ *
+ * Two independent sources feed the card: the aliases the user configured in
+ * `~/.ssh/config`, and the hosts this conversation actually reached with
+ * ssh/scp/sftp. Both parsers are dependency free so the host can reuse them
+ * without pulling React into a route module.
+ */
+interface SshHostConfig {
+  alias: string;
+  hostName: string;
+  user: string;
+  port: string;
+}
+interface SshConnection {
+  host: string;
+  ok: boolean;
+  count: number;
+  turn: number;
+  seq: number;
+}
+/**
+ * Concrete host aliases of an OpenSSH client configuration.
+ *
+ * Wildcard and negated entries describe a rule rather than a destination, so
+ * they never reach the card; options other than HostName/User/Port are ignored
+ * (keys and identities are never read). As in OpenSSH, the first value of an
+ * option wins.
+ */
+export declare function parseSshConfig(text: unknown): SshHostConfig[];
+/**
+ * Destinations of the ssh, scp and sftp invocations in one shell command.
+ *
+ * Only the command text is read: no process is started and no host is
+ * contacted. Options that take a value are skipped so `-p 2222 host` and
+ * `-p2222 host` both name `host`; for scp only `host:path` operands count.
+ */
+export declare function sshDestinations(command: unknown): string[];
+/** `user@host:port` for a configured alias, or '' when it adds nothing. */
+export declare function sshEndpoint(config: SshHostConfig | undefined): string;
+/** A non-interactive check the user can paste in the shell that owns the keys. */
+export declare function sshCheckCommand(host: string, shell?: 'posix' | 'powershell'): string;
+/** Connection details for a remote client that takes host, port and user itself. */
+export declare function sshConnectDetails(host: string, config: SshHostConfig | undefined, userFallback: string): string;
+interface SshPayload {
+  client: string;
+  hosts: SshHostConfig[];
+  connections: SshConnection[];
+  events: number;
+}
+interface SshRouteOptions {
+  /** Overridden by the tests to prove each request re-reads the configuration. */
+  readConfig?: () => SshHostConfig[];
+  readClient?: () => string;
+}
+export declare function registerSshRoute(ctx: Context, options?: SshRouteOptions): void;
 export declare const name = "tongji";
 export declare const inject: string[];
 export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
@@ -4745,4 +4801,4 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
 export declare function apply(ctx: Context, config: Config$1): void;
-export type { CacheSaveMode };
+export type { CacheSaveMode, SshPayload };

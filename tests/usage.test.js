@@ -61,12 +61,12 @@ test('does not discover fork-inherited children and skips the inherited prefix',
 });
 
 test('Host endpoint returns aggregate and disposes its session observation', async () => {
-  let route;
+  const routes = [];
   let disposed = false;
   // tongji's route is registered before the merged dsh-context half runs (see
   // src/host/index.ts), so the route survives an upstream that this minimal fake
   // context cannot satisfy. That ordering is the property under test.
-  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { route = value; } } }, sessionQuery: {
+  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { routes.push(value); } } }, sessionQuery: {
     async observeSession(id, options) {
       assert.equal(id, 'root');
       assert.equal(options.projectionMode, 'none');
@@ -74,6 +74,7 @@ test('Host endpoint returns aggregate and disposes its session observation', asy
     },
   } };
   try { apply(ctx); } catch { /* the upstream half needs the full Host; the route is already registered */ }
+  const route = routes.find(item => item.path === '/api/tongji/usage');
   assert.ok(route, 'the usage route must be registered before the upstream half runs');
   const response = await route.fetch(new Request('http://localhost/api/tongji/usage?sessionId=root'));
   assert.equal(response.status, 200);
@@ -83,12 +84,14 @@ test('Host endpoint returns aggregate and disposes its session observation', asy
 });
 
 test('Host endpoint returns stable error codes and logs failures', async () => {
-  let route, warnings = 0;
+  const routes = [];
+  let warnings = 0;
   const missing = Object.assign(new Error('missing session'), { code: 'SESSION_QUERY_SESSION_NOT_FOUND' });
-  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { route = value; } } }, logger: { warn() { warnings++; } }, sessionQuery: {
+  const ctx = { effect(fn) { fn(); }, inject(_names, fn) { return fn(this); }, get() { return undefined; }, connection: { fetch: { register(value) { routes.push(value); } } }, logger: { warn() { warnings++; } }, sessionQuery: {
     async observeSession() { throw missing; },
   } };
   try { apply(ctx); } catch { /* the upstream half needs the full Host; the route is already registered */ }
+  const route = routes.find(item => item.path === '/api/tongji/usage');
   assert.ok(route, 'the usage route must be registered before the upstream half runs');
   // apply() also runs the version probe, which cannot detect a version in this
   // fake ctx; count only the route's own failure log from here.

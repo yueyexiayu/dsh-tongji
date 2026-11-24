@@ -36,6 +36,7 @@ import { makeCardSkeletons } from './cardSkeletons'
 import { makeCommandPanel } from './commandPanel'
 import { makeJobPanel } from './jobPanel'
 import { makeTurnUsageCard } from './turnUsage'
+import { makeSshCard } from './sshCard'
 import { makeCommandPager } from '../commandPages'
 import { useCommandLog } from './useCommandLog'
 import { tallyEntriesOf } from '../tallySort'
@@ -128,6 +129,7 @@ export function makeContextView(
   const Skeletons = makeCardSkeletons(kit)
   const AgentGraph = makeAgentGraph(ctx, kit, heads)
   const TurnUsageCard = makeTurnUsageCard(t)
+  const SshCard = makeSshCard(t)
   const ErrorBoundary = makeErrorBoundary(t)
 
   function ContextViewBody(props: ContextViewProps): ReactElement {
@@ -855,6 +857,7 @@ export function makeContextView(
 
         <div className="lc-cols">
           <JobPanel jobs={data.jobs ?? []} />
+          <SshCard sessionId={typeof sessionId === 'string' ? sessionId : undefined} />
         </div>
 
         {inSidebar ? (
