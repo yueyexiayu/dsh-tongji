@@ -79,6 +79,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.37：把「正文左移」的核心规则从 `@media (min-width: 1100px)` 里拿出来。实测发现媒体查询不命中时
+  （窗口缩放、判定宽度与预期不同），正文完全不左移，面板照样压住输入框——这正是「改了没反应」的原因。
+  现在只要面板想停靠就生效，inset 用 `max(0px, …)` 兜底，窄窗口也算不出负值。
+  实测（1023×1423 视口，刷新后）：`--dsh-chat-content-width-resolved` = 320px、`padding-inline-end` = 599px、
+  composer seat rect = x 56 / 361×172（可见）。
 - 0.1.36：0.1.35 用 `--dsh-conversation-viewport-width` 算 inset，实测该变量未测量时是 0px，
   算出的负值被浏览器丢弃，正文因此没有左移、输入框仍被面板挤掉。改为纯百分比：
   `--dsh-chat-end-inset: max(0px, calc(100% - 正文宽 - 48px))`，正文宽用变量
