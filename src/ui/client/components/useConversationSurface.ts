@@ -12,9 +12,14 @@ const SURFACES: Record<ConversationSurfaceKind, SurfaceMark> = {
   modal: { marks: new WeakMap(), attr: 'data-lc-modal' },
 }
 
-export function useConversationSurface(ref: RefObject<HTMLElement | null>, kind: ConversationSurfaceKind = 'pane'): void {
+export function useConversationSurface(
+  ref: RefObject<HTMLElement | null>,
+  kind: ConversationSurfaceKind = 'pane',
+  enabled = true,
+): void {
   const surface = SURFACES[kind]
   useLayoutEffect(() => {
+    if (!enabled) return undefined
     const scroller = ref.current?.closest<HTMLElement>('[data-conversation-scroll]')
     if (scroller === null || scroller === undefined) return undefined
     let mark = surface.marks.get(scroller)
@@ -30,5 +35,5 @@ export function useConversationSurface(ref: RefObject<HTMLElement | null>, kind:
       surface.marks.delete(scroller)
       scroller.removeAttribute(surface.attr)
     }
-  }, [ref, surface])
+  }, [enabled, ref, surface])
 }

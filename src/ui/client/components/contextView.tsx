@@ -248,7 +248,7 @@ export function makeContextView(
     )
 
     const rootRef = useRef<HTMLDivElement | null>(null)
-    useConversationSurface(rootRef)
+    useConversationSurface(rootRef, 'pane', !inPanel)
     const scrollerRef = useRef<HTMLElement | null>(null)
     const restoredRef = useRef<string | null>(null)
     const [catFocus, setCatFocus] = useState<CatFocus | null>(null)
