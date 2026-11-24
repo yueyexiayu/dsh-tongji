@@ -1,28 +1,33 @@
 /*
  * 会话面板（对话右侧那块）宽度与排版覆盖。
  *
- * 官方规则：面板宽度 = clamp(300px, 留白-48px, 360px)，它向正文要的让位 = 48px + 最小宽度。
- * 所以面板实际宽度就等于最小宽度 —— 想加宽必须同时收窄正文列，否则正文和输入框会被
- * padding-inline-end 推出可视区（上一版只抬最小宽度、没压正文，正是输入框消失的原因）。
+ * 官方把面板宽度绑在它向正文要的让位上（让位 = 48px + 最小宽度），而让位又通过
+ * --dsh-chat-end-inset 转成 scrollBody 的 padding-inline-end。上一版沿用这条链路：
+ * 让位一大，inset 就按官方公式被放大，正文列和贴在它底部的 composer 一起被推走。
  *
- * 这里的取值让「起点 = 视口宽 − 让位 − 正文宽」恒为 32px，正文永远留在可视区内：
- *   最小/让位：600px / 648px；正文 = clamp(320px, 视口宽−680px, 880px)；面板上限 720px。
- * 同时把 dockProbe 的最小宽度一起抬高，停靠判定与面板宽度保持一致。
+ * 这一版改法：让位保持官方 348px（最小宽度 300px），不再动它；改为直接接管
+ * --dsh-chat-end-inset，把正文列压到左侧，右侧整块留给面板。这样 composer 始终留在
+ * 可视区内（起点 24px），面板也能拿到 600–720px。
  */
 
-[data-conversation-content],
-[data-session-panel-probe] {
-  --panel-min-width: 600px !important;
+[data-conversation-content] {
+  --panel-min-width: 300px !important;
 }
 
-/* 面板想要停靠时，正文列收窄，给面板腾出位置。窗口窄于 1100px 时保持官方行为，
-   否则「正文宽 + 让位」会超过 Chat 外框，正文会被推出可视区。 */
 @media (min-width: 1100px) {
   [data-conversation-content]:has([data-session-panel-reserve]) {
+    /* 正文列：视口宽 − 680px，夹在 320–880 之间。 */
     --dsh-chat-content-width-resolved: clamp(
       320px,
       calc(var(--dsh-conversation-viewport-width, 100%) - 680px),
       880px
+    ) !important;
+
+    /* 末端缩进 = 视口宽 − 正文宽 − 48px，于是正文贴在左侧、起点约 24px，
+       右侧留白正好放得下面板。 */
+    --dsh-chat-end-inset: calc(
+      var(--dsh-conversation-viewport-width, 100%) -
+      var(--dsh-chat-content-width-resolved) - 48px
     ) !important;
   }
 }
@@ -36,10 +41,7 @@
   ) !important;
 }
 
-/*
- * 面板内容排版：面板够宽时卡片两两并排（原来宽度不够，一行只放得下一张）。
- * 按 .lc-root 自身宽度判断，不看窗口宽度。
- */
+/* 面板够宽时卡片两两并排；按 .lc-root 自身宽度判断。 */
 [data-session-panel] .lc-root {
   container-type: inline-size;
 }

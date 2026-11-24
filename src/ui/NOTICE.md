@@ -79,6 +79,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.35：换掉 0.1.34 的修法。官方把面板宽度和「正文让位」绑成同一个量（让位 = 48px + 最小宽度），
+  让位过大时官方 inset 公式会把正文列连同贴底 composer 一起推出可视区。现在让位回到官方 348px
+  （最小宽度 300px），改为直接接管 `--dsh-chat-end-inset`：正文宽 `clamp(320px, 视口−680px, 880px)`，
+  inset = 视口 − 正文宽 − 48px，正文贴左、起点约 24px，右侧空间给面板（600–720px）。
 - 0.1.34：修 0.1.33 的输入框消失：只抬了 `--panel-min-width` 却没压正文，面板要的让位（48px+最小宽度）
   超过 Chat 外框可给的空间，`--dsh-chat-end-inset` 把正文和 composer 推出可视区。现在把正文列
   一起收窄成 `clamp(320px, 视口宽−680px, 880px)`，使「起点 = 视口 − 让位 − 正文宽」恒为 32px；
