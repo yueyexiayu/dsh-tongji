@@ -79,6 +79,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.41：0.1.40 把工具条按钮直接注册到宿主占用的单槽位 `conversation.composer.bar`，与官方输入框的
+  priority 0 注册冲突，导致 `dsh-client-ui-conversation` 启动失败并连带阻塞 `uiConversation`。现改挂官方
+  输入框的列表子槽位 `conversation.input.left`，保留统计按钮，不再替换输入框本体。
+
 - 0.1.40：0.1.39 的 dock 挂载点在本机实测里拿不到——页面渲染出的 slot 只有 `conversation.composer` 与
   `conversation.composer.bar`，`.lc-dock` 数量为 0，统计直接不显示。改挂 `conversation.composer.bar`
   （输入框上方工具条），放一个「统计」按钮，点击设 `modalStoreOf(sessionId).set(true)` 打开插件已有的

@@ -257,7 +257,7 @@ test('module declares its host contract and registers every slot once', () => {
     'conversation.chat.assistant-actions',
     'conversation.input.overlay',
     // 统计入口是 composer 工具条上的按钮，点开全屏面板。
-    'conversation.composer.bar',
+    'conversation.input.left',
     'conversation.session.panel.section',
     'main',
     'sidebar.panellist',
@@ -267,13 +267,18 @@ test('module declares its host contract and registers every slot once', () => {
   assert.equal(new Set(registered.map(spec => `${spec.name}:${spec.id ?? spec.key ?? ''}`)).size, registered.length);
   assert.deepEqual([...new Set(injected)].sort(), [
     'conversation.chat.assistant-actions',
-    'conversation.composer.bar',
+    'conversation.input.left',
     'conversation.input.overlay',
     'conversation.session.panel.section',
     'conversation.view',
     'main',
     'sidebar.panellist',
   ]);
+  assert.equal(
+    registered.some(spec => spec.name === 'conversation.composer.bar'),
+    false,
+    'the single composer.bar slot must remain owned by the official input bar',
+  );
   // 统计面板只挂在会话主区标签页，右侧栏不再有任何 tongji 注册。
   assert.equal(registered.filter(spec => spec.name.startsWith('sidebar.right.')).length, 0);
 });

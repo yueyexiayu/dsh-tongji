@@ -1,7 +1,4 @@
-/*
- * 统计在对话里的排版。主入口是 composer dock 里的那张卡片（输入框上方），
- * 宽度跟随对话列，不参与会话面板的让位计算，因此不会挤压正文或 composer。
- */
+/* 统计入口与面板在对话里的排版。 */
 
 /* 输入框上方工具条里的「统计」按钮，点开全屏统计面板。 */
 .lc-bar-btn {
@@ -23,52 +20,7 @@
   color: var(--dsw-alias-label-primary);
 }
 
-.lc-dock {
-  width: min(100%, 912px);
-  margin: 0 auto 6px;
-}
-
-.lc-dock-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.lc-dock-head:hover {
-  background: var(--dsw-alias-bg-layer-2);
-}
-
-.lc-dock-title {
-  font-weight: 500;
-}
-
-.lc-dock-action {
-  color: var(--dsw-alias-label-secondary);
-  font-size: 11px;
-}
-
-.lc-dock-body {
-  max-height: 52vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  margin-top: 6px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-1);
-}
-
 /* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */
-.lc-dock .lc-root,
 [data-session-panel] .lc-root {
   container-type: inline-size;
 }
