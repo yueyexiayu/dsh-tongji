@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.30 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.31 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -16,8 +16,8 @@
 
 | Surface | Where | What it shows |
 | --- | --- | --- |
-| Statistics | Right sidebar tab of a conversation (opens automatically over the default guide) | Session totals, per-turn usage, cache hit rate, context composition |
-| Context | Conversation view tab | Context timeline, request detail, tool definitions, file activity, command log, context events |
+| Statistics panel | Conversation view tab, beside Chat and Trajectory — never the right sidebar | Session totals, per-turn usage, cache hit rate, context composition, agent network, background jobs, SSH connections |
+| Context | Conversation view tab (the modal and jump actions keep the old name) | Context timeline, request detail, tool definitions, file activity, command log, context events |
 | Fleet | Conversation view tab (can be hidden) | Sub-agent tree, agent network, tasks and exchanged messages |
 | Context insights | Main page plus a sidebar panel entry (can be hidden) | Cross-session overview, trends, skill catalog, recommendations |
 | Context jump | Assistant message actions | Jump from a turn to its place in the context view |
@@ -45,7 +45,7 @@ The interface is **Chinese only**: one dictionary (763 entries), no second copy 
 - Context events: injection, compaction, pruning, model switch, mode switch.
 - Tool definitions and file activity: schema sizes; file read, write, search and image operations with hit counts and line deltas.
 - Command log: filter by failed, slow or background, with exit codes, stderr, truncation flags, sandbox denials and timeouts, plus a jump back to the result message.
-- Background jobs (under the token and timing cards, same place in the full view and the sidebar): running or detached jobs with the command excerpt, state, duration, exit detail and job id; running jobs stay on top and their duration ticks by the second. Data comes from the `job/registered` and `job/settled` events in the session log; foreground jobs that finished stay in the command log only.
+- Background jobs (under the token and timing cards): running or detached jobs with the command excerpt, state, duration, exit detail and job id; running jobs stay on top and their duration ticks by the second. Data comes from the `job/registered` and `job/settled` events in the session log; foreground jobs that finished stay in the command log only.
 - Attachment previews and history paging: older history loads on request through the official session query interface, never eagerly when the panel opens.
 
 ### Fleet and insights
@@ -94,7 +94,7 @@ cd ~/.dsh/profiles/desktop
 pnpm install
 ```
 
-Quit DSH completely (⌘Q) and reopen it. On entering a conversation, "统计" opens automatically when the sidebar only shows its default guide; otherwise the current page keeps focus and "统计" stays available from the sidebar.
+Quit DSH completely (⌘Q) and reopen it. The statistics panel is the "统计面板" tab inside the conversation view; the right sidebar is no longer used.
 
 ## Configuration
 
@@ -102,7 +102,7 @@ The plugin ID, package name and bundle name are all `tongji`; install it at `~/.
 
 | Key | Values | Effect |
 | --- | --- | --- |
-| `defaultPlacement` | `all` / `tab` / `sidebar` / `hide` | Where the context panel is mounted |
+| `defaultPlacement` | `show` / `hide` | Whether the statistics panel tab is shown (legacy `all` / `tab` / `sidebar` still parse as `show`) |
 | `defaultGranularity` | `step` / `turn` | Timeline grouping |
 | `defaultTrendMode` | `total` / `delta` | Cumulative or delta trend |
 | `defaultDeltaBase` | `step` / `turn` | Delta baseline |

@@ -50,9 +50,7 @@ export interface SessionStandardProps {
   useChat?: UseChatLike
 }
 
-export interface ContextViewProps extends SessionStandardProps {
-  host?: 'sidebar'
-}
+export type ContextViewProps = SessionStandardProps
 
 const NO_PROJECTION = ((): null => null) as (key: string) => unknown
 

@@ -68,11 +68,17 @@ type Prefs = {
   promptSuffix?: string
 }
 
+function placementOf(value: unknown): DefaultPlacement | undefined {
+  if (value === 'show' || value === 'hide') return value
+  if (value === 'all' || value === 'tab' || value === 'sidebar') return 'show'
+  return undefined
+}
+
 function prefsOf(value: unknown): Prefs {
   if (value === null || typeof value !== 'object') return {}
   const v = value as Record<string, unknown>
   return {
-    ...(v.defaultPlacement === 'all' || v.defaultPlacement === 'tab' || v.defaultPlacement === 'sidebar' || v.defaultPlacement === 'hide' ? { placement: v.defaultPlacement } : {}),
+    ...(placementOf(v.defaultPlacement) !== undefined ? { placement: placementOf(v.defaultPlacement) as DefaultPlacement } : {}),
     ...(v.defaultGranularity === 'step' || v.defaultGranularity === 'turn' ? { granularity: v.defaultGranularity } : {}),
     ...(v.defaultTrendMode === 'total' || v.defaultTrendMode === 'delta' ? { mode: v.defaultTrendMode } : {}),
     ...(v.defaultDeltaBase === 'step' || v.defaultDeltaBase === 'turn' ? { deltaBase: v.defaultDeltaBase } : {}),
@@ -89,7 +95,7 @@ function prefsOf(value: unknown): Prefs {
 }
 
 export function createContextSettings(): ContextSettings {
-  let state: SettingsState = { status: 'loading', placement: 'all', granularity: 'step', mode: 'total', deltaBase: 'step', toolSort: 'count', fileSort: 'lines', insightsEntry: 'show', durationCurve: 'show', overviewAutoSteps: '100', overviewRange: '30d', fleetTab: 'show', promptPrefix: '', promptSuffix: '', writable: false }
+  let state: SettingsState = { status: 'loading', placement: 'show', granularity: 'step', mode: 'total', deltaBase: 'step', toolSort: 'count', fileSort: 'lines', insightsEntry: 'show', durationCurve: 'show', overviewAutoSteps: '100', overviewRange: '30d', fleetTab: 'show', promptPrefix: '', promptSuffix: '', writable: false }
   let scope: SettingsScopeLike | undefined
   const listeners = new Set<() => void>()
   const unchanged = (a: SettingsState, b: SettingsState): boolean =>
@@ -109,7 +115,7 @@ export function createContextSettings(): ContextSettings {
     } catch {}
     publish({
       status: snap.status === 'ready' || snap.status === 'unavailable' ? snap.status : 'loading',
-      placement: prefs.placement ?? (raw?.defaultPlacement === undefined ? state.placement : 'all'),
+      placement: prefs.placement ?? (raw?.defaultPlacement === undefined ? state.placement : 'show'),
       granularity: prefs.granularity ?? state.granularity,
       mode: prefs.mode ?? state.mode,
       deltaBase: prefs.deltaBase ?? state.deltaBase,
@@ -161,7 +167,7 @@ export function createContextSettings(): ContextSettings {
       void bound.set(field, value).catch(() => {
         const truth = sync(bound)
         const refused: Partial<SettingsState> = {}
-        if (field === 'defaultPlacement' && truth.placement === undefined) refused.placement = 'all'
+        if (field === 'defaultPlacement' && truth.placement === undefined) refused.placement = 'show'
         else if (field === 'insightsEntry' && truth.insightsEntry === undefined) refused.insightsEntry = 'show'
         else if (field === 'fleetTab' && truth.fleetTab === undefined) refused.fleetTab = 'show'
         if (Object.keys(refused).length > 0) publish({ ...state, ...refused })

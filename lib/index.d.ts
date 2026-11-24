@@ -1,12 +1,12 @@
 /**
- * tongji v0.1.30
+ * tongji v0.1.31
  * DSH 会话可观测性面板：统计、上下文、编队与跨会话洞察。
  * @author yueyexiayu <yueyexiayu@users.noreply.github.com>
  * @license Apache-2.0
  * @homepage https://github.com/yueyexiayu/dsh-tongji#readme
- * @built 2026-11-24T08:43:11+08:00
- * @commit f3153ab68a51 (dirty working tree) on main
- * @commit-date 2026-11-24T06:52:56+08:00
+ * @built 2026-11-24T14:22:35+08:00
+ * @commit e402c25ceec0 (dirty working tree) on main
+ * @commit-date 2026-11-24T08:44:56+08:00
  */
 
 /**
@@ -4269,7 +4269,7 @@ type DefaultTrendMode = 'total' | 'delta';
 type DefaultDeltaBase = 'step' | 'turn';
 type DefaultFileSort = 'count' | 'lines' | 'latest' | 'path' | 'name';
 type DefaultToolSort = 'size' | 'count' | 'name';
-type DefaultPlacement = 'all' | 'tab' | 'sidebar' | 'hide';
+type DefaultPlacement = 'show' | 'hide';
 type InsightsEntry = 'show' | 'hide';
 type DefaultDurationCurve = 'show' | 'hide';
 type OverviewAutoSteps = 'off' | '100' | '200' | '300';
@@ -4571,17 +4571,17 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   maxFileOps: Schema<number, number, "defined">;
   maxCommands: Schema<number, number, "defined">;
   maxCommandChars: Schema<number, number, "defined">;
-  defaultPlacement: Schema<"all" | "tab" | "sidebar" | "hide", "all" | "tab" | "sidebar" | "hide", "defined">;
+  defaultPlacement: Schema<"show" | "hide" | "all" | "tab" | "sidebar", "show" | "hide" | "all" | "tab" | "sidebar", "defined">;
   defaultGranularity: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultTrendMode: Schema<"total" | "delta", "total" | "delta", "defined">;
   defaultDeltaBase: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultToolSort: Schema<"size" | "count" | "name", "size" | "count" | "name", "defined">;
   defaultFileSort: Schema<"count" | "name" | "lines" | "latest" | "path", "count" | "name" | "lines" | "latest" | "path", "defined">;
-  insightsEntry: Schema<"hide" | "show", "hide" | "show", "defined">;
-  defaultDurationCurve: Schema<"hide" | "show", "hide" | "show", "defined">;
+  insightsEntry: Schema<"show" | "hide", "show" | "hide", "defined">;
+  defaultDurationCurve: Schema<"show" | "hide", "show" | "hide", "defined">;
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
-  fleetTab: Schema<"hide" | "show", "hide" | "show", "defined">;
+  fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
@@ -4593,17 +4593,17 @@ declare const Config$1: Schema<Schemastery.ObjectS<NoInfer<{
   maxFileOps: Schema<number, number, "defined">;
   maxCommands: Schema<number, number, "defined">;
   maxCommandChars: Schema<number, number, "defined">;
-  defaultPlacement: Schema<"all" | "tab" | "sidebar" | "hide", "all" | "tab" | "sidebar" | "hide", "defined">;
+  defaultPlacement: Schema<"show" | "hide" | "all" | "tab" | "sidebar", "show" | "hide" | "all" | "tab" | "sidebar", "defined">;
   defaultGranularity: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultTrendMode: Schema<"total" | "delta", "total" | "delta", "defined">;
   defaultDeltaBase: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultToolSort: Schema<"size" | "count" | "name", "size" | "count" | "name", "defined">;
   defaultFileSort: Schema<"count" | "name" | "lines" | "latest" | "path", "count" | "name" | "lines" | "latest" | "path", "defined">;
-  insightsEntry: Schema<"hide" | "show", "hide" | "show", "defined">;
-  defaultDurationCurve: Schema<"hide" | "show", "hide" | "show", "defined">;
+  insightsEntry: Schema<"show" | "hide", "show" | "hide", "defined">;
+  defaultDurationCurve: Schema<"show" | "hide", "show" | "hide", "defined">;
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
-  fleetTab: Schema<"hide" | "show", "hide" | "show", "defined">;
+  fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;
@@ -4764,17 +4764,17 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   maxFileOps: Schema<number, number, "defined">;
   maxCommands: Schema<number, number, "defined">;
   maxCommandChars: Schema<number, number, "defined">;
-  defaultPlacement: Schema<"all" | "tab" | "sidebar" | "hide", "all" | "tab" | "sidebar" | "hide", "defined">;
+  defaultPlacement: Schema<"show" | "hide" | "all" | "tab" | "sidebar", "show" | "hide" | "all" | "tab" | "sidebar", "defined">;
   defaultGranularity: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultTrendMode: Schema<"total" | "delta", "total" | "delta", "defined">;
   defaultDeltaBase: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultToolSort: Schema<"size" | "count" | "name", "size" | "count" | "name", "defined">;
   defaultFileSort: Schema<"count" | "name" | "lines" | "latest" | "path", "count" | "name" | "lines" | "latest" | "path", "defined">;
-  insightsEntry: Schema<"hide" | "show", "hide" | "show", "defined">;
-  defaultDurationCurve: Schema<"hide" | "show", "hide" | "show", "defined">;
+  insightsEntry: Schema<"show" | "hide", "show" | "hide", "defined">;
+  defaultDurationCurve: Schema<"show" | "hide", "show" | "hide", "defined">;
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
-  fleetTab: Schema<"hide" | "show", "hide" | "show", "defined">;
+  fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
@@ -4786,17 +4786,17 @@ export declare const Config: Schema<Schemastery.ObjectS<NoInfer<{
   maxFileOps: Schema<number, number, "defined">;
   maxCommands: Schema<number, number, "defined">;
   maxCommandChars: Schema<number, number, "defined">;
-  defaultPlacement: Schema<"all" | "tab" | "sidebar" | "hide", "all" | "tab" | "sidebar" | "hide", "defined">;
+  defaultPlacement: Schema<"show" | "hide" | "all" | "tab" | "sidebar", "show" | "hide" | "all" | "tab" | "sidebar", "defined">;
   defaultGranularity: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultTrendMode: Schema<"total" | "delta", "total" | "delta", "defined">;
   defaultDeltaBase: Schema<"step" | "turn", "step" | "turn", "defined">;
   defaultToolSort: Schema<"size" | "count" | "name", "size" | "count" | "name", "defined">;
   defaultFileSort: Schema<"count" | "name" | "lines" | "latest" | "path", "count" | "name" | "lines" | "latest" | "path", "defined">;
-  insightsEntry: Schema<"hide" | "show", "hide" | "show", "defined">;
-  defaultDurationCurve: Schema<"hide" | "show", "hide" | "show", "defined">;
+  insightsEntry: Schema<"show" | "hide", "show" | "hide", "defined">;
+  defaultDurationCurve: Schema<"show" | "hide", "show" | "hide", "defined">;
   overviewAutoSteps: Schema<"100" | "200" | "300" | "off", "100" | "200" | "300" | "off", "defined">;
   defaultOverviewRange: Schema<"today" | "7d" | "30d", "today" | "7d" | "30d", "defined">;
-  fleetTab: Schema<"hide" | "show", "hide" | "show", "defined">;
+  fleetTab: Schema<"show" | "hide", "show" | "hide", "defined">;
   promptPrefix: Schema<string, string, "defined">;
   promptSuffix: Schema<string, string, "defined">;
 }>>, "plain">;

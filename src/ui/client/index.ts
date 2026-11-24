@@ -20,7 +20,6 @@ import { makeAgentHeads } from './agentHeads'
 import { watchHistoryFaces } from './historyPage'
 import { resetVersionSource } from './versionSource'
 import { watchPlacement } from './placement'
-import { watchSidebarContextTab } from './sidebar'
 import { makeViewKit } from './viewkit'
 
 import './styles/tailwind.css'
@@ -74,13 +73,10 @@ function apply(ctx: ClientCtx): void {
   const ContextView = makeContextView(ctx, kit, settings, heads)
   const FleetView = makeFleetView(ctx, kit, heads)
 
-  ctx.effect(() => watchPlacement(settings, {
-    tab: () => ctx.slots.inject('conversation.view', () => ctx.slots.register(
-      { name: 'conversation.view', id: CONTEXT_VIEW_ID, order: 20, locale: NS, label: () => t('tab.context') },
-      props => h(ContextView, props),
-    )),
-    sidebar: () => watchSidebarContextTab(ctx, ContextView, t, NS),
-  }), 'tongji: placement')
+  ctx.effect(() => watchPlacement(settings, () => ctx.slots.inject('conversation.view', () => ctx.slots.register(
+    { name: 'conversation.view', id: CONTEXT_VIEW_ID, order: 20, locale: NS, label: () => t('tab.panel') },
+    props => h(ContextView, props),
+  ))), 'tongji: placement')
 
   ctx.effect(() => watchFleetTab(
     ctx,
@@ -90,7 +86,7 @@ function apply(ctx: ClientCtx): void {
     NS,
   ), 'tongji: fleet tab')
 
-  const ContextJump = makeContextJumpButton(ctx, kit, settings)
+  const ContextJump = makeContextJumpButton(kit, settings)
   ctx.slots.inject(JUMP_SLOT, () => {
     return ctx.slots.register(
       { name: JUMP_SLOT, id: JUMP_ID, order: 20, locale: NS },

@@ -79,6 +79,11 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.31：统计面板从右侧栏标签页搬到会话主区标签页「统计面板」，右侧栏不再注册任何 tongji 入口
+  （`sidebar.right.pane.tab` / `sidebar.right.pane.tab.title` 与 `sidebarRightTabs.register` 一并删除）。
+  主区这一份补上原先只在侧栏出现的「Agent 网络」，并去掉只服务侧栏的 IntersectionObserver 懒加载、
+  `dnaAllowed` 可见性门槛与未挂载早退。`defaultPlacement` 收敛为 `show` / `hide`，旧值
+  `all` / `tab` / `sidebar` 仍按 `show` 解析；设置卡对应项改为显示/隐藏。
 - 0.1.30：把「后台任务」卡片从页面底部（文件活动之后、命令面板之前）移到顶部——统计双卡
   （Token 统计 / 耗时统计）之后、Agent 网络之前。上下文整页与侧栏「统计」页共用同一份渲染，
   之前只在页面最底部出现，侧栏一打开看不到；移动后侧栏顶部即可见。

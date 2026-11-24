@@ -1,6 +1,5 @@
 import sheetMarkup from '../icon.svg?raw'
 import { useId, type ReactElement } from 'react'
-import type { Translate } from './i18n'
 
 const SHEET_MARKUP = sheetMarkup
   .slice(sheetMarkup.indexOf('>') + 1, sheetMarkup.lastIndexOf('</svg>'))
@@ -60,15 +59,4 @@ export function ContextIcon({ size = 20, className, mono = false }: ContextIconP
 
 export function InsightPanelIcon({ size = 18 }: { size?: number }): ReactElement {
   return <ContextIcon size={size} mono />
-}
-
-export function makeContextTabTitle(t: Translate): () => ReactElement {
-  return function ContextTabTitle(): ReactElement {
-    return (
-      <>
-        <ContextIcon size={16} className="lc-title-icon" />
-        <span className="lc-title-label">{t('tab.stats')}</span>
-      </>
-    )
-  }
 }

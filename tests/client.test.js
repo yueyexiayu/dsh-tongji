@@ -180,8 +180,6 @@ function loadPlugin() {
   let plugin;
   const injected = [];
   const registered = [];
-  const tabs = [];
-  const cleanups = [];
   const view = {};
 
   const React = {
@@ -235,13 +233,6 @@ function loadPlugin() {
       getSnapshot: () => ({ active: 'zh' }),
       subscribe: () => noop,
     },
-    sidebarRightTabs: {
-      register(spec) {
-        tabs.push(spec);
-        cleanups.push(noop);
-        return noop;
-      },
-    },
     slots: {
       inject(_name, run) { injected.push(_name); try { run(); } catch { /* slot deps missing */ } },
       register(spec, component) {
@@ -252,11 +243,11 @@ function loadPlugin() {
     },
   };
   plugin.apply(ctx);
-  return { plugin, injected, registered, tabs, view };
+  return { plugin, injected, registered, view };
 }
 
 test('module declares its host contract and registers every slot once', () => {
-  const { plugin, injected, registered, tabs } = loadPlugin();
+  const { plugin, injected, registered } = loadPlugin();
   assert.equal(plugin.name, 'tongji');
   assert.deepEqual([...plugin.inject].sort(), ['locale', 'slots']);
 
@@ -265,8 +256,6 @@ test('module declares its host contract and registers every slot once', () => {
     'conversation.view',
     'conversation.chat.assistant-actions',
     'conversation.input.overlay',
-    'sidebar.right.pane.tab',
-    'sidebar.right.pane.tab.title',
     'main',
     'sidebar.panellist',
   ]) {
@@ -279,15 +268,9 @@ test('module declares its host contract and registers every slot once', () => {
     'conversation.view',
     'main',
     'sidebar.panellist',
-    'sidebar.right.pane.tab',
-    'sidebar.right.pane.tab.title',
   ]);
-  assert.equal(tabs.length, 1);
-  assert.equal(tabs[0].id, 'tongji');
-  assert.equal(tabs[0].kind, 'tongji');
-  assert.equal(typeof tabs[0].title, 'function');
-  assert.equal(tabs[0].guide.length, 1);
-  assert.equal(tabs[0].guide[0].order, 20);
+  // 统计面板只挂在会话主区标签页，右侧栏不再有任何 tongji 注册。
+  assert.equal(registered.filter(spec => spec.name.startsWith('sidebar.right.')).length, 0);
 });
 
 test('conversation view and fleet tab are separate registrations', () => {
@@ -300,12 +283,11 @@ test('conversation view and fleet tab are separate registrations', () => {
   assert.notEqual(view['conversation.view:context'], view['conversation.view:fleet']);
 });
 
-test('tab title renders the localized stats label', () => {
-  const { view } = loadPlugin();
-  const title = view['sidebar.right.pane.tab.title:tongji'];
-  assert.equal(typeof title, 'function');
-  const tree = title({ t: key => `t:${key}` });
-  assert.match(textOf(tree), /t:tab\.stats/);
+test('the stats panel tab labels itself inside the conversation view', () => {
+  const { registered } = loadPlugin();
+  const panel = registered.find(spec => spec.name === 'conversation.view' && spec.id === 'context');
+  assert.equal(typeof panel.label, 'function');
+  assert.equal(panel.label(), 't:tab.panel');
 });
 
 test('usage card fetches the session total and polls every five seconds', async () => {

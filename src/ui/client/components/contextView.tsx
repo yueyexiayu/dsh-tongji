@@ -4,7 +4,7 @@ import { TrendReserved } from './trendReserved'
 import { briefNodes, briefOf } from '../brief'
 import { headlineOf } from '../headline'
 import type { ContextViewProps } from '../services'
-import { conversationNodesOf, headersOf, imageLoaderOf, projectionOf, seatKeyOf, seatOf, sessionAddressOf, unsupportedOf } from '../services'
+import { conversationNodesOf, headersOf, imageLoaderOf, projectionOf, seatKeyOf, sessionAddressOf, unsupportedOf } from '../services'
 import type { ClientCtx, ConversationNodeLike } from '../services'
 import { makeContentFetcher, makeHeaderFetcher, useHistoryFace } from '../historyPage'
 import { makeDeltaFetcher } from '../timelineSource'
@@ -59,7 +59,7 @@ import { useConversationSurface } from './useConversationSurface'
 import { dnaDeltaMaximaOf, trendBandsOf } from '../dna'
 import type { TrendBand } from '../dna'
 
-import { activateViewTab, openContextSidebar, subscribeContextFocus, takeContextFocus, useFleetMemberFocus } from '../viewFocus'
+import { activateViewTab, subscribeContextFocus, takeContextFocus, useFleetMemberFocus } from '../viewFocus'
 import { revealInScrollParent } from '../revealScroll'
 import { makeErrorBoundary } from './errorBoundary'
 import { trimRetentionMap } from '../retention'
@@ -97,10 +97,6 @@ export function browserCapOf(cards: readonly { top: number; bottom: number }[]):
   return Number.isFinite(span) && span > 0 ? Math.ceil(span) : null
 }
 
-type TabInfoSeat = () => { tab?: { visible?: boolean }; sidebar?: { expanded?: boolean } }
-
-const NO_TAB_INFO: TabInfoSeat = () => ({ tab: { visible: true } })
-
 export function makeContextView(
   ctx: ClientCtx,
   kit: ViewKit,
@@ -134,7 +130,6 @@ export function makeContextView(
 
   function ContextViewBody(props: ContextViewProps): ReactElement {
     const sessionId = props.sessionId
-    const inSidebar = props.host === 'sidebar'
     const { source, data: sessionData, pressure, breakdown, usage } = useContextSession(props)
     const data = sessionData ?? COLD_TIMELINE
     const ensurePart = source.ensurePart
@@ -168,7 +163,6 @@ export function makeContextView(
     const [jumpSeq, setJumpSeq] = useState<number | null>(null)
     const [hoverCat, setHoverCat] = useState<string | null>(null)
     const [focusCat, setFocusCat] = useState<string | null>(null)
-    const [sidebarVisible, setSidebarVisible] = useState(true)
     const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const hoverPending = useRef<number | null>(null)
     const hoverAt = useRef(0)
@@ -213,18 +207,6 @@ export function makeContextView(
     const handleHoverKey = useCallback((key: string | null): void => {
       startTransition(() => { setHoverCat(key) })
     }, [])
-    /* v8 ignore start */
-    useEffect(() => {
-      if (!inSidebar || typeof IntersectionObserver !== 'function') return
-      const el = rootRef.current
-      if (el === null) return
-      const observer = new IntersectionObserver(([entry]) => {
-        setSidebarVisible(entry.isIntersecting)
-      }, { threshold: 0 })
-      observer.observe(el)
-      return () => { observer.disconnect() }
-    }, [inSidebar, data])
-    /* v8 ignore stop */
     const [pickedKinds, setPickedKinds] = useState<string[]>([...EVENT_KINDS])
     const toggleKind = (k: string) => {
       setPickedKinds((p) => {
@@ -316,7 +298,7 @@ export function makeContextView(
       if (col === null) return
       const next = browserCapOf([...col.children].map(el => el.getBoundingClientRect()))
       setBrowserCap(prev => (prev === next ? prev : next))
-    }, [capTick, data, sidebarVisible])
+    }, [capTick, data])
     /* v8 ignore start */
     useEffect(() => {
       const col = leftColRef.current
@@ -325,7 +307,7 @@ export function makeContextView(
       observer.observe(col)
       for (const el of col.querySelectorAll(':scope > .lc-card')) observer.observe(el)
       return () => { observer.disconnect() }
-    }, [sidebarVisible])
+    }, [])
     /* v8 ignore stop */
     const onJump = useCallback((jump: StatsJump): void => {
       if (jump === 'turns' || jump === 'steps') {
@@ -348,9 +330,9 @@ export function makeContextView(
       setCatFocus({ cat, step: seq })
       revealBrowserIfOffscreen(rootRef.current)
     }, [])
-    const hasFamilyView = settings.fleetTab() === 'show' || settings.defaultPlacement() !== 'tab'
+    const hasFamilyView = settings.fleetTab() === 'show'
     const onTeamClick = useCallback((): void => {
-      if (!activateViewTab(t('tab.fleet'))) openContextSidebar(ctx)
+      activateViewTab(t('tab.fleet'))
     }, [t])
     const onToolPick = useCallback((tool: string): void => {
       const inSkill = data.nodes.some(n => n.tool === tool && n.cat === 'skill')
@@ -402,8 +384,7 @@ export function makeContextView(
     const remote = remoteStateOf(displayRequests.length, source.detailState, source.retryDetail)
     const opStampOf = useMemo(() => stepStampOf(requests), [requests])
     const markers = useMemo(() => attachMarkers(displayRequests, events), [displayRequests, events])
-    /* v8 ignore next 1 */
-    const dnaAllowed = dna && (!inSidebar || sidebarVisible)
+    const dnaAllowed = dna
     const dnaEager = dnaAllowed && displayRequests.length <= DNA_LAZY_MIN
     const dnaCacheOwner = useMemo(() => ({ data, headers }), [data, headers])
     const dnaBands = useMemo(
@@ -646,9 +627,6 @@ export function makeContextView(
     const subtitle = providerModelLabelOf(data.provider, data.model, data.reasoningEffort)
     const gate = unsupportedOf(data.unsupported)
 
-    /* v8 ignore next 2 */
-    if (inSidebar && !sidebarVisible) return <div className="lc-root" ref={rootRef} />
-
     const compositionCard = (
       <CurrentComposition
         head={head}
@@ -831,8 +809,7 @@ export function makeContextView(
     return (
       <div className="lc-root" ref={rootRef}>
 
-        {inSidebar ? null : (
-          <div className="lc-cols lc-head">
+        <div className="lc-cols lc-head">
             <StatsContext counts={counts} humanInputs={data.humanInputs} answers={data.answers} toolCalls={data.toolCalls}
               files={ioTotals} tools={toolTally} commands={commandBoard}
               cost={data.cost} sessionId={typeof sessionId === 'string' ? sessionId : undefined}
@@ -842,12 +819,11 @@ export function makeContextView(
               onCommandPick={hasCommands ? setCommandFocus : undefined}
               onCommandMore={hasCommands ? onCommandMore : undefined}
               onEventsClick={onEventsClick} />
-            <div className="lc-col">
-              <PluginInfo />
-              <RecomCard key={typeof sessionId === 'string' ? sessionId : undefined} />
-            </div>
+          <div className="lc-col">
+            <PluginInfo />
+            <RecomCard key={typeof sessionId === 'string' ? sessionId : undefined} />
           </div>
-        )}
+        </div>
         <div className="lc-cols lc-head">
           <StatsTokens usage={usage} current={data.current} breakdown={breakdown}
             generatedReasoning={data.generatedReasoning} generatedAnswerTokens={data.generatedAnswerTokens}
@@ -860,14 +836,12 @@ export function makeContextView(
           <SshCard sessionId={typeof sessionId === 'string' ? sessionId : undefined} />
         </div>
 
-        {inSidebar ? (
-          <AgentGraph
-            sessionId={typeof sessionId === 'string' ? sessionId : undefined}
-            self={agentSelfOf(data, pressure, breakdown, usage)}
-            failedSubagents={data.failedAgents}
-            focusId={focusMember}
-          />
-        ) : null}
+        <AgentGraph
+          sessionId={typeof sessionId === 'string' ? sessionId : undefined}
+          self={agentSelfOf(data, pressure, breakdown, usage)}
+          failedSubagents={data.failedAgents}
+          focusId={focusMember}
+        />
 
         <div className="lc-cols lc-cols-main">
           <div className="lc-col flex-1 min-w-[min(360px,100%)]" ref={leftColRef}>{compositionCard}{trendCard}</div>
@@ -943,9 +917,6 @@ export function makeContextView(
   }
 
   function ContextViewGate(props: ContextViewProps): ReactElement {
-    const useTabInfo = (props as ContextViewProps & { useTabInfo?: TabInfoSeat }).useTabInfo
-    const info = seatOf(useTabInfo, NO_TAB_INFO)()
-    if (props.host === 'sidebar' && info.tab?.visible !== true) return h('div', { className: 'lc-root' })
     return h(ContextViewBody, props)
   }
 

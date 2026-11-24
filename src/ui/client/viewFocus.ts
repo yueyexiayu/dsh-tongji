@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import { registerRetentionCleanup, trimRetentionMap } from './retention'
-import { asRecord, type ClientCtx } from './services'
-import { SIDEBAR_CONTEXT_KIND } from './sidebar'
 
 const pendingFocus = new Map<string, number>()
 
@@ -61,17 +59,6 @@ registerRetentionCleanup(() => {
   focusListeners.clear()
   memberListeners.clear()
 })
-
-export function openContextSidebar(ctx: ClientCtx): boolean {
-  try {
-    const face = asRecord(ctx.get('sidebarRight'))
-    if (face === null || typeof face.openTab !== 'function') return false
-    ;(face.openTab as (kind: string) => void).call(face, SIDEBAR_CONTEXT_KIND)
-    return true
-  } catch {
-    return false
-  }
-}
 
 export function activateViewTab(label: string): boolean {
   const tabs = document.querySelectorAll<HTMLButtonElement>('button[role="tab"]')

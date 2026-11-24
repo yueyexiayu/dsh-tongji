@@ -1,9 +1,9 @@
 import { useSyncExternalStore, type ReactElement } from 'react'
 import { Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { ClientCtx, ConversationNodeLike, UseChatLike } from '../services'
+import type { ConversationNodeLike, UseChatLike } from '../services'
 import { conversationNodesOf, seatKeyOf } from '../services'
-import { activateViewTab, openContextSidebar, requestContextFocus } from '../viewFocus'
-import { placementSurfaces } from '../placement'
+import { activateViewTab, requestContextFocus } from '../viewFocus'
+import { placementVisible } from '../placement'
 import type { ContextSettings } from '../settings'
 import type { ViewKit } from '../viewkit'
 
@@ -36,7 +36,6 @@ function JumpIcon(): ReactElement {
 }
 
 export function makeContextJumpButton(
-  ctx: ClientCtx,
   kit: ViewKit,
   settings: ContextSettings,
 ): (props: ContextJumpProps) => ReactElement | null {
@@ -50,15 +49,14 @@ export function makeContextJumpButton(
     const placement = useSyncExternalStore(subscribeSettings, () => settings.defaultPlacement())
     const messageId = props.messageId
     if (typeof messageId !== 'string' || messageId === '') return null
-    const surfaces = placementSurfaces(placement)
-    if (!surfaces.tab && !surfaces.sidebar) return null
+    if (!placementVisible(placement)) return null
     const seq = seqOfMessageId(nodes, messageId)
     const jump = (): void => {
       const sessionId = props.sessionId
       if (seq !== null && typeof sessionId === 'string' && sessionId !== '') {
         requestContextFocus(sessionId, seq)
       }
-      if (!openContextSidebar(ctx)) activateViewTab(t('tab.context'))
+      activateViewTab(t('tab.panel'))
     }
     return (
       <Tooltip label={t('jump.title')} side="bottom">

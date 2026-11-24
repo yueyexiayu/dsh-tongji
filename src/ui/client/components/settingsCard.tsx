@@ -168,18 +168,8 @@ function PreferenceRows(props: { t: Translate; state: SettingsState; set?: Setti
   return (
     <>
       <Group title={t('settings.group.entry')}>
-        <PrefRow
-          label={t('settings.placement')}
-          value={state.placement}
-          disabled={disabled}
-          options={[
-            { id: 'all', label: t('placement.all') },
-            { id: 'tab', label: t('placement.tab') },
-            { id: 'sidebar', label: t('placement.sidebar') },
-            { id: 'hide', label: t('placement.hide') },
-          ]}
-          onPick={(id) => { set?.('defaultPlacement', id) }}
-        />
+        <ShowHideRow t={t} label={t('settings.placement')} value={state.placement} disabled={disabled}
+          onPick={(id) => { set?.('defaultPlacement', id) }} />
         <ShowHideRow t={t} label={t('settings.insightsEntry')} value={state.insightsEntry} disabled={disabled}
           onPick={(id) => { set?.('insightsEntry', id) }} />
         <ShowHideRow t={t} label={t('settings.fleetTab')} value={state.fleetTab} disabled={disabled}

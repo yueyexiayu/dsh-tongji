@@ -166,7 +166,7 @@ export type DefaultFileSort = 'count' | 'lines' | 'latest' | 'path' | 'name'
 
 export type DefaultToolSort = 'size' | 'count' | 'name'
 
-export type DefaultPlacement = 'all' | 'tab' | 'sidebar' | 'hide'
+export type DefaultPlacement = 'show' | 'hide'
 
 export type InsightsEntry = 'show' | 'hide'
 

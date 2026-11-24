@@ -36,7 +36,8 @@ export const Config = z.object({
   maxFileOps: count(DEFAULT_BOUNDS.maxFileOps),
   maxCommands: count(DEFAULT_BOUNDS.maxCommands),
   maxCommandChars: count(DEFAULT_BOUNDS.maxCommandChars),
-  defaultPlacement: volatileField(z.union(['all', 'tab', 'sidebar', 'hide']).default('all').loose()),
+  // 统计面板固定挂在会话主区标签页；all/tab/sidebar 是旧版放置值，仍可解析并折算为 show。
+  defaultPlacement: volatileField(z.union(['show', 'hide', 'all', 'tab', 'sidebar']).default('show').loose()),
   defaultGranularity: volatileField(z.union(['step', 'turn']).default('step').loose()),
   defaultTrendMode: volatileField(z.union(['total', 'delta']).default('total').loose()),
   defaultDeltaBase: volatileField(z.union(['step', 'turn']).default('step').loose()),
