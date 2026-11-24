@@ -1,51 +1,13 @@
 /*
- * 会话面板（对话右侧那块）宽度与排版覆盖。
+ * 会话面板内的排版覆盖。
  *
- * 正文列与输入框不是插件，是 DSH 内置的 conversation 视图：它们的宽度读
- * --dsh-chat-content-width-resolved，水平位置由 scrollBody 的 padding-inline-end
- * （即 --dsh-chat-end-inset）决定。这里就改这两个变量，把正文与输入框一起推到左侧，
- * 右侧整块空间留给会话面板。
+ * 0.1.33–0.1.37 尝试过用 CSS 变量把面板加宽到 600–720px 并让正文左移，实测会把正文与输入框
+ * 推出可视区（DSH 的面板宽度与「正文让位」是同一个量，强行拆开就错位）。那段实验已全部移除，
+ * 面板宽度、正文宽度、end inset 都回到 DSH 官方值。
  *
- * 核心两条规则不套 media：media 阈值一旦没命中（窗口被缩放、判定宽度与预期不同），
- * 正文就不会左移、面板又会压到输入框上。inset 用 max(0px, …) 兜底，窄窗口也算不出负值。
+ * 只保留一条无害规则：面板自身够宽时（≥470px，DSH 官方宽度下不会触发），卡片两两并排。
  */
 
-[data-conversation-content] {
-  --panel-min-width: 300px !important;
-  --tongji-chat-width: 320px;
-}
-
-@media (min-width: 1500px) {
-  [data-conversation-content] {
-    --tongji-chat-width: 400px;
-  }
-}
-
-@media (min-width: 1900px) {
-  [data-conversation-content] {
-    --tongji-chat-width: 520px;
-  }
-}
-
-/* 面板想停靠时：正文列固定宽度，末端缩进 = 视口 − 正文宽 − 48px，正文与输入框随之左移。 */
-[data-conversation-content]:has([data-session-panel-reserve]) {
-  --dsh-chat-content-width-resolved: var(--tongji-chat-width) !important;
-  --dsh-chat-end-inset: max(
-    0px,
-    calc(100% - var(--tongji-chat-width) - 48px)
-  ) !important;
-}
-
-/* 面板宽度：官方上限 360 → 720；浮层态保持官方 280px。 */
-[data-session-panel]:not([data-session-panel='overlay']) {
-  width: clamp(
-    600px,
-    calc(var(--dsh-chat-aside-gutter, 0px) - 48px),
-    720px
-  ) !important;
-}
-
-/* 面板够宽时卡片两两并排；按 .lc-root 自身宽度判断。 */
 [data-session-panel] .lc-root {
   container-type: inline-size;
 }

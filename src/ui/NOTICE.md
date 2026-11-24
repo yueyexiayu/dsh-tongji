@@ -79,6 +79,13 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.38：回滚 0.1.33–0.1.37 的面板加宽实验。那五版都在改写宿主的 `--panel-min-width`、
+  `--dsh-chat-content-width-resolved`、`--dsh-chat-end-inset`，实测（多处用户截图 + 本机 1023×1423
+  视口读数）会把正文列与 composer 推出可视区，最后一版甚至整屏错位。原因是 DSH 把「面板宽度」
+  与「正文让位」绑成同一个量，单靠 CSS 变量拆不开。现在面板宽度、正文宽度、end inset 全部回到
+  官方值，只保留一条无害的容器查询（面板自身 ≥470px 时卡片两两并排，官方宽度下不触发）。
+  实测回滚后：`--dsh-chat-content-width-resolved` = 680px、`padding-inline-end` = 0px、
+  composer seat rect = x 0 / 577×240（正常）。
 - 0.1.37：把「正文左移」的核心规则从 `@media (min-width: 1100px)` 里拿出来。实测发现媒体查询不命中时
   （窗口缩放、判定宽度与预期不同），正文完全不左移，面板照样压住输入框——这正是「改了没反应」的原因。
   现在只要面板想停靠就生效，inset 用 `max(0px, …)` 兜底，窄窗口也算不出负值。
