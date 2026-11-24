@@ -79,6 +79,10 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.33：把 DSH 会话面板加宽到约 1.67 倍（360px → 最宽 600px，最窄 500px），并让正文列在
+  面板停靠时收窄让位（列宽 −660px，最低 320px）。实现只在 `styles/sessionPanel.css` 里覆盖官方
+  发布在 `[data-conversation-content]` 上的 `--panel-min-width`、`--dsh-chat-content-width-resolved`
+  与面板宽度，不改 DSH 源码。窄窗口（<1080px）保持官方行为，避免正文被压窄而面板仍放不下。
 - 0.1.32：统计再往前一步——注册 DSH 官方的 `conversation.session.panel.section`（会话面板分栏，
   id `tongji`、order 50），于是对话右侧的会话面板里多一个「统计」分栏，与右侧边栏无关；
   分栏模式隐藏只有宽屏才放得下的首行（用户消息 / 工具定义那块），其余卡片照旧。新增
