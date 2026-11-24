@@ -52,7 +52,7 @@ export interface SessionStandardProps {
 
 export interface ContextViewProps extends SessionStandardProps {
   /** Panel sections render narrower than a view tab, so the panel drops its widest row. */
-  host?: 'panel'
+  host?: 'panel' | 'dock'
 }
 
 const NO_PROJECTION = ((): null => null) as (key: string) => unknown

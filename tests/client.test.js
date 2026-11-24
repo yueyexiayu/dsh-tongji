@@ -256,7 +256,8 @@ test('module declares its host contract and registers every slot once', () => {
     'conversation.view',
     'conversation.chat.assistant-actions',
     'conversation.input.overlay',
-    'conversation.session.panel.section',
+    // 统计现在挂在 composer dock（输入框上方），与右侧分栏二选一。
+    'conversation.composer.dock',
     'main',
     'sidebar.panellist',
   ]) {
@@ -265,8 +266,8 @@ test('module declares its host contract and registers every slot once', () => {
   assert.equal(new Set(registered.map(spec => `${spec.name}:${spec.id ?? spec.key ?? ''}`)).size, registered.length);
   assert.deepEqual([...new Set(injected)].sort(), [
     'conversation.chat.assistant-actions',
+    'conversation.composer.dock',
     'conversation.input.overlay',
-    'conversation.session.panel.section',
     'conversation.view',
     'main',
     'sidebar.panellist',

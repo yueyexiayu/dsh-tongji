@@ -31,6 +31,7 @@ export interface SettingsState {
   overviewRange: DefaultOverviewRange
   fleetTab: FleetTab
   statsSection: StatsSection
+  statsDock: StatsSection
   promptPrefix: string
   promptSuffix: string
   writable: boolean
@@ -50,6 +51,7 @@ export interface ContextSettings {
   defaultOverviewRange(): DefaultOverviewRange
   fleetTab(): FleetTab
   statsSection(): StatsSection
+  statsDock(): StatsSection
   attach(scope: SettingsScopeLike): () => void
   set(field: SettingsField, value: string): void
 }
@@ -67,6 +69,7 @@ type Prefs = {
   overviewRange?: DefaultOverviewRange
   fleetTab?: FleetTab
   statsSection?: StatsSection
+  statsDock?: StatsSection
   promptPrefix?: string
   promptSuffix?: string
 }
@@ -93,13 +96,14 @@ function prefsOf(value: unknown): Prefs {
     ...(v.defaultOverviewRange === 'today' || v.defaultOverviewRange === '7d' || v.defaultOverviewRange === '30d' ? { overviewRange: v.defaultOverviewRange } : {}),
     ...(v.fleetTab === 'show' || v.fleetTab === 'hide' ? { fleetTab: v.fleetTab } : {}),
     ...(v.statsSection === 'show' || v.statsSection === 'hide' ? { statsSection: v.statsSection } : {}),
+    ...(v.statsDock === 'show' || v.statsDock === 'hide' ? { statsDock: v.statsDock } : {}),
     ...(typeof v.promptPrefix === 'string' ? { promptPrefix: v.promptPrefix } : {}),
     ...(typeof v.promptSuffix === 'string' ? { promptSuffix: v.promptSuffix } : {}),
   }
 }
 
 export function createContextSettings(): ContextSettings {
-  let state: SettingsState = { status: 'loading', placement: 'show', granularity: 'step', mode: 'total', deltaBase: 'step', toolSort: 'count', fileSort: 'lines', insightsEntry: 'show', durationCurve: 'show', overviewAutoSteps: '100', overviewRange: '30d', fleetTab: 'show', statsSection: 'show', promptPrefix: '', promptSuffix: '', writable: false }
+  let state: SettingsState = { status: 'loading', placement: 'show', granularity: 'step', mode: 'total', deltaBase: 'step', toolSort: 'count', fileSort: 'lines', insightsEntry: 'show', durationCurve: 'show', overviewAutoSteps: '100', overviewRange: '30d', fleetTab: 'show', statsSection: 'show', statsDock: 'show', promptPrefix: '', promptSuffix: '', writable: false }
   let scope: SettingsScopeLike | undefined
   const listeners = new Set<() => void>()
   const unchanged = (a: SettingsState, b: SettingsState): boolean =>
@@ -109,7 +113,7 @@ export function createContextSettings(): ContextSettings {
     state = next
     for (const listener of listeners) listener()
   }
-  const sync = (bound: SettingsScopeLike): { placement?: DefaultPlacement; insightsEntry?: InsightsEntry; fleetTab?: FleetTab; statsSection?: StatsSection } => {
+  const sync = (bound: SettingsScopeLike): { placement?: DefaultPlacement; insightsEntry?: InsightsEntry; fleetTab?: FleetTab; statsSection?: StatsSection; statsDock?: StatsSection } => {
     const snap = bound.getSnapshot()
     let prefs: Prefs = {}
     let raw: Record<string, unknown> | undefined
@@ -131,11 +135,12 @@ export function createContextSettings(): ContextSettings {
       overviewRange: prefs.overviewRange ?? (raw?.defaultOverviewRange === undefined ? state.overviewRange : '30d'),
       fleetTab: prefs.fleetTab ?? (raw?.fleetTab === undefined ? state.fleetTab : 'show'),
       statsSection: prefs.statsSection ?? (raw?.statsSection === undefined ? state.statsSection : 'show'),
+      statsDock: prefs.statsDock ?? (raw?.statsDock === undefined ? state.statsDock : 'show'),
       promptPrefix: prefs.promptPrefix ?? (raw?.promptPrefix === undefined ? state.promptPrefix : ''),
       promptSuffix: prefs.promptSuffix ?? (raw?.promptSuffix === undefined ? state.promptSuffix : ''),
       writable: snap.writable,
     })
-    return { placement: prefs.placement, insightsEntry: prefs.insightsEntry, fleetTab: prefs.fleetTab, statsSection: prefs.statsSection }
+    return { placement: prefs.placement, insightsEntry: prefs.insightsEntry, fleetTab: prefs.fleetTab, statsSection: prefs.statsSection, statsDock: prefs.statsDock }
   }
   return {
     store: {
@@ -157,6 +162,7 @@ export function createContextSettings(): ContextSettings {
     defaultOverviewRange: () => state.overviewRange,
     fleetTab: () => state.fleetTab,
     statsSection: () => state.statsSection,
+    statsDock: () => state.statsDock,
     attach(bound) {
       scope = bound
       sync(bound)
@@ -177,6 +183,7 @@ export function createContextSettings(): ContextSettings {
         else if (field === 'insightsEntry' && truth.insightsEntry === undefined) refused.insightsEntry = 'show'
         else if (field === 'fleetTab' && truth.fleetTab === undefined) refused.fleetTab = 'show'
         else if (field === 'statsSection' && truth.statsSection === undefined) refused.statsSection = 'show'
+        else if (field === 'statsDock' && truth.statsDock === undefined) refused.statsDock = 'show'
         if (Object.keys(refused).length > 0) publish({ ...state, ...refused })
       })
     },

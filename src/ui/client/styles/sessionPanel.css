@@ -1,13 +1,54 @@
 /*
- * 会话面板内的排版覆盖。
- *
- * 0.1.33–0.1.37 尝试过用 CSS 变量把面板加宽到 600–720px 并让正文左移，实测会把正文与输入框
- * 推出可视区（DSH 的面板宽度与「正文让位」是同一个量，强行拆开就错位）。那段实验已全部移除，
- * 面板宽度、正文宽度、end inset 都回到 DSH 官方值。
- *
- * 只保留一条无害规则：面板自身够宽时（≥470px，DSH 官方宽度下不会触发），卡片两两并排。
+ * 统计在对话里的排版。主入口是 composer dock 里的那张卡片（输入框上方），
+ * 宽度跟随对话列，不参与会话面板的让位计算，因此不会挤压正文或 composer。
  */
 
+.lc-dock {
+  width: min(100%, 912px);
+  margin: 0 auto 6px;
+}
+
+.lc-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.lc-dock-head:hover {
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+.lc-dock-title {
+  font-weight: 500;
+}
+
+.lc-dock-action {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+}
+
+.lc-dock-body {
+  max-height: 52vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+/* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */
+.lc-dock .lc-root,
 [data-session-panel] .lc-root {
   container-type: inline-size;
 }

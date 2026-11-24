@@ -21,6 +21,7 @@ import { watchHistoryFaces } from './historyPage'
 import { resetVersionSource } from './versionSource'
 import { watchPlacement } from './placement'
 import { watchPanelSection } from './sessionPanel'
+import { watchComposerDock } from './composerDock'
 import { makeViewKit } from './viewkit'
 
 import './styles/tailwind.css'
@@ -74,6 +75,14 @@ function apply(ctx: ClientCtx): void {
   const heads = makeAgentHeads()
   const ContextView = makeContextView(ctx, kit, settings, heads)
   const FleetView = makeFleetView(ctx, kit, heads)
+
+  ctx.effect(() => watchComposerDock(
+    ctx,
+    settings,
+    props => h(ContextView, props),
+    t,
+    NS,
+  ), 'tongji: composer dock')
 
   ctx.effect(() => watchPanelSection(
     ctx,

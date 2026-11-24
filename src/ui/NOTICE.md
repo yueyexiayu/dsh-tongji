@@ -79,6 +79,13 @@ Apache License 2.0，原文见同目录 `LICENSE`。
   「进行中」。`contextTimeline` 状态版本 44→45。实测 `session-8ca623e4` 折叠后 `failedAgents` 只有
   `949f3d72`（metrics），另外三个 completed 不入表。
 
+- 0.1.39：统计换挂载点——从「会话面板分栏」改成 composer dock（输入框上方）里的一张折叠卡片，
+  注册槽位 `conversation.composer.dock`。宽度跟随对话列（≤912px），展开后卡片两两并排，折叠状态
+  记在 localStorage，与宿主的让位/宽度模型完全无关，不再挤压正文与 composer。来源是实测：把宿主
+  `--panel-min-width` 改到 760px 后，面板确实 docked 760、正文 782，但 `composerSeat` 变成
+  `display:none`、input 槽计数为 0（诊断读数 `seats 1: none 0×0` / `inputs 0 · chats 0`），
+  输入框不再渲染；宿主那条「面板宽度=正文让位」的耦合拆不动。新增设置项「对话内统计卡片」，
+  与「对话右侧统计分栏」二选一：`statsDock` 开启时不再注册 `conversation.session.panel.section`。
 - 0.1.38：回滚 0.1.33–0.1.37 的面板加宽实验。那五版都在改写宿主的 `--panel-min-width`、
   `--dsh-chat-content-width-resolved`、`--dsh-chat-end-inset`，实测（多处用户截图 + 本机 1023×1423
   视口读数）会把正文列与 composer 推出可视区，最后一版甚至整屏错位。原因是 DSH 把「面板宽度」

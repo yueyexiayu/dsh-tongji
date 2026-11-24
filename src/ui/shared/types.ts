@@ -193,6 +193,7 @@ export interface PluginSettings {
   defaultOverviewRange: DefaultOverviewRange
   fleetTab: FleetTab
   statsSection: StatsSection
+  statsDock: StatsSection
   promptPrefix: string
   promptSuffix: string
 }

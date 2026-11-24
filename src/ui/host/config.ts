@@ -49,6 +49,7 @@ export const Config = z.object({
   defaultOverviewRange: volatileField(z.union(['today', '7d', '30d']).default('30d').loose()),
   fleetTab: volatileField(z.union(['show', 'hide']).default('show').loose()),
   statsSection: volatileField(z.union(['show', 'hide']).default('show').loose()),
+  statsDock: volatileField(z.union(['show', 'hide']).default('show').loose()),
   promptPrefix: volatileField(z.string().default('').loose()),
   promptSuffix: volatileField(z.string().default('').loose()),
 })

@@ -176,6 +176,8 @@ function PreferenceRows(props: { t: Translate; state: SettingsState; set?: Setti
           onPick={(id) => { set?.('fleetTab', id) }} />
         <ShowHideRow t={t} label={t('settings.statsSection')} value={state.statsSection} disabled={disabled}
           onPick={(id) => { set?.('statsSection', id) }} />
+        <ShowHideRow t={t} label={t('settings.statsDock')} value={state.statsDock} disabled={disabled}
+          onPick={(id) => { set?.('statsDock', id) }} />
       </Group>
       <Group title={t('settings.group.view')}>
         <PrefRow
