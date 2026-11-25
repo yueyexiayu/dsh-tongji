@@ -54,20 +54,34 @@
   display: none !important;
 }
 
-/*
- * The host panel normally paints an opaque bg-layer-1 surface. Keep its text
- * and controls readable while letting the conversation wallpaper show through:
- * 67% tint means one third of the surface is transparent.
- */
-[data-session-panel] {
+/* Paint the host frame only while it contains the statistics section. The
+ * reflections stay in the edge bands so wallpaper detail reads through. */
+[data-session-panel]:has(> [data-session-panel-section="tongji"]) {
   --lc-canvas: transparent;
-  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 67%, transparent) !important;
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  --tongji-glass-frame: rgb(4 14 31 / .18);
+  --tongji-glass-card: rgb(5 15 31 / .41);
+  --tongji-glass-rim: rgb(166 201 236 / .36);
+  --tongji-glass-light: rgb(226 243 255 / .66);
+  --tongji-glass-reflection: rgb(157 217 255 / .52);
+  --tongji-glass-shadow: rgb(2 11 29 / .50);
+  background:
+    linear-gradient(90deg, transparent, var(--tongji-glass-light) 12%, transparent 55%) left top / 100% 3px no-repeat,
+    linear-gradient(90deg, transparent 45%, var(--tongji-glass-reflection) 88%, transparent) right bottom / 100% 3px no-repeat,
+    var(--tongji-glass-frame) !important;
+  box-shadow: inset 0 0 0 1px var(--tongji-glass-rim), 0 8px 18px var(--tongji-glass-shadow);
 }
 
-[data-session-panel] .lc-root .lc-card {
-  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent) !important;
+body:not([data-ds-dark-theme]) [data-session-panel]:has(> [data-session-panel-section="tongji"]) {
+  --tongji-glass-frame: rgb(235 244 255 / .48);
+  --tongji-glass-card: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 82%, transparent);
+  --tongji-glass-rim: rgb(105 142 184 / .38);
+  --tongji-glass-light: rgb(255 255 255 / .9);
+  --tongji-glass-reflection: rgb(153 196 235 / .68);
+  --tongji-glass-shadow: rgb(48 75 111 / .18);
+}
+
+[data-session-panel] [data-session-panel-section="tongji"] .lc-root .lc-card {
+  background-color: var(--tongji-glass-card);
 }
 
 /* 卡片在宽容器里两两并排；按容器自身宽度判断，不看窗口。 */

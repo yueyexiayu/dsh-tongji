@@ -6,7 +6,7 @@ const css = readFileSync(new URL('../src/ui/client/styles/sessionPanel.css', imp
 
 function declarationsOf(selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const rules = [...css.matchAll(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`, 'g'))]
+  const rules = [...css.matchAll(new RegExp(`^\\s*${escaped}\\s*\\{([^}]*)\\}`, 'gm'))]
   assert.notEqual(rules.length, 0, `missing rule for ${selector}`)
   return Object.fromEntries(
     rules
@@ -20,6 +20,17 @@ function declarationsOf(selector) {
       })),
   )
 }
+
+test('glass tints only the session panel containing the statistics section', () => {
+  const statistics = '[data-session-panel-section="tongji"]'
+  const frame = declarationsOf(`[data-session-panel]:has(> ${statistics})`)
+  const card = declarationsOf(`[data-session-panel] ${statistics} .lc-root .lc-card`)
+
+  assert.equal(frame['--tongji-glass-card'], 'rgb(5 15 31 / .41)')
+  assert.equal(card['background-color'], 'var(--tongji-glass-card)')
+  assert.equal(card.opacity, undefined)
+  assert.doesNotMatch(css, /backdrop-filter\s*:/)
+})
 
 test('the stats panel geometry is derived once and shared with its dock probe', () => {
   const body = declarationsOf('[data-conversation-content]')
