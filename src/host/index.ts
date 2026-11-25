@@ -26,6 +26,7 @@ export { createOverviewCache, type CacheSaveMode } from '../ui/host/overviewCach
 export { applyTimeline, createTimelineState } from '../ui/host/fold'
 export { applyActivity, createActivityState } from '../ui/host/activity'
 export { DEFAULT_BOUNDS } from '../ui/host/config'
+export { createContextTimelineDefinition } from '../ui/host/timeline'
 // Exported for the SSH route tests: the parsers the route and the card share.
 export { parseSshConfig, sshCheckCommand, sshConnectDetails, sshDestinations, sshEndpoint } from '../ui/shared/sshTargets'
 export { registerSshRoute, type SshPayload } from '../ui/host/sshRoute'

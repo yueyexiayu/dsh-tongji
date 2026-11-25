@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyTimeline, createTimelineState, DEFAULT_BOUNDS } from '../lib/index.js';
+import { applyTimeline, createTimelineState, DEFAULT_BOUNDS, createContextTimelineDefinition } from '../lib/index.js';
 
 const BASE = Date.UTC(2026, 10, 23, 9, 0, 0);
 
@@ -39,4 +39,19 @@ test('only the errored subagent is flagged', () => {
   state = applyTimeline(state, settled(1, 'agent-a', 'completed'), DEFAULT_BOUNDS);
   state = applyTimeline(state, settled(2, 'agent-b', 'error'), DEFAULT_BOUNDS);
   assert.deepEqual(state.failedAgents, { 'agent-b': true });
+});
+
+test('history wire views accept failure markers without relaxing the strict schema', () => {
+  for (const slim of [true, false]) {
+    const definition = createContextTimelineDefinition({}, () => slim);
+    const initial = definition.init({}, 0);
+    const normal = definition.apply(initial, settled(1, 'agent-done', 'completed'));
+    const failed = definition.apply(normal, settled(2, 'agent-failed', 'error'));
+    const { view, viewSchema } = definition.wire;
+    assert.equal(viewSchema.parse(view(normal)).failedAgents, undefined);
+    const packet = view(failed);
+    assert.deepEqual(viewSchema.parse(packet).failedAgents, { 'agent-failed': true });
+    assert.equal(viewSchema.safeParse({ ...packet, failedAgents: ['agent-failed'] }).success, false);
+    assert.equal(viewSchema.safeParse({ ...packet, unexpected: true }).success, false);
+  }
 });

@@ -267,6 +267,7 @@ export const contextTimelineSchema = z.object({
   cost: costUsageSchema.optional(),
   timing: timingTotalsSchema.optional(),
   systems: z.array(systemPromptNodeSchema).optional(),
+  failedAgents: z.record(z.string(), z.boolean()).optional(),
   nodes: z.array(surfaceNodeSchema).optional(),
   droppedNodes: z.number().int().nonnegative().optional(),
   archive: z.array(surfaceNodeSchema).optional(),
