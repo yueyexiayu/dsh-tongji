@@ -4,7 +4,7 @@
   <p><strong>DSH 会话可观测性面板：用量、上下文、编队与洞察</strong></p>
   <p>本地 Desktop 插件。读取 DSH 会话统计快照、会话投影与会话日志，展示 token 用量、上下文构成、工具与命令活动、子代理编队和跨会话总览；不展示任何账户余额或费用。</p>
   <p><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
-  <p>Desktop 插件 · v0.1.51 · Apache-2.0</p>
+  <p>Desktop 插件 · v0.1.52 · Apache-2.0</p>
   <p><a href="#功能面">功能面</a> · <a href="#数据来源与刷新">数据来源与刷新</a> · <a href="#安装">安装</a> · <a href="#配置">配置</a> · <a href="#构建与验证">构建与验证</a> · <a href="#限制">限制</a> · <a href="#许可">许可</a></p>
 </div>
 
@@ -16,7 +16,7 @@
 
 | 入口 | 位置 | 内容 |
 | --- | --- | --- |
-| 统计 | 对话右侧的「会话面板」分栏（DSH 标题栏的会话面板开关可隐藏；面板宽度沿用 DSH 官方 300–360px，插件不再改写宿主布局） | 会话总计、每轮用量、缓存命中率、上下文构成、Agent 网络、后台任务、SSH 连接 |
+| 统计 | 对话右侧的「会话面板」分栏（DSH 标题栏的会话面板开关可隐藏；分栏按对话视口 37.5% 比例分宽、上限 720px，并覆盖宿主 `--panel-min-width` 等变量以保住分隔比例） | 会话总计、每轮用量、缓存命中率、上下文构成、Agent 网络、后台任务、SSH 连接 |
 | 统计面板 | 对话视图标签页（可关闭） | 同「统计」，另加上下文时间线、请求详情、工具定义、文件活动、命令执行、上下文事件 |
 | 编队 | 对话视图标签页（可关闭） | 子代理树、Agent 网络图、任务与往来消息 |
 | 上下文洞察 | 主页面 + 侧栏面板入口（可关闭） | 跨会话总览、趋势、技能目录、推荐位 |
@@ -26,7 +26,7 @@
 
 ## 语言
 
-界面**只有中文**，词典只有一份（763 条），没有第二份文案需要维护。DSH 语言服务的回退链固定以 `en` 收尾（`FALLBACK_LOCALE`），所以 `en` 位置指向同一份中文词典：即使把 DSH 切成英文界面，面板显示的仍是中文，不会露出 `turnusage.title` 这类键名。插件列表卡片保留 `locale/zh.json` 与 `locale/en.json`（各 122 字节），那是 DSH 插件清单的元数据，不是面板界面。
+界面**只有中文**，词典只有一份（783 条），没有第二份文案需要维护。DSH 语言服务的回退链固定以 `en` 收尾（`FALLBACK_LOCALE`），所以 `en` 位置指向同一份中文词典：即使把 DSH 切成英文界面，面板显示的仍是中文，不会露出 `turnusage.title` 这类键名。插件列表卡片保留 `locale/zh.json`（125 字节）与 `locale/en.json`（133 字节），那是 DSH 插件清单的元数据，不是面板界面。
 
 ## 功能面
 
@@ -63,7 +63,7 @@
 - 磁盘总览缓存一次只合并本次新增的会话，不再整份覆盖；条目按最近更新时间保留，上限 4000 条 / 24 MB。
 - 面板打开时，每轮用量卡按 5 秒轮询；总览按其自身节奏刷新。面板关闭即停止轮询。
 - 网络访问共三处，全部可降级：版本检查（本仓库的 GitHub Releases，失败只影响版本提示）、推荐位清单（`raw.githubusercontent.com`，失败回退 `gh-proxy.org` 镜像）、推荐位图标（`cdn.simpleicons.org`）。它们都不影响其余面板。
-- Host 路由共 14 条，前缀 `/api/tongji/`：`version`、`skills`、`recom`、`fleet`、`attachment`、`detail`、`delta`、`facts`、`heads`、`commands`、`snapshot`、`overview`、`backfill`、`usage`。
+- Host 路由共 15 条，前缀 `/api/tongji/`：`version`、`skills`、`recom`、`fleet`、`attachment`、`detail`、`delta`、`facts`、`heads`、`commands`、`snapshot`、`overview`、`backfill`、`usage`、`ssh`；逐条方法、参数、返回与错误码见 [`docs/API.md`](docs/API.md)。
 
 ## 安装
 
@@ -126,7 +126,7 @@ npm run verify  # node --check 三个产物 + tsc --noEmit + 全部测试
 
 产物自包含：`lib/index.js` 只依赖 `node:` 内置与 `./usage.js`，`lib/client.js` 没有外部 `require`，运行时不需要 `node_modules`。
 
-当前 `v0.1.30` 的实测结果：`npm run build` 与 `npm run verify` 通过（`verify` = 产物语法检查 + `tsc --noEmit` + 测试），测试 45 例全绿：3 例版本探测、4 例缓存合并与上限、2 例生命周期边界、3 例继承前缀（`seedCut`）、3 例子代理失败态、8 例作业折叠（登记/结算/后台标记/脱离检测，含 `zsh` 与缓冲命令）、22 例既有用例；原先的 10 例价格与成本用例随功能下线一并删除。
+当前 `v0.1.52` 的实测结果：`npm run build` 与 `npm run verify` 都通过（`verify` = 产物语法检查 + `tsc --noEmit` + 61 例测试，61 通过 / 0 失败，约 0.3 秒）；逐项分项、环境与未验收项见 [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md)，测试分布与已覆盖/未覆盖范围见 [`docs/TESTING.md`](docs/TESTING.md)。
 
 ## 限制
 
@@ -140,6 +140,7 @@ npm run verify  # node --check 三个产物 + tsc --noEmit + 全部测试
 - 面板的工作区根取自 DSH 的 `workingDirectory` 投影（跟随目录切换）；DSH 自己的会话列表仍用会话头里的根，切目录后两者可能不一致。
 - 后台任务卡片只覆盖 DSH 作业事件能关联到命令的作业（`bash` / `zsh` / `pwsh` / `run_code` 中的命令）；命令面板里的「后台」计数还会把结果文本含后台确认的 `run_code` 记录算进去，两者可能对不上。
 - 后台任务卡片的真实界面渲染未在本次改动上复测（插件改动需重开 DSH 才加载）；数据层已用真实会话日志折叠验证。
+- 统计分栏是比例分宽（`min(720px, 对话视口 × 0.375)`），并以 `!important` 覆盖宿主的 `--panel-min-width`、`--dsh-chat-content-width-resolved`、`--dsh-chat-end-inset`。早期文案写的「沿用官方 300–360px、不再改写宿主布局」已不成立，取舍经过见 `docs/DECISIONS.md` 的 ADR-005 / ADR-006。
 
 ## 许可
 

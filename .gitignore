@@ -1,5 +1,8 @@
 node_modules/
 .DS_Store
+
+# 纪律审计的过程产物（scan.json / judge.json）
+.jilv/
 *.log
 *.db
 *.sqlite

@@ -4,7 +4,7 @@
   <p><strong>Session observability for DSH: usage, context, fleet and insights</strong></p>
   <p>A local Desktop plugin that reads DSH statistics snapshots, session projections and session logs to show token usage, context composition, tool and command activity, sub-agent fleets and cross-session overviews. It shows no account balance and no cost.</p>
   <p><a href="README.md">简体中文</a> · <strong>English</strong></p>
-  <p>Desktop plugin · v0.1.51 · Apache-2.0</p>
+  <p>Desktop plugin · v0.1.52 · Apache-2.0</p>
   <p><a href="#surfaces">Surfaces</a> · <a href="#data-and-refresh">Data and refresh</a> · <a href="#installation">Installation</a> · <a href="#configuration">Configuration</a> · <a href="#build-and-verification">Build and verification</a> · <a href="#limitations">Limitations</a> · <a href="#license">License</a></p>
 </div>
 
@@ -26,7 +26,7 @@
 
 ## Languages
 
-The interface is **Chinese only**: one dictionary (763 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` and `locale/en.json` (122 bytes each); those are DSH plugin-manifest metadata, not panel chrome.
+The interface is **Chinese only**: one dictionary (783 entries), no second copy to maintain. The DSH language service always ends its fallback chain at `en` (`FALLBACK_LOCALE`), so the `en` slot points at that same Chinese dictionary — switching DSH to an English interface still renders Chinese and never leaks raw keys such as `turnusage.title`. The plugin-list card keeps `locale/zh.json` (125 bytes) and `locale/en.json` (133 bytes); those are DSH plugin-manifest metadata, not panel chrome.
 
 ## Features
 
@@ -63,7 +63,7 @@ The prefix and suffix from the settings card are spliced at the very start and e
 - The on-disk overview cache merges only the sessions this run refreshed instead of overwriting itself, and keeps the 4000 most recently updated entries under 24 MB.
 - While the pane is open, the per-turn usage card polls every five seconds and the overview refreshes on its own cadence; closing the pane stops the polling.
 - Three network calls exist, all degradable: the update check against this repository's GitHub releases (a failure affects only the version hint), the recommendation feed from `raw.githubusercontent.com` (falls back to the `gh-proxy.org` mirror), and recommendation icons from `cdn.simpleicons.org`.
-- The Host exposes fourteen routes under `/api/tongji/`: `version`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`.
+- The Host exposes fifteen routes under `/api/tongji/`: `version`, `skills`, `recom`, `fleet`, `attachment`, `detail`, `delta`, `facts`, `heads`, `commands`, `snapshot`, `overview`, `backfill`, `usage`, `ssh`; see [`docs/API.md`](docs/API.md) for the per-route contract.
 
 ## Installation
 
@@ -126,7 +126,7 @@ npm run verify  # node --check on all three artifacts, tsc --noEmit, and the who
 
 The artifacts stay self-contained: `lib/index.js` imports only `node:` builtins and `./usage.js`, and `lib/client.js` has no external `require`, so no `node_modules` is needed at runtime.
 
-On `v0.1.30`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then the suite) with 45 tests green: three version-probe cases, four cache-merge and bound cases, two lifecycle-boundary cases, three inherited-prefix cases (`seedCut`), three subagent-failure cases, eight job-fold cases (registration, settlement, background marking, detachment, `zsh` and buffered commands), and the 22 existing cases; the ten pricing and cost cases were removed with the feature.
+On `v0.1.52`, `npm run build` and `npm run verify` both pass (`verify` = artifact syntax checks, `tsc --noEmit`, then 61 tests: 61 pass / 0 fail in about 0.3 s); the per-case breakdown, environment and unverified items live in [`docs/ACCEPTANCE.md`](docs/ACCEPTANCE.md), and the coverage gaps in [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Limitations
 
@@ -140,6 +140,7 @@ On `v0.1.30`, `npm run build` and `npm run verify` both pass (`verify` = artifac
 - The panel's workspace root comes from DSH's `workingDirectory` projection, which follows a directory change; DSH's own session list still uses the root in the session header, so the two can differ after a `cd`.
 - The background-job card covers only jobs whose DSH job event can be tied to a command (`bash`, `zsh`, `pwsh` or a command inside `run_code`); the command log's background count also includes `run_code` records whose result text carried a background acknowledgement, so the two counts can disagree.
 - The background-job card was not re-rendered in the real UI for this change (plugin code loads only after DSH restarts); its data layer was verified by folding a real session log.
+- The statistics section uses a proportional split (`min(720px, conversation viewport × 0.375)`) and overrides the host's `--panel-min-width`, `--dsh-chat-content-width-resolved` and `--dsh-chat-end-inset` with `!important`. Earlier wording claiming it keeps the official 300–360px and leaves the host layout untouched no longer holds; see ADR-005 / ADR-006 in `docs/DECISIONS.md`.
 
 ## License
 
