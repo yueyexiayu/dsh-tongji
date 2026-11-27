@@ -17,7 +17,7 @@
 | npm | 11.20.0 | `npm -v` |
 | 运行中的 DSH | 0.2.3-alpha.2 | `PlistBuddy -c 'Print :CFBundleShortVersionString' "/Applications/DeepSeek Harness.app/Contents/Info.plist"` |
 | 构建期 DSH 依赖 | 0.2.2-rc.5 | `package.json` 的 `devDependencies` |
-| 代码基线 | `cbccac0`（文档补齐提交；build/verify 跑在其工作树） | `git rev-parse --short HEAD` |
+| 代码基线 | `b5a85cd`（`cbccac0` 文档补齐 + `b5a85cd` tag 勘误；build/verify 跑在 `cbccac0` 的工作树上，勘误只改文档） | `git rev-parse --short HEAD` |
 
 构建期依赖与运行中的 DSH 版本不同，这是本仓库的已知状态（见 README「限制」）。
 

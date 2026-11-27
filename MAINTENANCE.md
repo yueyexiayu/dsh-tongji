@@ -7,7 +7,7 @@
 | 项 | 值 | 证据 |
 | --- | --- | --- |
 | 插件版本 | `0.1.52` | `package.json:3`、`README.md:7` |
-| 代码基线 | `cbccac0`（`main`，文档补齐提交；其父提交 `810c79a`） | `git rev-parse --short HEAD` |
+| 代码基线 | `b5a85cd`（`main`；`cbccac0` 文档补齐 + `b5a85cd` tag 勘误，父提交 `810c79a`） | `git rev-parse --short HEAD` |
 | 最新 git tag | `v0.1.52`（共 51 个 tag，`v0.1.41`–`v0.1.51` 均已发布） | `git tag --list \| sort -V \| tail` |
 | 运行中的 DSH | `0.2.3-alpha.2` | `PlistBuddy -c 'Print :CFBundleShortVersionString' "/Applications/DeepSeek Harness.app/Contents/Info.plist"` |
 | 构建期 DSH 依赖 | `0.2.2-rc.5` | `package.json:33-40` |
