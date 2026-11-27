@@ -7,8 +7,8 @@
 | 项 | 值 | 证据 |
 | --- | --- | --- |
 | 插件版本 | `0.1.52` | `package.json:3`、`README.md:7` |
-| 代码基线 | `810c79a`（`main`） | `git rev-parse --short HEAD` |
-| 最新 git tag | `v0.1.40`（共 15 个 tag） | `git tag --list \| sort -V \| tail` |
+| 代码基线 | `cbccac0`（`main`，文档补齐提交；其父提交 `810c79a`） | `git rev-parse --short HEAD` |
+| 最新 git tag | `v0.1.52`（共 51 个 tag，`v0.1.41`–`v0.1.51` 均已发布） | `git tag --list \| sort -V \| tail` |
 | 运行中的 DSH | `0.2.3-alpha.2` | `PlistBuddy -c 'Print :CFBundleShortVersionString' "/Applications/DeepSeek Harness.app/Contents/Info.plist"` |
 | 构建期 DSH 依赖 | `0.2.2-rc.5` | `package.json:33-40` |
 | 代码内置最低基线 | `0.2.0-rc.2` | `src/ui/shared/version.ts:1` |
@@ -164,7 +164,7 @@ rm -rf "$ROOT/storages/tongji" "$ROOT/cache/tongji"
 
 ### 4.2 回滚代码：按 tag 或按提交
 
-先看清现实：**tag 只到 `v0.1.40`，当前 HEAD 的版本是 `0.1.52`**（`git tag --list | sort -V | tail` → `v0.1.40`；`package.json:3` → `0.1.52`）。`git rev-list --count v0.1.40..HEAD` 实测 **12 个提交**（提交信息里的版本号从 `v0.1.41` 一路写到 `v0.1.50`，其后还有两个未写版本号的 `696d4f2`、`810c79a`）。也就是说回滚到最新 tag 会丢掉 0.1.41–0.1.52 的全部改动，包括会话面板分宽的一系列调整。
+先看清现实：**最新 tag 是 `v0.1.52`，与当前 `package.json` 版本一致**（`git tag --list | sort -V | tail` → `v0.1.52`）。要退回上一版用 `v0.1.51`（`git rev-list --count v0.1.51..HEAD` = 1 个提交，即本次文档补齐）。注意：本机 clone 若没跑过 `git fetch --tags`，`git tag` 只会显示到 `v0.1.40`，回滚前先同步 tag，否则会误以为「最新只有 0.1.40」。
 
 1. 别把工作区改动弄丢——本仓库在本机长期是「脏工作区」：`lib/*` 被重新构建过、文档轮次里 `README.md` / `package.json` / `docs/*` 也在改。回滚前先自己看一眼当下状态，别照抄别人的清单：
 
@@ -175,7 +175,7 @@ git stash push -u -m "pre-rollback $(date +%Y%m%d-%H%M%S)"
 ```
 
 2. 选目标版本：
-   - 回到最新 tag：`git checkout v0.1.40`
+   - 回到最新 tag：`git checkout v0.1.52`；退回上一版用 `git checkout v0.1.51`
    - 回到某个更近的提交：从 `git log --oneline` 里按提交信息里的版本号挑，例如 `git checkout a819242`（该提交信息为 `fix: keep stats panel docked at default window sizes (v0.1.50)`）
 3. 重建产物（`lib/` 是构建产物，不能手改，`AGENTS.md` §3）：`npm run build && npm run verify`。若目标 tag 的 `devDependencies` 与现有 `node_modules` 不一致，先在该提交上 `npm install`。
 4. ⌘Q 完全退出 DSH 再打开，按 3.4 点验。

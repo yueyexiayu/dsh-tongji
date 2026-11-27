@@ -5,15 +5,15 @@
 ## 记录口径
 
 - **版本号规则**：`0.1.x` 单行递增、每次交付把补丁位 +1（`0.1.9` → `0.1.10` → `0.1.11` …）。版本号写在 `package.json:3`，README 顶部另有一处声明（`README.md:7`、`README.en.md:7`），规则见 `AGENTS.md:45-46`。
-- **tag 形式**：`v<version>`，指向 `package.json` 版本号相同的提交（15 个 tag 逐个用 `git show <tag>:package.json` 核对过）。`v0.1.14`、`v0.1.15` 是带说明的 annotated tag，其余为轻量 tag（`git for-each-ref refs/tags --format='%(refname:short) %(objecttype)'`）。
-- **记录起点**：本文件于 2026-11-28 建立，回溯到首个提交 `5515882`（2026-11-01，tag `v0.1.1`），覆盖全部 56 个提交（`git rev-list --count HEAD`）。
+- **tag 形式**：`v<version>`，指向 `package.json` 版本号相同的提交。远端共 51 个 tag（`v0.1.1`–`v0.1.52`，缺 `v0.1.3`），每个都用 `git show <tag>:package.json` 核对过版本号；本机 clone 若没跑过 `git fetch --tags`，只会看到其中一部分。`v0.1.14`、`v0.1.15` 是带说明的 annotated tag，其余为轻量 tag（`git for-each-ref refs/tags --format='%(refname:short) %(objecttype)'`）。
+- **记录起点**：本文件于 2026-11-28 建立，回溯到首个提交 `5515882`（2026-11-01，tag `v0.1.1`），覆盖至文档补齐提交 `cbccac0`；初稿按当时可见的 56 个提交写成，`cbccac0` 本身记在 v0.1.52 一节。
 - **生成方式**：`git tag --list | sort -V` 取版本清单；`git log --pretty=format:'%h %ad %s' --date=short` 取提交与日期；每个版本用 `git log --oneline <上一个 tag>..<本 tag>` 聚合该版本内的提交。没有 tag 的版本用 `git show <hash>:package.json` 复原版本号。
 - **分类**：沿用 Keep a Changelog 的 Added / Changed / Fixed / Removed；同一分类内按提交从新到旧。中文标题的提交按原文，英文标题按原意简写，不扩写。
 - **证据边界**：只写提交信息与 `git show --stat` 能支撑的内容。提交信息没讲清的，只写它能支撑的部分，不补功能描述。
 
-## 未发布
+## v0.1.41 – v0.1.52
 
-当前 HEAD 为 `810c79a`（2026-11-25），相对最高 tag `v0.1.40` 有 12 个提交（`git log --oneline v0.1.40..HEAD`；`git describe --tags` 输出 `v0.1.40-12-g810c79a`）。这批提交把版本号从 0.1.41 一路推到 0.1.51；另有未提交的工作区改动把 `package.json:3` 提到 `0.1.52`（见文末「已知不一致」）。
+这批提交共 12 个（`git log --oneline v0.1.40..v0.1.51`），已逐版本打 tag `v0.1.41`–`v0.1.51`；`v0.1.52` 是 2026-11-28 的文档补齐提交 `cbccac0`（`git log --oneline v0.1.51..HEAD` 只有它一个）。本文件对这些版本按提交聚合列出，逐版本对照以 tag 为准。
 
 ### Changed
 
@@ -29,10 +29,11 @@
 ### Added
 
 - 新增测例文件 `tests/sessionPanelStyles.test.js`（`a819242` 建立，`696d4f2` 在同一文件补 clear glass 断言）；两个提交都同时改 `src/ui/client/styles/sessionPanel.css`。
+- 工程文档补齐（`cbccac0`，0.1.52）：新增 `docs/PRODUCT.md`、`docs/API.md`、`docs/TESTING.md`、`docs/ACCEPTANCE.md`、`docs/DECISIONS.md`、`CHANGELOG.md`、`MAINTENANCE.md`、`AGENTS.md`；README 校正路由条数（14→15）、面板分宽口径、词典条数与实测记录。
 
 ## v0.1.40 — 2026-11-24
 
-区间 `v0.1.15..v0.1.40` 共 28 个提交。这段时间版本号逐次走过 0.1.16–0.1.40，但只有 0.1.40 打了 tag；每条末尾给出该提交当时的 `package.json` 版本，便于对齐提交信息里的 `(v0.1.x)` 标注。
+区间 `v0.1.15..v0.1.40` 共 28 个提交。这段时间版本号逐次走过 0.1.16–0.1.40，每个版本都有对应 tag（`v0.1.16`–`v0.1.40`）；为避免把 28 个近乎单提交的版本摊成 28 节，本节按提交聚合，每条末尾给出该提交当时的 `package.json` 版本，便于对齐提交信息的 `(v0.1.x)` 标注与 tag。
 
 ### Added
 
@@ -167,12 +168,12 @@
 
 ## 早期版本说明
 
-v0.1.1–v0.1.13 期间每个版本只有 1–2 个提交，上面的条目直接取自提交标题，没有更细的逐条记录；逐条细节只能回到 `git show <hash>`。这段历史里没有 tag 的是 `v0.1.3`——`package.json` 在 `v0.1.2` 是 `0.1.2`、在 `v0.1.4` 是 `0.1.4`，中间不存在 `0.1.3`。0.1.16–0.1.39 同样没有 tag，版本号只保留在 `package.json` 的提交历史里（见 v0.1.40 一节）。
+v0.1.1–v0.1.13 期间每个版本只有 1–2 个提交，上面的条目直接取自提交标题，没有更细的逐条记录；逐条细节只能回到 `git show <hash>`。这段历史里没有 tag 的是 `v0.1.3`——`package.json` 在 `v0.1.2` 是 `0.1.2`、在 `v0.1.4` 是 `0.1.4`，中间不存在 `0.1.3`。0.1.16–0.1.39 各自都有 tag，只是本文件按提交聚合、不单独成节（见 v0.1.40 一节）。
 
 ## 已知不一致
 
 1. **README 的版本与用例数曾写旧**：我在 2026-11-28 06:01 读到 `README.md:129` 写的是「当前 `v0.1.30` 的实测结果 … 测试 45 例全绿」，而当时 `package.json:3` 已是 `0.1.51`，本机实测 `npm test`（命令见 `package.json:21`）输出 `tests 61 / pass 61 / fail 0`。同一次工作中再次读取时，该行与 `README.en.md:129` 已被改写为 `v0.1.52` / 61 例（两个文件 mtime 均为 2026-11-28 06:02，`git status` 显示为未提交修改），推断是并行任务同步修掉了这条，现场已不存在。此处保留登记以备回溯，README 未由本文件改动。
-2. **tag 覆盖不全**：最高 tag 是 `v0.1.40`，但 `package.json:3` 当前写着 `0.1.52`（工作区未提交），HEAD 提交里是 `0.1.51`。0.1.41–0.1.50 的版本号只出现在提交标题的 `(v0.1.x)` 标注里，没有对应 tag，所以「未发布」一节按提交而不是按 tag 组织。
+2. **tag 视图曾因本地未同步而误判（已核实）**：生成初稿时本机只 fetch 到 `v0.1.40`，因此写成「最高 tag 是 `v0.1.40`、0.1.41 之后无 tag」。`git fetch --tags` 后实测远端共 51 个 tag（`v0.1.1`–`v0.1.52`，缺 `v0.1.3`），`v0.1.41`–`v0.1.51` 都在。版本号与 tag 一一对应，问题只在本地 clone 未同步 tag。
 3. **一个版本号对应多个提交**：0.1.26 对应 `12eabf1` 与 `50d171f`，0.1.30 对应 `f3153ab` 与 `e402c25`，0.1.50 对应 `696d4f2` 与 `a819242`（后一对里 `696d4f2` 只改样式与测试，没有升版本）。本文件按提交列条目，因此同一版本会出现多条。
 4. **`AGENTS.md` 引用的文档不齐**：`AGENTS.md:9-14` 与 `AGENTS.md:61-64` 指向 `docs/PRODUCT.md`、`docs/API.md`、`docs/TESTING.md`、`docs/DECISIONS.md`、`MAINTENANCE.md`。截至 2026-11-28 06:04 本机检查：`docs/` 下只有 `ACCEPTANCE.md`（06:02）、`DECISIONS.md`（06:03）与 `assets/`（历史文件），`docs/PRODUCT.md`、`docs/API.md`、`docs/TESTING.md`、`MAINTENANCE.md` 均不存在；而 `README.md:129` 已经链接 `docs/TESTING.md`。这几份是同一批并行任务正在新建的文件，此处登记的是当时快照，以仓库实际状态为准。
 5. **未验证**：撰写时 `git status` 显示 `lib/client.js`、`lib/index.js`、`lib/index.d.ts`、`lib/usage.js`、`lib/usage.d.ts` 有未提交改动，另有 `README.md`、`README.en.md`、`package.json`、`.gitignore` 未提交。按任务约束本次没有执行 `npm run build`，因此无法确认这些 `lib` 产物与当前 `src/` 是否同步，也无法确认工作区里 `0.1.52` 的版本声明会不会随下一次提交落地。`npm test` 的 61 例结果只针对当前工作区代码，不代表 `lib` 产物与 `src` 的一致性。
